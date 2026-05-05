@@ -380,12 +380,15 @@
       </div>
       <div class="form-row">
         <div class="field">
-          <label>Date (display) *</label>
-          <input type="text" id="evDate" placeholder='e.g. June 14, 2026 or "Every Sunday"' required />
+          <label>Date *</label>
+          <input type="date" id="evDatePicker" onchange="onEvDatePicked(this.value)" style="cursor:pointer;" />
+          <input type="hidden" id="evDate" />
+          <input type="hidden" id="evDateSort" />
         </div>
-        <div class="field">
-          <label>Date (for sorting — YYYY-MM-DD)</label>
-          <input type="text" id="evDateSort" placeholder="e.g. 2026-06-14" />
+        <div class="field" id="evRecurringOverrideWrap" style="display:none;">
+          <label>Display text override <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+          <input type="text" id="evDateOverride" placeholder='e.g. Every Sunday · Fall 2026' />
+          <p style="font-size:.75rem;color:var(--text-muted);margin-top:4px;">Leave blank to use the picked date. Fill in for custom recurring labels.</p>
         </div>
       </div>
       <div class="form-row">
@@ -452,7 +455,7 @@
 
       <div class="form-row full">
         <div class="field checkbox">
-          <input type="checkbox" id="evRecurring" />
+          <input type="checkbox" id="evRecurring" onchange="toggleRecurringOverride(this.checked)" />
           <label for="evRecurring">This is a recurring event (weekly, monthly, etc.)</label>
         </div>
       </div>
@@ -700,17 +703,44 @@ function renderEventsTable() {
     </tr>`).join('');
 }
 
+/* ── Date picker helpers ────────────────────────────── */
+function formatDateDisplay(ymd) {
+  // "2026-06-14" → "June 14, 2026"
+  if (!ymd) return '';
+  const [y, m, d] = ymd.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+}
+function onEvDatePicked(ymd) {
+  document.getElementById('evDate').value     = formatDateDisplay(ymd);
+  document.getElementById('evDateSort').value = ymd;
+}
+function toggleRecurringOverride(checked) {
+  document.getElementById('evRecurringOverrideWrap').style.display = checked ? '' : 'none';
+}
+
 function openEventModal(ev) {
   document.getElementById('eventModalTitle').textContent = ev ? 'Edit Event' : 'Add Event';
   document.getElementById('evId').value          = ev ? ev.id : '';
   document.getElementById('evTitle').value       = ev ? ev.title : '';
   document.getElementById('evCategory').value    = ev ? ev.category : 'Worship';
+  // Populate date picker from stored dateSort; restore display date + override
+  const hasValidDate = ev && ev.dateSort && ev.dateSort !== '2099-12-31';
+  document.getElementById('evDatePicker').value  = hasValidDate ? ev.dateSort : '';
   document.getElementById('evDate').value        = ev ? ev.date : '';
   document.getElementById('evDateSort').value    = ev ? ev.dateSort : '';
+  // Detect if display date differs from auto-formatted version (means it's a custom override)
+  if (hasValidDate) {
+    const autoFmt = formatDateDisplay(ev.dateSort);
+    document.getElementById('evDateOverride').value = (ev.date !== autoFmt) ? ev.date : '';
+  } else {
+    document.getElementById('evDateOverride').value = ev ? ev.date : '';
+  }
+  const isRecurring = ev ? ev.recurring : false;
+  document.getElementById('evRecurring').checked = isRecurring;
+  document.getElementById('evRecurringOverrideWrap').style.display = isRecurring ? '' : 'none';
   document.getElementById('evTime').value        = ev ? ev.time : '';
   document.getElementById('evLocation').value    = ev ? ev.location : '';
   document.getElementById('evDescription').value = ev ? ev.description : '';
-  document.getElementById('evRecurring').checked = ev ? ev.recurring : false;
 
   // Reset image picker
   switchEvImgTab('url', null);
@@ -737,9 +767,14 @@ function editEvent(id) {
   if (ev) openEventModal(ev);
 }
 function saveEvent() {
-  const id    = document.getElementById('evId').value;
-  const title = document.getElementById('evTitle').value.trim();
-  const date  = document.getElementById('evDate').value.trim();
+  const id       = document.getElementById('evId').value;
+  const title    = document.getElementById('evTitle').value.trim();
+  const pickedDate = document.getElementById('evDatePicker').value; // YYYY-MM-DD
+  const override = document.getElementById('evDateOverride').value.trim();
+  const isRecurring = document.getElementById('evRecurring').checked;
+  // Display date: custom override → formatted picker value → existing stored value
+  const date = override || (pickedDate ? formatDateDisplay(pickedDate) : document.getElementById('evDate').value.trim());
+  const dateSort = pickedDate || (isRecurring ? '2099-12-31' : document.getElementById('evDateSort').value.trim() || '2099-12-31');
   const time  = document.getElementById('evTime').value.trim();
   const loc   = document.getElementById('evLocation').value.trim();
   const desc  = document.getElementById('evDescription').value.trim();
@@ -752,8 +787,7 @@ function saveEvent() {
   const events = DB.get('hhc_events');
   const newEv = {
     id:          id ? parseInt(id) : Date.now(),
-    title, date,
-    dateSort:    document.getElementById('evDateSort').value.trim() || '2099-12-31',
+    title, date, dateSort,
     time, location: loc,
     category:    document.getElementById('evCategory').value,
     description: desc, image,
