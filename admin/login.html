@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login | Heritage Hill Church</title>
+  <link rel="icon" href="https://cdn1.nucleus-cdn.church/church_96ead70fbfd64a0c9d22d87de963b4a5/file_c0f1de7b7a114ae28c91ac98c34365d9/2025-01-21T22:28:37.820Z/Logo_-_Icon_-_Color_on_White.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #BC7A1E;
+      --primary-dark: #9A6118;
+      --dark: #0D0F14;
+      --border: #E4E4E4;
+      --bg-soft: #F7F7F5;
+      --text: #1C1C1E;
+      --text-muted: #6B6B6B;
+      --error: #ef4444;
+    }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--dark);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .login-wrap {
+      width: 100%;
+      max-width: 420px;
+    }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .login-logo img {
+      height: 48px;
+      filter: brightness(0) invert(1);
+    }
+    .login-logo span {
+      display: block;
+      color: rgba(255,255,255,.6);
+      font-size: .875rem;
+      margin-top: 8px;
+      letter-spacing: .05em;
+    }
+    .login-card {
+      background: #fff;
+      border-radius: 18px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.4);
+    }
+    .login-card h2 { font-size: 1.4rem; color: var(--text); margin-bottom: .35rem; }
+    .login-card p { font-size: .9rem; color: var(--text-muted); margin-bottom: 28px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block;
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .form-group input {
+      width: 100%;
+      padding: .7rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .9375rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(188,122,30,.15); }
+    .btn-login {
+      width: 100%;
+      padding: .8rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, transform .15s;
+      margin-top: 8px;
+    }
+    .btn-login:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-login:active { transform: none; }
+    .error-msg {
+      background: rgba(239,68,68,.08);
+      border: 1px solid rgba(239,68,68,.3);
+      color: var(--error);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: .875rem;
+      margin-top: 14px;
+      display: none;
+    }
+    .error-msg.show { display: block; }
+    .back-link {
+      display: block;
+      text-align: center;
+      color: rgba(255,255,255,.4);
+      font-size: .85rem;
+      margin-top: 20px;
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .back-link:hover { color: rgba(255,255,255,.7); }
+    .hint {
+      margin-top: 18px;
+      padding: 12px;
+      background: var(--bg-soft);
+      border-radius: 8px;
+      font-size: .8rem;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .hint strong { color: var(--text); }
+  </style>
+</head>
+<body>
+
+<div class="login-wrap">
+  <div class="login-logo">
+    <img src="https://cdn1.nucleus-cdn.church/church_96ead70fbfd64a0c9d22d87de963b4a5/file_103ee2718a42463d9cefbd9683cf174a/2025-01-22T19:01:35.667Z/Logo_-_Left_Full_-_on_White.png"
+         alt="Heritage Hill Church"
+         onerror="this.style.display='none'; this.nextElementSibling.style.color='#fff'; this.nextElementSibling.style.fontWeight='700'; this.nextElementSibling.style.fontSize='1.4rem';" />
+    <span>Admin Portal</span>
+  </div>
+
+  <div class="login-card">
+    <h2>Welcome Back</h2>
+    <p>Sign in to manage events and small groups.</p>
+
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="admin" autocomplete="username" required />
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required />
+      </div>
+      <button type="submit" class="btn-login" id="loginBtn">Sign In</button>
+      <div class="error-msg" id="errorMsg">Incorrect username or password. Please try again.</div>
+    </form>
+
+    <div class="hint">
+      <strong>Default credentials:</strong><br>
+      Username: <code>admin</code> &nbsp;·&nbsp; Password: <code>hhcadmin2024</code><br>
+      <em>Change these in <code>admin/login.html</code> before going live.</em>
+    </div>
+  </div>
+
+  <a href="../index.html" class="back-link">← Back to Heritage Hill Website</a>
+</div>
+
+<script>
+  /* ── Simple admin auth ────────────────────────────────
+     For a production site, replace this with a real
+     server-side authentication system. This client-side
+     check is sufficient for a low-traffic admin panel
+     on an internal or semi-private site.
+  ──────────────────────────────────────────────────── */
+  const ADMIN_USER = 'admin';
+  const ADMIN_PASS = 'hhcadmin2024'; // ← Change this!
+
+  // Already logged in?
+  if (sessionStorage.getItem('hhc_admin') === 'true') {
+    window.location.href = 'dashboard.html';
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value;
+    const btn  = document.getElementById('loginBtn');
+    const err  = document.getElementById('errorMsg');
+
+    btn.textContent = 'Signing in…';
+    btn.disabled = true;
+
+    // Simulate slight delay
+    setTimeout(() => {
+      if (user === ADMIN_USER && pass === ADMIN_PASS) {
+        sessionStorage.setItem('hhc_admin', 'true');
+        const redirect = new URLSearchParams(window.location.search).get('next') || 'dashboard.html';
+        window.location.href = redirect;
+      } else {
+        err.classList.add('show');
+        btn.textContent = 'Sign In';
+        btn.disabled = false;
+        document.getElementById('password').value = '';
+        document.getElementById('password').focus();
+      }
+    }, 500);
+  }
+</script>
+</body>
+</html>

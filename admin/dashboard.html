@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard | Heritage Hill Church</title>
+  <link rel="icon" href="https://cdn1.nucleus-cdn.church/church_96ead70fbfd64a0c9d22d87de963b4a5/file_c0f1de7b7a114ae28c91ac98c34365d9/2025-01-21T22:28:37.820Z/Logo_-_Icon_-_Color_on_White.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #BC7A1E;
+      --primary-dark: #9A6118;
+      --secondary: #155CA2;
+      --dark: #0D0F14;
+      --sidebar: #111318;
+      --border: #E4E4E4;
+      --bg: #F4F4F2;
+      --bg-card: #FFFFFF;
+      --text: #1C1C1E;
+      --text-muted: #6B6B6B;
+      --danger: #ef4444;
+      --success: #16a34a;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --shadow: 0 2px 12px rgba(0,0,0,.07);
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--sidebar);
+      color: #fff;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 100;
+    }
+    .sidebar-brand {
+      padding: 24px 20px 20px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .sidebar-brand img {
+      height: 36px;
+      filter: brightness(0) invert(1);
+      margin-bottom: 4px;
+    }
+    .sidebar-brand span {
+      display: block;
+      font-size: .7rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.35);
+      margin-top: 6px;
+    }
+    .sidebar-nav { padding: 16px 12px; flex: 1; }
+    .sidebar-nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: rgba(255,255,255,.6);
+      text-decoration: none;
+      font-size: .9rem;
+      font-weight: 500;
+      transition: background .2s, color .2s;
+      margin-bottom: 2px;
+      cursor: pointer;
+    }
+    .sidebar-nav a:hover { background: rgba(255,255,255,.08); color: #fff; }
+    .sidebar-nav a.active { background: var(--primary); color: #fff; }
+    .sidebar-nav a svg { flex-shrink: 0; opacity: .75; }
+    .sidebar-nav a.active svg { opacity: 1; }
+    .sidebar-footer {
+      padding: 16px 12px;
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+    .sidebar-footer a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: rgba(255,255,255,.5);
+      font-size: .85rem;
+      text-decoration: none;
+      transition: all .2s;
+    }
+    .sidebar-footer a:hover { background: rgba(255,255,255,.08); color: #fff; }
+
+    /* Main */
+    .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* Top bar */
+    .topbar {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .topbar h1 { font-size: 1.1rem; font-weight: 700; }
+    .topbar-actions { display: flex; align-items: center; gap: 12px; }
+    .admin-badge {
+      font-size: .8rem;
+      background: rgba(188,122,30,.12);
+      color: var(--primary);
+      border-radius: 50px;
+      padding: 4px 12px;
+      font-weight: 600;
+    }
+
+    /* Content */
+    .content { padding: 28px; flex: 1; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; margin-bottom: 28px; border-bottom: 2px solid var(--border); }
+    .tab-btn {
+      padding: 10px 20px;
+      border: none;
+      background: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .9375rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color .2s, border-color .2s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Action bar */
+    .action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .action-bar h2 { font-size: 1.1rem; }
+    .btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .55rem 1.2rem;
+      border-radius: 50px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .875rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all .2s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-danger  { background: var(--danger); color: #fff; border-color: var(--danger); }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-ghost   { background: transparent; color: var(--text-muted); border-color: var(--border); }
+    .btn-ghost:hover { background: var(--bg); color: var(--text); }
+    .btn-sm { padding: .35rem .85rem; font-size: .8rem; }
+
+    /* Table */
+    .table-wrap { background: var(--bg-card); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: var(--bg); }
+    th { padding: 12px 16px; text-align: left; font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: .9rem; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(0,0,0,.015); }
+    .td-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    /* Empty state */
+    .empty { text-align: center; padding: 48px 24px; color: var(--text-muted); }
+    .empty svg { margin: 0 auto 12px; opacity: .3; }
+    .empty h3 { color: var(--text); font-size: 1.05rem; margin-bottom: .4rem; }
+
+    /* Modal overlay */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.55);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 580px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,.3);
+    }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 22px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-header h3 { font-size: 1.1rem; }
+    .modal-close {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--bg); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; color: var(--text-muted);
+      transition: background .2s;
+    }
+    .modal-close:hover { background: var(--border); color: var(--text); }
+    .modal-body { padding: 24px 28px; }
+    .modal-footer { padding: 16px 28px 24px; display: flex; justify-content: flex-end; gap: 10px; }
+
+    /* Form */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .form-row.full { grid-template-columns: 1fr; }
+    .field label { display: block; font-size: .82rem; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      padding: .62rem .9rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .9rem;
+      outline: none;
+      transition: border-color .2s;
+      background: #fff;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(188,122,30,.12);
+    }
+    .field textarea { resize: vertical; min-height: 90px; }
+    .field.checkbox { display: flex; align-items: center; gap: 8px; }
+    .field.checkbox input { width: auto; }
+    .field.checkbox label { margin-bottom: 0; font-weight: 500; }
+
+    /* Tags */
+    .badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 50px;
+      font-size: .73rem;
+      font-weight: 600;
+    }
+    .badge-green  { background: rgba(22,163,74,.1);  color: #16a34a; }
+    .badge-red    { background: rgba(239,68,68,.1);  color: #ef4444; }
+    .badge-amber  { background: rgba(188,122,30,.1); color: var(--primary); }
+    .badge-blue   { background: rgba(21,92,162,.1);  color: var(--secondary); }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #111;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 50px;
+      font-size: .9rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,.3);
+      z-index: 2000;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all .3s ease;
+    }
+    .toast.show { transform: none; opacity: 1; }
+
+    /* Stats cards */
+    .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 28px; }
+    .stat-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: 20px 22px;
+      box-shadow: var(--shadow);
+    }
+    .stat-card .num  { font-size: 2rem; font-weight: 700; color: var(--text); }
+    .stat-card .lbl  { font-size: .8rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar { width: 200px; }
+      .main { margin-left: 200px; }
+      .form-row { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 680px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Sidebar ──────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <img src="https://cdn1.nucleus-cdn.church/church_96ead70fbfd64a0c9d22d87de963b4a5/file_103ee2718a42463d9cefbd9683cf174a/2025-01-22T19:01:35.667Z/Logo_-_Left_Full_-_on_White.png"
+         alt="Heritage Hill" onerror="this.style.display='none'" />
+    <span>Admin Dashboard</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a onclick="switchTab('events')" id="sideEvents" class="active">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Events
+    </a>
+    <a onclick="switchTab('groups')" id="sideGroups">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      Small Groups
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="../index.html" target="_blank">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      View Website
+    </a>
+    <a href="#" onclick="logout()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign Out
+    </a>
+  </div>
+</aside>
+
+<!-- ── Main ────────────────────────────────────────────── -->
+<div class="main">
+  <div class="topbar">
+    <h1 id="topbarTitle">Events</h1>
+    <div class="topbar-actions">
+      <span class="admin-badge">Admin</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Stats -->
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card"><div class="num" id="statEvents">–</div><div class="lbl">Total Events</div></div>
+      <div class="stat-card"><div class="num" id="statGroups">–</div><div class="lbl">Small Groups</div></div>
+      <div class="stat-card"><div class="num" id="statOpen">–</div><div class="lbl">Open Groups</div></div>
+      <div class="stat-card"><div class="num" id="statRecurring">–</div><div class="lbl">Recurring Events</div></div>
+    </div>
+
+    <!-- ── EVENTS TAB ────────────────────────────────── -->
+    <div class="tab-panel active" id="panelEvents">
+      <div class="action-bar">
+        <h2>Manage Events</h2>
+        <button class="btn btn-primary" onclick="openEventModal()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Event
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Date</th>
+              <th>Category</th>
+              <th>Type</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="eventsTable"></tbody>
+        </table>
+        <div class="empty" id="eventsEmpty" style="display:none;">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <h3>No events yet</h3>
+          <p>Add your first event using the button above.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── GROUPS TAB ──────────────────────────────── -->
+    <div class="tab-panel" id="panelGroups">
+      <div class="action-bar">
+        <h2>Manage Small Groups</h2>
+        <button class="btn btn-primary" onclick="openGroupModal()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Group
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Group Name</th>
+              <th>Day & Time</th>
+              <th>Type</th>
+              <th>Audience</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="groupsTable"></tbody>
+        </table>
+        <div class="empty" id="groupsEmpty" style="display:none;">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <h3>No groups yet</h3>
+          <p>Add your first small group using the button above.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ────────────────────────────────────────────────────── -->
+<!-- EVENT MODAL                                           -->
+<!-- ────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="eventModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="eventModalTitle">Add Event</h3>
+      <button class="modal-close" onclick="closeEventModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="evId" />
+      <div class="form-row">
+        <div class="field">
+          <label>Event Title *</label>
+          <input type="text" id="evTitle" placeholder="e.g. Community Picnic" required />
+        </div>
+        <div class="field">
+          <label>Category *</label>
+          <select id="evCategory">
+            <option value="Worship">Worship</option>
+            <option value="Community">Community</option>
+            <option value="Men's Ministry">Men's Ministry</option>
+            <option value="Women's Ministry">Women's Ministry</option>
+            <option value="Children's Ministry">Children's Ministry</option>
+            <option value="Youth">Youth</option>
+            <option value="Life Group">Life Group</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Date (display) *</label>
+          <input type="text" id="evDate" placeholder='e.g. June 14, 2026 or "Every Sunday"' required />
+        </div>
+        <div class="field">
+          <label>Date (for sorting — YYYY-MM-DD)</label>
+          <input type="text" id="evDateSort" placeholder="e.g. 2026-06-14 or 2099-01-01 for recurring" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Time *</label>
+          <input type="text" id="evTime" placeholder="e.g. 9:00 AM – 12:00 PM" required />
+        </div>
+        <div class="field">
+          <label>Location *</label>
+          <input type="text" id="evLocation" placeholder="e.g. 6909 Cornhusker Rd, Papillion, NE" required />
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="field">
+          <label>Description *</label>
+          <textarea id="evDescription" placeholder="Brief description of the event…" required></textarea>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="field">
+          <label>Image URL</label>
+          <input type="url" id="evImage" placeholder="https://… (leave blank for default)" />
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="field checkbox">
+          <input type="checkbox" id="evRecurring" />
+          <label for="evRecurring">This is a recurring event (weekly, monthly, etc.)</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeEventModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEvent()">Save Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- ────────────────────────────────────────────────────── -->
+<!-- GROUP MODAL                                           -->
+<!-- ────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="groupModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="groupModalTitle">Add Small Group</h3>
+      <button class="modal-close" onclick="closeGroupModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="grId" />
+      <div class="form-row">
+        <div class="field">
+          <label>Group Name *</label>
+          <input type="text" id="grName" placeholder="e.g. Tuesday Women's Group" required />
+        </div>
+        <div class="field">
+          <label>Leader *</label>
+          <input type="text" id="grLeader" placeholder="e.g. Sarah Jennings" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Day *</label>
+          <select id="grDay">
+            <option>Sunday</option><option>Monday</option><option>Tuesday</option>
+            <option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Time *</label>
+          <input type="text" id="grTime" placeholder="e.g. 6:30 PM" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label>Type *</label>
+          <select id="grType">
+            <option value="Bible Study">Bible Study</option>
+            <option value="Life Group">Life Group</option>
+            <option value="Men's Ministry">Men's Ministry</option>
+            <option value="Women's Ministry">Women's Ministry</option>
+            <option value="Youth">Youth</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Audience *</label>
+          <select id="grAudience">
+            <option value="All Ages">All Ages</option>
+            <option value="Men">Men</option>
+            <option value="Women">Women</option>
+            <option value="Youth (6–12th grade)">Youth (6–12th grade)</option>
+            <option value="Families">Families</option>
+            <option value="Seniors">Seniors</option>
+            <option value="Young Adults">Young Adults</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="field">
+          <label>Location *</label>
+          <input type="text" id="grLocation" placeholder="e.g. Room 102 – Heritage Hill Church" required />
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="field">
+          <label>Description *</label>
+          <textarea id="grDescription" placeholder="Describe this group — who it's for, what you study/do…" required></textarea>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="field">
+          <label>Image URL</label>
+          <input type="url" id="grImage" placeholder="https://… (leave blank for default)" />
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="field checkbox">
+          <input type="checkbox" id="grOpen" checked />
+          <label for="grOpen">Group is open / accepting new members</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeGroupModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveGroup()">Save Group</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete confirm modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header">
+      <h3>Confirm Delete</h3>
+      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to delete <strong id="deleteItemName"></strong>? This cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ── Scripts ────────────────────────────────────────── -->
+<script src="../js/main.js"></script>
+<script>
+/* ── Auth guard ────────────────────────────────────── */
+if (sessionStorage.getItem('hhc_admin') !== 'true') {
+  window.location.href = 'login.html?next=dashboard.html';
+}
+
+/* ── Tab switching ─────────────────────────────────── */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`side${tab.charAt(0).toUpperCase()+tab.slice(1)}`).classList.add('active');
+  document.getElementById(`side${tab === 'events' ? 'Groups' : 'Events'}`).classList.remove('active');
+  document.getElementById(`panel${tab.charAt(0).toUpperCase()+tab.slice(1)}`).classList.add('active');
+  document.getElementById('topbarTitle').textContent = tab === 'events' ? 'Events' : 'Small Groups';
+  if (tab === 'events') renderEventsTable();
+  else renderGroupsTable();
+}
+
+// Check URL param
+const urlTab = new URLSearchParams(window.location.search).get('tab');
+if (urlTab === 'groups') switchTab('groups');
+else renderEventsTable();
+updateStats();
+
+/* ── Stats ─────────────────────────────────────────── */
+function updateStats() {
+  const evs = DB.get('hhc_events');
+  const grs = DB.get('hhc_groups');
+  document.getElementById('statEvents').textContent   = evs.length;
+  document.getElementById('statGroups').textContent   = grs.length;
+  document.getElementById('statOpen').textContent     = grs.filter(g => g.open).length;
+  document.getElementById('statRecurring').textContent= evs.filter(e => e.recurring).length;
+}
+
+/* ── EVENTS ─────────────────────────────────────────── */
+function renderEventsTable() {
+  const events = DB.get('hhc_events').sort((a,b) => a.dateSort.localeCompare(b.dateSort));
+  const tbody  = document.getElementById('eventsTable');
+  const empty  = document.getElementById('eventsEmpty');
+  if (!events.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = events.map(ev => `
+    <tr>
+      <td><strong>${ev.title}</strong><br><span style="font-size:.8rem;color:var(--text-muted);">${ev.description.slice(0,60)}…</span></td>
+      <td>${ev.date}<br><span style="font-size:.8rem;color:var(--text-muted);">${ev.time}</span></td>
+      <td><span class="badge badge-blue">${ev.category}</span></td>
+      <td>${ev.recurring ? '<span class="badge badge-amber">Recurring</span>' : '<span class="badge badge-green">One-time</span>'}</td>
+      <td>
+        <div class="td-actions">
+          <button class="btn btn-ghost btn-sm" onclick="editEvent(${ev.id})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteItem('event', ${ev.id}, '${ev.title.replace(/'/g,"\\'")}')">Delete</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function openEventModal(ev) {
+  document.getElementById('eventModalTitle').textContent = ev ? 'Edit Event' : 'Add Event';
+  document.getElementById('evId').value          = ev ? ev.id : '';
+  document.getElementById('evTitle').value       = ev ? ev.title : '';
+  document.getElementById('evCategory').value    = ev ? ev.category : 'Worship';
+  document.getElementById('evDate').value        = ev ? ev.date : '';
+  document.getElementById('evDateSort').value    = ev ? ev.dateSort : '';
+  document.getElementById('evTime').value        = ev ? ev.time : '';
+  document.getElementById('evLocation').value    = ev ? ev.location : '';
+  document.getElementById('evDescription').value = ev ? ev.description : '';
+  document.getElementById('evImage').value       = ev ? ev.image : '';
+  document.getElementById('evRecurring').checked = ev ? ev.recurring : false;
+  document.getElementById('eventModal').classList.add('open');
+}
+function closeEventModal() { document.getElementById('eventModal').classList.remove('open'); }
+function editEvent(id) {
+  const ev = DB.get('hhc_events').find(e => e.id === id);
+  if (ev) openEventModal(ev);
+}
+function saveEvent() {
+  const id    = document.getElementById('evId').value;
+  const title = document.getElementById('evTitle').value.trim();
+  const date  = document.getElementById('evDate').value.trim();
+  const time  = document.getElementById('evTime').value.trim();
+  const loc   = document.getElementById('evLocation').value.trim();
+  const desc  = document.getElementById('evDescription').value.trim();
+  if (!title || !date || !time || !loc || !desc) { showToast('Please fill in all required fields.', true); return; }
+  const events = DB.get('hhc_events');
+  const newEv = {
+    id:          id ? parseInt(id) : Date.now(),
+    title,
+    date,
+    dateSort:    document.getElementById('evDateSort').value.trim() || '2099-12-31',
+    time,
+    location:    loc,
+    category:    document.getElementById('evCategory').value,
+    description: desc,
+    image:       document.getElementById('evImage').value.trim() || 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80',
+    recurring:   document.getElementById('evRecurring').checked
+  };
+  if (id) {
+    const idx = events.findIndex(e => e.id === parseInt(id));
+    if (idx > -1) events[idx] = newEv;
+  } else {
+    events.push(newEv);
+  }
+  DB.set('hhc_events', events);
+  closeEventModal();
+  renderEventsTable();
+  updateStats();
+  showToast(id ? 'Event updated!' : 'Event added!');
+}
+
+/* ── GROUPS ─────────────────────────────────────────── */
+function renderGroupsTable() {
+  const groups = DB.get('hhc_groups');
+  const tbody  = document.getElementById('groupsTable');
+  const empty  = document.getElementById('groupsEmpty');
+  if (!groups.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = groups.map(g => `
+    <tr>
+      <td><strong>${g.name}</strong><br><span style="font-size:.8rem;color:var(--text-muted);">Led by ${g.leader}</span></td>
+      <td>${g.day}s at ${g.time}<br><span style="font-size:.8rem;color:var(--text-muted);">${g.location.split('–')[0].trim()}</span></td>
+      <td><span class="badge badge-blue">${g.type}</span></td>
+      <td>${g.audience}</td>
+      <td>${g.open ? '<span class="badge badge-green">Open</span>' : '<span class="badge badge-red">Full</span>'}</td>
+      <td>
+        <div class="td-actions">
+          <button class="btn btn-ghost btn-sm" onclick="editGroup(${g.id})">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteItem('group', ${g.id}, '${g.name.replace(/'/g,"\\'")}')">Delete</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function openGroupModal(g) {
+  document.getElementById('groupModalTitle').textContent = g ? 'Edit Group' : 'Add Group';
+  document.getElementById('grId').value          = g ? g.id : '';
+  document.getElementById('grName').value        = g ? g.name : '';
+  document.getElementById('grLeader').value      = g ? g.leader : '';
+  document.getElementById('grDay').value         = g ? g.day : 'Sunday';
+  document.getElementById('grTime').value        = g ? g.time : '';
+  document.getElementById('grType').value        = g ? g.type : 'Life Group';
+  document.getElementById('grAudience').value    = g ? g.audience : 'All Ages';
+  document.getElementById('grLocation').value    = g ? g.location : '';
+  document.getElementById('grDescription').value = g ? g.description : '';
+  document.getElementById('grImage').value       = g ? g.image : '';
+  document.getElementById('grOpen').checked      = g ? g.open : true;
+  document.getElementById('groupModal').classList.add('open');
+}
+function closeGroupModal() { document.getElementById('groupModal').classList.remove('open'); }
+function editGroup(id) {
+  const g = DB.get('hhc_groups').find(g => g.id === id);
+  if (g) openGroupModal(g);
+}
+function saveGroup() {
+  const id   = document.getElementById('grId').value;
+  const name = document.getElementById('grName').value.trim();
+  const lead = document.getElementById('grLeader').value.trim();
+  const time = document.getElementById('grTime').value.trim();
+  const loc  = document.getElementById('grLocation').value.trim();
+  const desc = document.getElementById('grDescription').value.trim();
+  if (!name || !lead || !time || !loc || !desc) { showToast('Please fill in all required fields.', true); return; }
+  const groups = DB.get('hhc_groups');
+  const newGr = {
+    id:          id ? parseInt(id) : Date.now(),
+    name,
+    leader:      lead,
+    day:         document.getElementById('grDay').value,
+    time,
+    location:    loc,
+    type:        document.getElementById('grType').value,
+    audience:    document.getElementById('grAudience').value,
+    description: desc,
+    image:       document.getElementById('grImage').value.trim() || 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80',
+    open:        document.getElementById('grOpen').checked
+  };
+  if (id) {
+    const idx = groups.findIndex(g => g.id === parseInt(id));
+    if (idx > -1) groups[idx] = newGr;
+  } else {
+    groups.push(newGr);
+  }
+  DB.set('hhc_groups', groups);
+  closeGroupModal();
+  renderGroupsTable();
+  updateStats();
+  showToast(id ? 'Group updated!' : 'Group added!');
+}
+
+/* ── Delete ─────────────────────────────────────────── */
+let _deleteType, _deleteId;
+function deleteItem(type, id, name) {
+  _deleteType = type;
+  _deleteId   = id;
+  document.getElementById('deleteItemName').textContent = name;
+  document.getElementById('deleteModal').classList.add('open');
+}
+function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('open'); }
+function confirmDelete() {
+  const key = _deleteType === 'event' ? 'hhc_events' : 'hhc_groups';
+  const items = DB.get(key).filter(i => i.id !== _deleteId);
+  DB.set(key, items);
+  closeDeleteModal();
+  if (_deleteType === 'event') renderEventsTable();
+  else renderGroupsTable();
+  updateStats();
+  showToast('Deleted successfully.');
+}
+
+/* ── Toast ──────────────────────────────────────────── */
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isError ? '#dc2626' : '#111';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+/* ── Logout ─────────────────────────────────────────── */
+function logout() {
+  sessionStorage.removeItem('hhc_admin');
+  window.location.href = 'login.html';
+}
+
+/* Close modals on overlay click */
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) {
+      overlay.classList.remove('open');
+    }
+  });
+});
+</script>
+</body>
+</html>
