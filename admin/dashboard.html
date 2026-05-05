@@ -201,7 +201,7 @@
 
   <div class="content">
     <div class="stats-row">
-      <div class="stat-card"><div class="num" id="statEvents">–</div><div class="lbl">Total Events</div></div>
+      <div class="stat-card"><div class="num" id="statEvents">–</div><div class="lbl">Published Events</div></div>
       <div class="stat-card"><div class="num" id="statGroups">–</div><div class="lbl">Small Groups</div></div>
       <div class="stat-card"><div class="num" id="statPublished">–</div><div class="lbl">Published Groups</div></div>
       <div class="stat-card"><div class="num" id="statOpen">–</div><div class="lbl">Open Groups</div></div>
@@ -218,7 +218,7 @@
         </button>
       </div>
       <div class="table-wrap">
-        <table><thead><tr><th>Title</th><th>Date</th><th>Category</th><th>Type</th><th>Actions</th></tr></thead>
+        <table><thead><tr><th>Title</th><th>Date</th><th>Category</th><th>Type</th><th>Published</th><th>Actions</th></tr></thead>
         <tbody id="eventsTable"></tbody></table>
         <div class="empty" id="eventsEmpty" style="display:none;">
           <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
@@ -359,6 +359,10 @@
         </div>
       </div>
       <input type="hidden" id="evImageFinal" />
+      <div class="publish-toggle-row">
+        <div><div class="ptlabel">Published</div><div class="ptsub">Visible to the public on the Events page</div></div>
+        <label class="toggle-switch"><input type="checkbox" id="evPublished" checked /><span class="toggle-slider"></span></label>
+      </div>
       <div class="form-row full"><div class="field checkbox"><input type="checkbox" id="evRecurring" onchange="toggleRecurringOverride(this.checked)" /><label for="evRecurring">This is a recurring event</label></div></div>
     </div>
     <div class="modal-footer">
@@ -490,7 +494,7 @@ updateStats();
 function updateStats() {
   const evs=DB.get('hhc_events'), grs=DB.get('hhc_groups');
   const sigs=DB.get('hhc_signups')||[], apps=DB.get('hhc_applications')||[];
-  document.getElementById('statEvents').textContent=evs.length;
+  document.getElementById('statEvents').textContent=evs.filter(e=>e.published!==false).length;
   document.getElementById('statGroups').textContent=grs.length;
   document.getElementById('statPublished').textContent=grs.filter(g=>g.published!==false).length;
   document.getElementById('statOpen').textContent=grs.filter(g=>g.open).length;
@@ -509,6 +513,7 @@ function renderEventsTable() {
       <td>${ev.date}<br><span style="font-size:.8rem;color:var(--text-muted);">${ev.time}</span></td>
       <td><span class="badge badge-blue">${ev.category}</span></td>
       <td>${ev.recurring?'<span class="badge badge-amber">Recurring</span>':'<span class="badge badge-green">One-time</span>'}</td>
+      <td>${ev.published!==false?'<span class="badge badge-green">Published</span>':'<span class="badge badge-gray">Draft</span>'}</td>
       <td><div class="td-actions">
         <button class="btn btn-ghost btn-sm" onclick="editEvent(${ev.id})">Edit</button>
         <button class="btn btn-ghost btn-sm" onclick="openGCalForEvent(${ev.id})" style="color:var(--secondary);">📅 Calendar</button>
@@ -532,6 +537,7 @@ function toggleRecurringOverride(checked) {
 function openEventModal(ev) {
   document.getElementById('eventModalTitle').textContent=ev?'Edit Event':'Add Event';
   document.getElementById('evId').value=ev?ev.id:'';
+  document.getElementById('evPublished').checked=ev?ev.published!==false:true;
   document.getElementById('evTitle').value=ev?ev.title:'';
   document.getElementById('evCategory').value=ev?ev.category:'Worship';
   const hasDate=ev&&ev.dateSort&&ev.dateSort!=='2099-12-31';
@@ -572,7 +578,7 @@ function saveEvent(){
   if(!title||!date||!time||!loc||!desc){showToast('Please fill in all required fields.',true);return;}
   let image=document.getElementById('evImageFinal').value.trim()||document.getElementById('evImageUrl').value.trim()||'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80';
   const events=DB.get('hhc_events');
-  const newEv={id:id?parseInt(id):Date.now(),title,date,dateSort,time,location:loc,category:document.getElementById('evCategory').value,description:desc,image,recurring:isRec};
+  const newEv={id:id?parseInt(id):Date.now(),published:document.getElementById('evPublished').checked,title,date,dateSort,time,location:loc,category:document.getElementById('evCategory').value,description:desc,image,recurring:isRec};
   if(id){const idx=events.findIndex(e=>e.id===parseInt(id));if(idx>-1)events[idx]=newEv;}else events.push(newEv);
   DB.set('hhc_events',events);renderEventsTable();updateStats();
   showToast(id?'Event updated! ✓':'Event added! ✓');

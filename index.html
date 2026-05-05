@@ -260,7 +260,7 @@
 
   /* Home — load 3 upcoming events */
   (function loadHomeEvents() {
-    const events = DB.get('hhc_events');
+    const events = DB.get('hhc_events').filter(e => e.published !== false);
     const grid   = document.getElementById('homeEventGrid');
     if (!grid) return;
     const sorted = [...events].sort((a, b) => a.dateSort.localeCompare(b.dateSort)).slice(0, 3);

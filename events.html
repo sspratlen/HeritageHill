@@ -188,7 +188,7 @@
     const q   = document.getElementById('eventSearch').value.toLowerCase();
     const cat = document.getElementById('eventCategory').value;
     const time= document.getElementById('eventTime').value;
-    let events = DB.get('hhc_events');
+    let events = DB.get('hhc_events').filter(e => e.published !== false);
 
     if (q)    events = events.filter(e => e.title.toLowerCase().includes(q) || e.description.toLowerCase().includes(q));
     if (cat)  events = events.filter(e => e.category === cat);
