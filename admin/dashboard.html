@@ -30,64 +30,31 @@
 
     /* Sidebar */
     .sidebar {
-      width: 240px;
-      background: var(--sidebar);
-      color: #fff;
-      flex-shrink: 0;
-      display: flex;
-      flex-direction: column;
-      position: fixed;
-      top: 0; left: 0; bottom: 0;
-      z-index: 100;
+      width: 240px; background: var(--sidebar); color: #fff;
+      flex-shrink: 0; display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
     }
-    .sidebar-brand {
-      padding: 24px 20px 20px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-    }
-    .sidebar-brand img {
-      height: 36px;
-      filter: brightness(0) invert(1);
-      margin-bottom: 4px;
-    }
-    .sidebar-brand span {
-      display: block;
-      font-size: .7rem;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,.35);
-      margin-top: 6px;
-    }
+    .sidebar-brand { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,.08); }
+    .sidebar-brand img { height: 36px; filter: brightness(0) invert(1); margin-bottom: 4px; }
+    .sidebar-brand span { display: block; font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.35); margin-top: 6px; }
     .sidebar-nav { padding: 16px 12px; flex: 1; }
     .sidebar-nav a {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      border-radius: 8px;
-      color: rgba(255,255,255,.6);
-      text-decoration: none;
-      font-size: .9rem;
-      font-weight: 500;
-      transition: background .2s, color .2s;
-      margin-bottom: 2px;
-      cursor: pointer;
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: 8px;
+      color: rgba(255,255,255,.6); text-decoration: none;
+      font-size: .9rem; font-weight: 500;
+      transition: background .2s, color .2s; margin-bottom: 2px; cursor: pointer;
     }
     .sidebar-nav a:hover { background: rgba(255,255,255,.08); color: #fff; }
     .sidebar-nav a.active { background: var(--primary); color: #fff; }
     .sidebar-nav a svg { flex-shrink: 0; opacity: .75; }
     .sidebar-nav a.active svg { opacity: 1; }
-    .sidebar-footer {
-      padding: 16px 12px;
-      border-top: 1px solid rgba(255,255,255,.08);
-    }
+    .sidebar-footer { padding: 16px 12px; border-top: 1px solid rgba(255,255,255,.08); }
     .sidebar-footer a {
       display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px;
-      border-radius: 8px;
-      color: rgba(255,255,255,.5);
-      font-size: .85rem;
-      text-decoration: none;
-      transition: all .2s;
+      padding: 10px 12px; border-radius: 8px;
+      color: rgba(255,255,255,.5); font-size: .85rem;
+      text-decoration: none; transition: all .2s;
     }
     .sidebar-footer a:hover { background: rgba(255,255,255,.08); color: #fff; }
 
@@ -96,79 +63,37 @@
 
     /* Top bar */
     .topbar {
-      background: #fff;
-      border-bottom: 1px solid var(--border);
-      padding: 0 28px;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 50;
+      background: #fff; border-bottom: 1px solid var(--border);
+      padding: 0 28px; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
     }
     .topbar h1 { font-size: 1.1rem; font-weight: 700; }
     .topbar-actions { display: flex; align-items: center; gap: 12px; }
-    .admin-badge {
-      font-size: .8rem;
-      background: rgba(188,122,30,.12);
-      color: var(--primary);
-      border-radius: 50px;
-      padding: 4px 12px;
-      font-weight: 600;
-    }
+    .admin-badge { font-size: .8rem; background: rgba(188,122,30,.12); color: var(--primary); border-radius: 50px; padding: 4px 12px; font-weight: 600; }
 
     /* Content */
     .content { padding: 28px; flex: 1; }
 
-    /* Tabs */
-    .tabs { display: flex; gap: 4px; margin-bottom: 28px; border-bottom: 2px solid var(--border); }
-    .tab-btn {
-      padding: 10px 20px;
-      border: none;
-      background: none;
-      font-family: 'DM Sans', sans-serif;
-      font-size: .9375rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -2px;
-      transition: color .2s, border-color .2s;
-    }
-    .tab-btn:hover { color: var(--text); }
-    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
-
     /* Action bar */
-    .action-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
+    .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
     .action-bar h2 { font-size: 1.1rem; }
     .btn {
       display: inline-flex; align-items: center; gap: .4rem;
-      padding: .55rem 1.2rem;
-      border-radius: 50px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: .875rem;
-      font-weight: 600;
-      cursor: pointer;
-      border: 2px solid transparent;
-      transition: all .2s;
+      padding: .55rem 1.2rem; border-radius: 50px;
+      font-family: 'DM Sans', sans-serif; font-size: .875rem; font-weight: 600;
+      cursor: pointer; border: 2px solid transparent; transition: all .2s;
     }
     .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
     .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { background: var(--secondary); color: #fff; border-color: var(--secondary); }
+    .btn-secondary:hover { background: #1149824; filter: brightness(.9); }
     .btn-danger  { background: var(--danger); color: #fff; border-color: var(--danger); }
     .btn-danger:hover { background: #dc2626; }
     .btn-ghost   { background: transparent; color: var(--text-muted); border-color: var(--border); }
     .btn-ghost:hover { background: var(--bg); color: var(--text); }
     .btn-sm { padding: .35rem .85rem; font-size: .8rem; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
 
     /* Table */
     .table-wrap { background: var(--bg-card); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }
@@ -187,37 +112,19 @@
 
     /* Modal overlay */
     .modal-overlay {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,.55);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.55); z-index: 1000;
+      align-items: center; justify-content: center; padding: 24px;
     }
     .modal-overlay.open { display: flex; }
     .modal {
-      background: #fff;
-      border-radius: var(--radius-lg);
-      width: 100%;
-      max-width: 580px;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 20px 60px rgba(0,0,0,.3);
+      background: #fff; border-radius: var(--radius-lg);
+      width: 100%; max-width: 600px; max-height: 92vh;
+      overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3);
     }
-    .modal-header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 22px 28px;
-      border-bottom: 1px solid var(--border);
-    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 22px 28px; border-bottom: 1px solid var(--border); }
     .modal-header h3 { font-size: 1.1rem; }
-    .modal-close {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: var(--bg); border: none; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem; color: var(--text-muted);
-      transition: background .2s;
-    }
+    .modal-close { width: 32px; height: 32px; border-radius: 50%; background: var(--bg); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--text-muted); transition: background .2s; }
     .modal-close:hover { background: var(--border); color: var(--text); }
     .modal-body { padding: 24px 28px; }
     .modal-footer { padding: 16px 28px 24px; display: flex; justify-content: flex-end; gap: 10px; }
@@ -227,15 +134,10 @@
     .form-row.full { grid-template-columns: 1fr; }
     .field label { display: block; font-size: .82rem; font-weight: 600; color: var(--text); margin-bottom: 5px; }
     .field input, .field select, .field textarea {
-      width: 100%;
-      padding: .62rem .9rem;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: .9rem;
-      outline: none;
-      transition: border-color .2s;
-      background: #fff;
+      width: 100%; padding: .62rem .9rem;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-family: 'DM Sans', sans-serif; font-size: .9rem;
+      outline: none; transition: border-color .2s; background: #fff;
     }
     .field input:focus, .field select:focus, .field textarea:focus {
       border-color: var(--primary);
@@ -246,43 +148,87 @@
     .field.checkbox input { width: auto; }
     .field.checkbox label { margin-bottom: 0; font-weight: 500; }
 
-    /* Tags */
-    .badge {
-      display: inline-block;
-      padding: 3px 9px;
-      border-radius: 50px;
-      font-size: .73rem;
-      font-weight: 600;
+    /* Published toggle */
+    .publish-toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; border-radius: 10px;
+      border: 1.5px solid var(--border); margin-bottom: 16px;
+      background: var(--bg);
     }
+    .publish-toggle-row .ptlabel { font-size: .9rem; font-weight: 600; }
+    .publish-toggle-row .ptsub { font-size: .78rem; color: var(--text-muted); margin-top: 2px; }
+    .toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0; background: #ccc; border-radius: 50px;
+      cursor: pointer; transition: background .2s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute;
+      width: 18px; height: 18px; left: 3px; bottom: 3px;
+      background: #fff; border-radius: 50%; transition: transform .2s;
+    }
+    .toggle-switch input:checked + .toggle-slider { background: var(--success); }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    /* Image picker */
+    .img-picker { border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+    .img-picker-tabs { display: flex; border-bottom: 1px solid var(--border); }
+    .img-tab {
+      flex: 1; padding: 9px 8px; border: none; background: var(--bg);
+      font-family: 'DM Sans', sans-serif; font-size: .82rem; font-weight: 600;
+      color: var(--text-muted); cursor: pointer; transition: all .2s;
+      border-right: 1px solid var(--border);
+    }
+    .img-tab:last-child { border-right: none; }
+    .img-tab.active { background: #fff; color: var(--primary); }
+    .img-tab:hover:not(.active) { background: #eee; }
+    .img-panel { display: none; padding: 14px; }
+    .img-panel.active { display: block; }
+    .img-preview { margin-top: 10px; }
+    .img-preview img {
+      width: 100%; max-height: 160px; object-fit: cover;
+      border-radius: 8px; border: 1px solid var(--border); display: none;
+    }
+    .img-preview img.visible { display: block; }
+    .img-preview-label { font-size: .75rem; color: var(--text-muted); margin-bottom: 6px; }
+    .upload-drop {
+      border: 2px dashed var(--border); border-radius: 8px;
+      padding: 20px; text-align: center; cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    .upload-drop:hover, .upload-drop.dragover { border-color: var(--primary); background: rgba(188,122,30,.04); }
+    .upload-drop svg { color: var(--text-muted); margin-bottom: 8px; }
+    .upload-drop p { font-size: .85rem; color: var(--text-muted); }
+    .upload-drop strong { color: var(--primary); }
+    .upload-drop input[type="file"] { display: none; }
+    .ai-row { display: flex; gap: 8px; align-items: flex-end; }
+    .ai-row .field { flex: 1; margin: 0; }
+    .ai-status { font-size: .78rem; color: var(--text-muted); margin-top: 6px; min-height: 18px; }
+    .ai-status.loading { color: var(--primary); }
+    .ai-status.error { color: var(--danger); }
+
+    /* Tags */
+    .badge { display: inline-block; padding: 3px 9px; border-radius: 50px; font-size: .73rem; font-weight: 600; }
     .badge-green  { background: rgba(22,163,74,.1);  color: #16a34a; }
     .badge-red    { background: rgba(239,68,68,.1);  color: #ef4444; }
     .badge-amber  { background: rgba(188,122,30,.1); color: var(--primary); }
     .badge-blue   { background: rgba(21,92,162,.1);  color: var(--secondary); }
+    .badge-gray   { background: rgba(0,0,0,.07);     color: #555; }
 
     /* Toast */
     .toast {
       position: fixed; bottom: 24px; right: 24px;
-      background: #111;
-      color: #fff;
-      padding: 12px 20px;
-      border-radius: 50px;
-      font-size: .9rem;
-      box-shadow: 0 4px 20px rgba(0,0,0,.3);
-      z-index: 2000;
-      transform: translateY(80px);
-      opacity: 0;
-      transition: all .3s ease;
+      background: #111; color: #fff;
+      padding: 12px 20px; border-radius: 50px; font-size: .9rem;
+      box-shadow: 0 4px 20px rgba(0,0,0,.3); z-index: 2000;
+      transform: translateY(80px); opacity: 0; transition: all .3s ease;
     }
     .toast.show { transform: none; opacity: 1; }
 
     /* Stats cards */
     .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 28px; }
-    .stat-card {
-      background: var(--bg-card);
-      border-radius: var(--radius-lg);
-      padding: 20px 22px;
-      box-shadow: var(--shadow);
-    }
+    .stat-card { background: var(--bg-card); border-radius: var(--radius-lg); padding: 20px 22px; box-shadow: var(--shadow); }
     .stat-card .num  { font-size: 2rem; font-weight: 700; color: var(--text); }
     .stat-card .lbl  { font-size: .8rem; color: var(--text-muted); margin-top: 2px; }
 
@@ -344,8 +290,8 @@
     <div class="stats-row" id="statsRow">
       <div class="stat-card"><div class="num" id="statEvents">–</div><div class="lbl">Total Events</div></div>
       <div class="stat-card"><div class="num" id="statGroups">–</div><div class="lbl">Small Groups</div></div>
+      <div class="stat-card"><div class="num" id="statPublished">–</div><div class="lbl">Published Groups</div></div>
       <div class="stat-card"><div class="num" id="statOpen">–</div><div class="lbl">Open Groups</div></div>
-      <div class="stat-card"><div class="num" id="statRecurring">–</div><div class="lbl">Recurring Events</div></div>
     </div>
 
     <!-- ── EVENTS TAB ────────────────────────────────── -->
@@ -361,11 +307,7 @@
         <table>
           <thead>
             <tr>
-              <th>Title</th>
-              <th>Date</th>
-              <th>Category</th>
-              <th>Type</th>
-              <th>Actions</th>
+              <th>Title</th><th>Date</th><th>Category</th><th>Type</th><th>Actions</th>
             </tr>
           </thead>
           <tbody id="eventsTable"></tbody>
@@ -391,12 +333,7 @@
         <table>
           <thead>
             <tr>
-              <th>Group Name</th>
-              <th>Day & Time</th>
-              <th>Type</th>
-              <th>Audience</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th>Group Name</th><th>Day & Time</th><th>Type</th><th>Audience</th><th>Published</th><th>Status</th><th>Actions</th>
             </tr>
           </thead>
           <tbody id="groupsTable"></tbody>
@@ -448,7 +385,7 @@
         </div>
         <div class="field">
           <label>Date (for sorting — YYYY-MM-DD)</label>
-          <input type="text" id="evDateSort" placeholder="e.g. 2026-06-14 or 2099-01-01 for recurring" />
+          <input type="text" id="evDateSort" placeholder="e.g. 2026-06-14" />
         </div>
       </div>
       <div class="form-row">
@@ -498,6 +435,19 @@
     </div>
     <div class="modal-body">
       <input type="hidden" id="grId" />
+
+      <!-- Published toggle -->
+      <div class="publish-toggle-row">
+        <div>
+          <div class="ptlabel">Published</div>
+          <div class="ptsub">Visible to the public on the Small Groups page</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="grPublished" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
       <div class="form-row">
         <div class="field">
           <label>Group Name *</label>
@@ -549,7 +499,7 @@
       <div class="form-row full">
         <div class="field">
           <label>Location *</label>
-          <input type="text" id="grLocation" placeholder="e.g. Room 102 – Heritage Hill Church" required />
+          <input type="text" id="grLocation" placeholder="e.g. Heritage Hill Room" required />
         </div>
       </div>
       <div class="form-row full">
@@ -558,13 +508,61 @@
           <textarea id="grDescription" placeholder="Describe this group — who it's for, what you study/do…" required></textarea>
         </div>
       </div>
-      <div class="form-row full">
-        <div class="field">
-          <label>Image URL</label>
-          <input type="url" id="grImage" placeholder="https://… (leave blank for default)" />
+
+      <!-- Image picker -->
+      <label style="display:block; font-size:.82rem; font-weight:600; color:var(--text); margin-bottom:8px;">Group Image</label>
+      <div class="img-picker">
+        <div class="img-picker-tabs">
+          <button class="img-tab active" onclick="switchImgTab('url', this)">🔗 Paste URL</button>
+          <button class="img-tab" onclick="switchImgTab('upload', this)">⬆️ Upload Photo</button>
+          <button class="img-tab" onclick="switchImgTab('ai', this)">✨ AI Generate</button>
+        </div>
+
+        <!-- URL tab -->
+        <div class="img-panel active" id="imgPanelUrl">
+          <div class="field" style="margin:0;">
+            <input type="url" id="grImageUrl" placeholder="https://… (leave blank for default)" oninput="previewFromUrl(this.value)" />
+          </div>
+          <div class="img-preview">
+            <p class="img-preview-label">Preview</p>
+            <img id="previewUrl" alt="Preview" />
+          </div>
+        </div>
+
+        <!-- Upload tab -->
+        <div class="img-panel" id="imgPanelUpload">
+          <div class="upload-drop" id="uploadDrop" onclick="document.getElementById('grImageFile').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <p><strong>Click to upload</strong> or drag & drop</p>
+            <p style="font-size:.75rem; margin-top:4px;">JPG, PNG, WEBP · Auto-optimized to web size</p>
+            <input type="file" id="grImageFile" accept="image/*" onchange="handleImageUpload(this)" />
+          </div>
+          <div class="img-preview">
+            <p class="img-preview-label">Preview (optimized)</p>
+            <img id="previewUpload" alt="Uploaded preview" />
+          </div>
+        </div>
+
+        <!-- AI tab -->
+        <div class="img-panel" id="imgPanelAi">
+          <p style="font-size:.82rem; color:var(--text-muted); margin-bottom:10px;">Describe the image you want — or use the group description as a starting point.</p>
+          <div class="ai-row">
+            <div class="field">
+              <textarea id="grAiPrompt" rows="2" placeholder="e.g. A small group of adults studying the Bible together in a warm, welcoming room…" style="min-height:60px;"></textarea>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="generateAIImage()" id="aiGenBtn" style="white-space:nowrap; height:fit-content; align-self:center;">Generate</button>
+          </div>
+          <div class="ai-status" id="aiStatus"></div>
+          <div class="img-preview">
+            <p class="img-preview-label">Generated image</p>
+            <img id="previewAi" alt="AI generated preview" />
+          </div>
         </div>
       </div>
-      <div class="form-row full">
+      <!-- Hidden field that holds the final resolved image value -->
+      <input type="hidden" id="grImageFinal" />
+
+      <div class="form-row full" style="margin-top:4px;">
         <div class="field checkbox">
           <input type="checkbox" id="grOpen" checked />
           <label for="grOpen">Group is open / accepting new members</label>
@@ -601,37 +599,37 @@
 <!-- ── Scripts ────────────────────────────────────────── -->
 <script src="../js/main.js"></script>
 <script>
-/* ── Auth guard ────────────────────────────────────── */
+/* ── Auth guard ─────────────────────────────────────── */
 if (sessionStorage.getItem('hhc_admin') !== 'true') {
   window.location.href = 'login.html?next=dashboard.html';
 }
 
-/* ── Tab switching ─────────────────────────────────── */
+/* ── Tab switching ──────────────────────────────────── */
 function switchTab(tab) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(`side${tab.charAt(0).toUpperCase()+tab.slice(1)}`).classList.add('active');
-  document.getElementById(`side${tab === 'events' ? 'Groups' : 'Events'}`).classList.remove('active');
+  ['events','groups'].forEach(t => {
+    document.getElementById(`panel${t.charAt(0).toUpperCase()+t.slice(1)}`).classList.remove('active');
+    document.getElementById(`side${t.charAt(0).toUpperCase()+t.slice(1)}`).classList.remove('active');
+  });
   document.getElementById(`panel${tab.charAt(0).toUpperCase()+tab.slice(1)}`).classList.add('active');
+  document.getElementById(`side${tab.charAt(0).toUpperCase()+tab.slice(1)}`).classList.add('active');
   document.getElementById('topbarTitle').textContent = tab === 'events' ? 'Events' : 'Small Groups';
   if (tab === 'events') renderEventsTable();
   else renderGroupsTable();
 }
 
-// Check URL param
 const urlTab = new URLSearchParams(window.location.search).get('tab');
 if (urlTab === 'groups') switchTab('groups');
 else renderEventsTable();
 updateStats();
 
-/* ── Stats ─────────────────────────────────────────── */
+/* ── Stats ──────────────────────────────────────────── */
 function updateStats() {
   const evs = DB.get('hhc_events');
   const grs = DB.get('hhc_groups');
-  document.getElementById('statEvents').textContent   = evs.length;
-  document.getElementById('statGroups').textContent   = grs.length;
-  document.getElementById('statOpen').textContent     = grs.filter(g => g.open).length;
-  document.getElementById('statRecurring').textContent= evs.filter(e => e.recurring).length;
+  document.getElementById('statEvents').textContent    = evs.length;
+  document.getElementById('statGroups').textContent    = grs.length;
+  document.getElementById('statPublished').textContent = grs.filter(g => g.published !== false).length;
+  document.getElementById('statOpen').textContent      = grs.filter(g => g.open).length;
 }
 
 /* ── EVENTS ─────────────────────────────────────────── */
@@ -686,11 +684,9 @@ function saveEvent() {
   const events = DB.get('hhc_events');
   const newEv = {
     id:          id ? parseInt(id) : Date.now(),
-    title,
-    date,
+    title, date,
     dateSort:    document.getElementById('evDateSort').value.trim() || '2099-12-31',
-    time,
-    location:    loc,
+    time, location: loc,
     category:    document.getElementById('evCategory').value,
     description: desc,
     image:       document.getElementById('evImage').value.trim() || 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80',
@@ -699,13 +695,9 @@ function saveEvent() {
   if (id) {
     const idx = events.findIndex(e => e.id === parseInt(id));
     if (idx > -1) events[idx] = newEv;
-  } else {
-    events.push(newEv);
-  }
+  } else { events.push(newEv); }
   DB.set('hhc_events', events);
-  closeEventModal();
-  renderEventsTable();
-  updateStats();
+  closeEventModal(); renderEventsTable(); updateStats();
   showToast(id ? 'Event updated!' : 'Event added!');
 }
 
@@ -722,7 +714,12 @@ function renderGroupsTable() {
       <td>${g.day}s at ${g.time}<br><span style="font-size:.8rem;color:var(--text-muted);">${g.location.split('–')[0].trim()}</span></td>
       <td><span class="badge badge-blue">${g.type}</span></td>
       <td>${g.audience}</td>
-      <td>${g.open ? '<span class="badge badge-green">Open</span>' : '<span class="badge badge-red">Full</span>'}</td>
+      <td>${g.published !== false
+        ? '<span class="badge badge-green">Published</span>'
+        : '<span class="badge badge-gray">Draft</span>'}</td>
+      <td>${g.open
+        ? '<span class="badge badge-amber">Open</span>'
+        : '<span class="badge badge-red">Full</span>'}</td>
       <td>
         <div class="td-actions">
           <button class="btn btn-ghost btn-sm" onclick="editGroup(${g.id})">Edit</button>
@@ -735,6 +732,7 @@ function renderGroupsTable() {
 function openGroupModal(g) {
   document.getElementById('groupModalTitle').textContent = g ? 'Edit Group' : 'Add Group';
   document.getElementById('grId').value          = g ? g.id : '';
+  document.getElementById('grPublished').checked = g ? g.published !== false : true;
   document.getElementById('grName').value        = g ? g.name : '';
   document.getElementById('grLeader').value      = g ? g.leader : '';
   document.getElementById('grDay').value         = g ? g.day : 'Sunday';
@@ -743,8 +741,25 @@ function openGroupModal(g) {
   document.getElementById('grAudience').value    = g ? g.audience : 'All Ages';
   document.getElementById('grLocation').value    = g ? g.location : '';
   document.getElementById('grDescription').value = g ? g.description : '';
-  document.getElementById('grImage').value       = g ? g.image : '';
   document.getElementById('grOpen').checked      = g ? g.open : true;
+
+  // Reset image picker
+  switchImgTab('url', document.querySelector('.img-tab'));
+  document.getElementById('grImageUrl').value   = g ? (g.image || '') : '';
+  document.getElementById('grImageFinal').value = g ? (g.image || '') : '';
+  document.getElementById('aiStatus').textContent = '';
+  document.getElementById('grAiPrompt').value   = '';
+  ['previewUrl','previewUpload','previewAi'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('visible');
+    el.src = '';
+  });
+  if (g && g.image && !g.image.startsWith('data:')) {
+    const p = document.getElementById('previewUrl');
+    p.src = g.image;
+    p.classList.add('visible');
+  }
+
   document.getElementById('groupModal').classList.add('open');
 }
 function closeGroupModal() { document.getElementById('groupModal').classList.remove('open'); }
@@ -760,38 +775,156 @@ function saveGroup() {
   const loc  = document.getElementById('grLocation').value.trim();
   const desc = document.getElementById('grDescription').value.trim();
   if (!name || !lead || !time || !loc || !desc) { showToast('Please fill in all required fields.', true); return; }
+
+  // Resolve image: prefer final hidden field, fall back to url input, then default
+  let image = document.getElementById('grImageFinal').value.trim()
+           || document.getElementById('grImageUrl').value.trim()
+           || 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80';
+
   const groups = DB.get('hhc_groups');
   const newGr = {
     id:          id ? parseInt(id) : Date.now(),
-    name,
-    leader:      lead,
+    published:   document.getElementById('grPublished').checked,
+    name, leader: lead,
     day:         document.getElementById('grDay').value,
-    time,
-    location:    loc,
+    time, location: loc,
     type:        document.getElementById('grType').value,
     audience:    document.getElementById('grAudience').value,
     description: desc,
-    image:       document.getElementById('grImage').value.trim() || 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80',
+    image,
     open:        document.getElementById('grOpen').checked
   };
   if (id) {
     const idx = groups.findIndex(g => g.id === parseInt(id));
     if (idx > -1) groups[idx] = newGr;
-  } else {
-    groups.push(newGr);
-  }
+  } else { groups.push(newGr); }
   DB.set('hhc_groups', groups);
-  closeGroupModal();
-  renderGroupsTable();
-  updateStats();
+  closeGroupModal(); renderGroupsTable(); updateStats();
   showToast(id ? 'Group updated!' : 'Group added!');
+}
+
+/* ── Image picker ───────────────────────────────────── */
+let _activeImgTab = 'url';
+
+function switchImgTab(tab, btnEl) {
+  _activeImgTab = tab;
+  document.querySelectorAll('.img-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.img-panel').forEach(p => p.classList.remove('active'));
+  // Find the clicked button — btnEl may be the first tab on reset
+  const tabs = document.querySelectorAll('.img-tab');
+  const panels = { url: 'imgPanelUrl', upload: 'imgPanelUpload', ai: 'imgPanelAi' };
+  const tabIdx = { url: 0, upload: 1, ai: 2 };
+  tabs[tabIdx[tab]].classList.add('active');
+  document.getElementById(panels[tab]).classList.add('active');
+}
+
+function previewFromUrl(url) {
+  const img = document.getElementById('previewUrl');
+  if (url) {
+    img.src = url;
+    img.classList.add('visible');
+    document.getElementById('grImageFinal').value = url;
+  } else {
+    img.classList.remove('visible');
+    document.getElementById('grImageFinal').value = '';
+  }
+}
+
+/* Upload + Canvas resize/compress */
+function handleDragOver(e) { e.preventDefault(); document.getElementById('uploadDrop').classList.add('dragover'); }
+function handleDragLeave(e) { document.getElementById('uploadDrop').classList.remove('dragover'); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('uploadDrop').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) processImageFile(file);
+}
+function handleImageUpload(input) {
+  if (input.files && input.files[0]) processImageFile(input.files[0]);
+}
+function processImageFile(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      // Resize to max 900px wide, compress to ~80% JPEG
+      const MAX = 900;
+      let w = img.width, h = img.height;
+      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.80);
+      const sizeKB = Math.round(dataUrl.length * 0.75 / 1024);
+      document.getElementById('previewUpload').src = dataUrl;
+      document.getElementById('previewUpload').classList.add('visible');
+      document.getElementById('grImageFinal').value = dataUrl;
+      document.getElementById('uploadDrop').querySelector('p').innerHTML =
+        `<strong>✓ Image optimized</strong> — ${w}×${h}px · ~${sizeKB}KB`;
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* AI image generation via Pollinations.ai (free, no key) */
+function generateAIImage() {
+  const prompt = document.getElementById('grAiPrompt').value.trim()
+               || document.getElementById('grDescription').value.trim();
+  if (!prompt) { showToast('Enter a description or prompt first.', true); return; }
+
+  const btn    = document.getElementById('aiGenBtn');
+  const status = document.getElementById('aiStatus');
+  const preview = document.getElementById('previewAi');
+
+  btn.disabled = true;
+  btn.textContent = 'Generating…';
+  status.className = 'ai-status loading';
+  status.textContent = 'Creating your image — this takes 10–20 seconds…';
+  preview.classList.remove('visible');
+
+  const seed = Math.floor(Math.random() * 99999);
+  const encoded = encodeURIComponent(prompt + ', warm church community, photorealistic, natural lighting');
+  const url = `https://image.pollinations.ai/prompt/${encoded}?width=800&height=500&nologo=true&seed=${seed}`;
+
+  const testImg = new Image();
+  testImg.crossOrigin = 'anonymous';
+  testImg.onload = function() {
+    // Draw to canvas to get optimized base64
+    const canvas = document.createElement('canvas');
+    canvas.width = testImg.naturalWidth || 800;
+    canvas.height = testImg.naturalHeight || 500;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(testImg, 0, 0);
+    let dataUrl;
+    try { dataUrl = canvas.toDataURL('image/jpeg', 0.82); } catch(e) { dataUrl = url; }
+
+    preview.src = dataUrl || url;
+    preview.classList.add('visible');
+    document.getElementById('grImageFinal').value = dataUrl || url;
+    status.className = 'ai-status';
+    status.textContent = '✓ Image generated! Save group to keep it.';
+    btn.disabled = false;
+    btn.textContent = 'Regenerate';
+  };
+  testImg.onerror = function() {
+    // Fall back to using the URL directly
+    preview.src = url;
+    preview.classList.add('visible');
+    document.getElementById('grImageFinal').value = url;
+    status.className = 'ai-status';
+    status.textContent = '✓ Image generated! Save group to keep it.';
+    btn.disabled = false;
+    btn.textContent = 'Regenerate';
+  };
+  testImg.src = url;
 }
 
 /* ── Delete ─────────────────────────────────────────── */
 let _deleteType, _deleteId;
 function deleteItem(type, id, name) {
-  _deleteType = type;
-  _deleteId   = id;
+  _deleteType = type; _deleteId = id;
   document.getElementById('deleteItemName').textContent = name;
   document.getElementById('deleteModal').classList.add('open');
 }
@@ -825,9 +958,7 @@ function logout() {
 /* Close modals on overlay click */
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => {
-    if (e.target === overlay) {
-      overlay.classList.remove('open');
-    }
+    if (e.target === overlay) overlay.classList.remove('open');
   });
 });
 </script>

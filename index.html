@@ -290,7 +290,7 @@
 
   /* Home — load 4 groups */
   (function loadHomeGroups() {
-    const groups = DB.get('hhc_groups');
+    const groups = DB.get('hhc_groups').filter(g => g.published !== false);
     const grid   = document.getElementById('homeGroupGrid');
     if (!grid) return;
     const show = groups.slice(0, 4);

@@ -232,7 +232,7 @@
     const day      = document.getElementById('groupDay').value;
     const type     = document.getElementById('groupType').value;
     const audience = document.getElementById('groupAudience').value;
-    let groups = DB.get('hhc_groups');
+    let groups = DB.get('hhc_groups').filter(g => g.published !== false);
 
     if (q)        groups = groups.filter(g => g.name.toLowerCase().includes(q) || g.description.toLowerCase().includes(q) || g.leader.toLowerCase().includes(q));
     if (day)      groups = groups.filter(g => g.day === day);
