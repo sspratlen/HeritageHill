@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lead a Small Group | Heritage Hill Church</title>
+  <meta name="description" content="Apply to lead a small group at Heritage Hill Church in Papillion, Nebraska." />
+  <link rel="icon" href="assets/logos/logo-icon-color-white.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .lag-form-wrap {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 32px rgba(0,0,0,.08);
+      padding: 40px 48px;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    @media (max-width: 600px) {
+      .lag-form-wrap { padding: 28px 20px; }
+    }
+    .lag-section-title {
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--primary);
+      margin: 28px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid rgba(188,122,30,.15);
+    }
+    .lag-section-title:first-child { margin-top: 0; }
+    .lag-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .lag-row.full { grid-template-columns: 1fr; }
+    .lag-field label { display: block; font-size: .82rem; font-weight: 600; color: var(--text); margin-bottom: 5px; }
+    .lag-field label .opt { font-weight: 400; color: var(--text-muted); }
+    .lag-field input, .lag-field select, .lag-field textarea {
+      width: 100%; padding: .65rem 1rem;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-family: 'DM Sans', sans-serif; font-size: .9375rem;
+      outline: none; transition: border-color .2s; background: #fff;
+    }
+    .lag-field input:focus, .lag-field select:focus, .lag-field textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(188,122,30,.1);
+    }
+    .lag-field textarea { resize: vertical; min-height: 100px; }
+    @media (max-width: 580px) {
+      .lag-row { grid-template-columns: 1fr; }
+    }
+    .steps-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 48px;
+    }
+    .step-card {
+      text-align: center;
+      background: #fff;
+      border-radius: 12px;
+      padding: 28px 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+    .step-num {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-size: 1.1rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 14px;
+    }
+    @media (max-width: 680px) {
+      .steps-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Navigation ──────────────────────────────────────── -->
+<nav id="navbar" class="scrolled">
+  <div class="container nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="assets/logos/logo-left-full-white.png"
+           alt="Heritage Hill Church"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+      <span style="display:none; font-size:1.15rem; font-weight:700; color:var(--primary);">Heritage Hill</span>
+    </a>
+    <div class="nav-links">
+      <a href="about.html">About Us</a>
+      <a href="events.html">Events</a>
+      <a href="small-groups.html">Small Groups</a>
+      <a href="sermons.html">Sermons</a>
+      <a href="give.html">Give</a>
+    </div>
+    <a href="about.html#visit" class="btn btn-primary btn-sm nav-cta">Plan a Visit</a>
+    <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="nav-mobile" id="mobileNav">
+  <a href="about.html">About Us</a>
+  <a href="events.html">Events</a>
+  <a href="small-groups.html">Small Groups</a>
+  <a href="sermons.html">Sermons</a>
+  <a href="give.html">Give</a>
+  <a href="about.html#visit" class="btn btn-primary">Plan a Visit</a>
+</div>
+
+<!-- ── Page Hero ───────────────────────────────────────── -->
+<div class="page-hero" style="padding-top:var(--nav-h);">
+  <div class="page-hero-bg" style="background-image:url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1400&q=80');"></div>
+  <div class="page-hero-overlay"></div>
+  <div class="container page-hero-content">
+    <h1>Lead a Small Group</h1>
+    <p>Share your faith, build community, and make a lasting impact.</p>
+  </div>
+</div>
+
+<!-- ── Why Lead strip ──────────────────────────────────── -->
+<section class="section-sm bg-soft">
+  <div class="container-narrow text-center">
+    <span class="section-label">Your Next Step</span>
+    <h2>You Don't Have to Have It All Figured Out</h2>
+    <p style="margin:1rem auto 0; font-size:1.05rem;">The best small group leaders aren't perfect — they're just willing. If God has put a passion on your heart to bring people together, we'll equip and support you every step of the way.</p>
+  </div>
+  <div class="container">
+    <div class="steps-row" data-reveal>
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h4 style="margin-bottom:.5rem;">Submit Your Idea</h4>
+        <p style="font-size:.875rem; color:var(--text-muted);">Fill out the form below with your vision for a group.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h4 style="margin-bottom:.5rem;">We'll Connect</h4>
+        <p style="font-size:.875rem; color:var(--text-muted);">Our small groups team will reach out to talk through next steps.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h4 style="margin-bottom:.5rem;">Launch Your Group</h4>
+        <p style="font-size:.875rem; color:var(--text-muted);">We'll list your group on the site and support your launch.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Application Form ─────────────────────────────────── -->
+<section class="section">
+  <div class="container">
+
+    <!-- Success screen (hidden until submit) -->
+    <div id="lagSuccess" style="display:none; text-align:center; max-width:560px; margin:0 auto; padding:48px 24px;">
+      <div style="font-size:3.5rem; margin-bottom:16px;">🎉</div>
+      <h2 style="margin-bottom:12px;">Application Submitted!</h2>
+      <p style="font-size:1.05rem; color:var(--text-muted); margin-bottom:28px;">Thank you for your willingness to lead! Our small groups team will review your application and reach out within a few days.</p>
+      <a href="small-groups.html" class="btn btn-primary btn-lg">Browse Current Groups</a>
+    </div>
+
+    <!-- Form -->
+    <div id="lagFormWrap" class="lag-form-wrap">
+      <div style="margin-bottom:32px;">
+        <h2 style="font-size:1.5rem; margin-bottom:8px;">Group Leader Application</h2>
+        <p style="color:var(--text-muted);">Tell us about yourself and your vision for a group. Fields marked * are required.</p>
+      </div>
+
+      <form id="lagForm" onsubmit="handleLagSubmit(event)">
+
+        <p class="lag-section-title">Your Information</p>
+        <div class="lag-row">
+          <div class="lag-field">
+            <label>Full Name *</label>
+            <input type="text" id="lagName" required placeholder="Jane Smith" />
+          </div>
+          <div class="lag-field">
+            <label>Email Address *</label>
+            <input type="email" id="lagEmail" required placeholder="jane@email.com" />
+          </div>
+        </div>
+        <div class="lag-row">
+          <div class="lag-field">
+            <label>Phone <span class="opt">(optional)</span></label>
+            <input type="tel" id="lagPhone" placeholder="(402) 555-1234" />
+          </div>
+          <div class="lag-field">
+            <label>How long have you attended Heritage Hill? *</label>
+            <select id="lagAttendance" required>
+              <option value="">Select…</option>
+              <option value="Less than 6 months">Less than 6 months</option>
+              <option value="6–12 months">6–12 months</option>
+              <option value="1–3 years">1–3 years</option>
+              <option value="3+ years">3+ years</option>
+            </select>
+          </div>
+        </div>
+
+        <p class="lag-section-title">About the Group</p>
+        <div class="lag-row">
+          <div class="lag-field">
+            <label>Proposed Group Name *</label>
+            <input type="text" id="lagGroupName" required placeholder="e.g. Tuesday Men's Bible Study" />
+          </div>
+          <div class="lag-field">
+            <label>Group Type *</label>
+            <select id="lagType" required>
+              <option value="">Select…</option>
+              <option value="Bible Study">Bible Study</option>
+              <option value="Life Group">Life Group</option>
+              <option value="Men's Ministry">Men's Ministry</option>
+              <option value="Women's Ministry">Women's Ministry</option>
+              <option value="Youth">Youth</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="lag-row">
+          <div class="lag-field">
+            <label>Target Audience *</label>
+            <select id="lagAudience" required>
+              <option value="">Select…</option>
+              <option value="All Ages">All Ages</option>
+              <option value="Men">Men</option>
+              <option value="Women">Women</option>
+              <option value="Young Adults">Young Adults</option>
+              <option value="Families">Families</option>
+              <option value="Youth (6–12th grade)">Youth (6–12th grade)</option>
+              <option value="Seniors">Seniors</option>
+            </select>
+          </div>
+          <div class="lag-field">
+            <label>Preferred Day *</label>
+            <select id="lagDay" required>
+              <option value="">Select…</option>
+              <option value="Sunday">Sunday</option>
+              <option value="Monday">Monday</option>
+              <option value="Tuesday">Tuesday</option>
+              <option value="Wednesday">Wednesday</option>
+              <option value="Thursday">Thursday</option>
+              <option value="Friday">Friday</option>
+              <option value="Saturday">Saturday</option>
+            </select>
+          </div>
+        </div>
+        <div class="lag-row">
+          <div class="lag-field">
+            <label>Preferred Time *</label>
+            <input type="text" id="lagTime" required placeholder="e.g. 6:30 PM" />
+          </div>
+          <div class="lag-field">
+            <label>Location / Setting *</label>
+            <select id="lagLocation" required>
+              <option value="">Select…</option>
+              <option value="Heritage Hill Building">Heritage Hill Building</option>
+              <option value="Leader's Home">Leader's Home</option>
+              <option value="Coffee Shop / Café">Coffee Shop / Café</option>
+              <option value="Online (Zoom / Video)">Online (Zoom / Video)</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="lag-row full">
+          <div class="lag-field">
+            <label>Group Description *</label>
+            <textarea id="lagDescription" required placeholder="Describe what this group will do, study, or focus on. Who is it for? What will a typical meeting look like?" rows="4"></textarea>
+          </div>
+        </div>
+        <div class="lag-row full">
+          <div class="lag-field">
+            <label>Why do you want to lead this group? *</label>
+            <textarea id="lagWhy" required placeholder="Share what's on your heart. Why this group, why now?" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="lag-row full">
+          <div class="lag-field">
+            <label>Any questions or additional notes? <span class="opt">(optional)</span></label>
+            <textarea id="lagNotes" placeholder="Anything else you'd like us to know…" rows="2"></textarea>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+          <button type="submit" class="btn btn-primary btn-lg">Submit Application</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ─────────────────────────────────────────── -->
+<footer id="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <img src="assets/logos/logo-left-full-dark.png" alt="Heritage Hill Church" onerror="this.style.display='none'" />
+        </div>
+        <p>We're a community of Jesus followers in Papillion, Nebraska. Come as you are — you belong here.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Navigate</h5>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="events.html">Events</a></li>
+          <li><a href="small-groups.html">Small Groups</a></li>
+          <li><a href="sermons.html">Sermons</a></li>
+          <li><a href="give.html">Give</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Ministries</h5>
+        <ul>
+          <li><a href="small-groups.html">Small Groups</a></li>
+          <li><a href="#">Children's Ministry</a></li>
+          <li><a href="#">Youth Ministry</a></li>
+          <li><a href="#">Women's Ministry</a></li>
+          <li><a href="#">Men's Ministry</a></li>
+        </ul>
+      </div>
+      <div class="footer-col footer-contact">
+        <h5>Contact Us</h5>
+        <p><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>6909 Cornhusker Rd, Papillion, NE 68133</p>
+        <p><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.73 8.7 19.79 19.79 0 01.67 4.1 2 2 0 012.63 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L7.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg><a href="tel:4023318900">(402) 331-8900</a></p>
+        <p><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Sun 10:30 AM</p>
+      </div>
+    </div>
+    <hr class="footer-divider" />
+    <div class="footer-bottom">
+      <p>&copy; <span id="footerYear"></span> Heritage Hill Church · Papillion, Nebraska</p>
+      <p><a href="admin/login.html" style="color:rgba(255,255,255,.2); font-size:.75rem;">Admin</a></p>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+  document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+  function handleLagSubmit(e) {
+    e.preventDefault();
+
+    const application = {
+      id: Date.now(),
+      status: 'pending',
+      submittedDate: new Date().toISOString(),
+      // Applicant info
+      name:       document.getElementById('lagName').value.trim(),
+      email:      document.getElementById('lagEmail').value.trim(),
+      phone:      document.getElementById('lagPhone').value.trim(),
+      attendance: document.getElementById('lagAttendance').value,
+      // Group proposal
+      groupName:   document.getElementById('lagGroupName').value.trim(),
+      type:        document.getElementById('lagType').value,
+      audience:    document.getElementById('lagAudience').value,
+      day:         document.getElementById('lagDay').value,
+      time:        document.getElementById('lagTime').value.trim(),
+      location:    document.getElementById('lagLocation').value,
+      description: document.getElementById('lagDescription').value.trim(),
+      why:         document.getElementById('lagWhy').value.trim(),
+      notes:       document.getElementById('lagNotes').value.trim()
+    };
+
+    const apps = DB.get('hhc_applications') || [];
+    apps.push(application);
+    DB.set('hhc_applications', apps);
+
+    // Show success
+    document.getElementById('lagFormWrap').style.display = 'none';
+    document.getElementById('lagSuccess').style.display = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>

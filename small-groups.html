@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Small Groups | Heritage Hill Church</title>
   <meta name="description" content="Find a small group at Heritage Hill Church in Papillion, Nebraska. Life is better together." />
-  <link rel="icon" href="https://cdn1.nucleus-cdn.church/church_96ead70fbfd64a0c9d22d87de963b4a5/file_c0f1de7b7a114ae28c91ac98c34365d9/2025-01-21T22:28:37.820Z/Logo_-_Icon_-_Color_on_White.png" />
+  <link rel="icon" href="assets/logos/logo-icon-color-white.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
@@ -16,7 +16,7 @@
 <nav id="navbar" class="scrolled">
   <div class="container nav-inner">
     <a href="index.html" class="nav-logo">
-      <img src="https://cdn1.nucleus-cdn.church/church_96ead70fbfd64a0c9d22d87de963b4a5/file_103ee2718a42463d9cefbd9683cf174a/2025-01-22T19:01:35.667Z/Logo_-_Left_Full_-_on_White.png"
+      <img src="assets/logos/logo-left-full-white.png"
            alt="Heritage Hill Church"
            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
       <span style="display:none; font-size:1.15rem; font-weight:700; color:var(--primary);">Heritage Hill</span>
@@ -120,7 +120,7 @@
         <span class="section-label">Don't See Your Fit?</span>
         <h2>Start a Group</h2>
         <p style="margin:1rem 0 1.5rem;">Can't find a group that fits? We'd love to help you launch one. Whether it's around a hobby, a life stage, or a ministry passion — if you're willing to lead, we'll support you.</p>
-        <a href="mailto:heritagehillchurch@gmail.com?subject=Starting a Small Group" class="btn btn-primary btn-lg">Contact Us About Leading</a>
+        <a href="lead-a-group.html" class="btn btn-primary btn-lg">Apply to Lead a Group</a>
       </div>
       <div data-reveal style="background:var(--bg); border-radius:var(--radius-lg); padding:36px; box-shadow:var(--shadow-md);">
         <h3 style="margin-bottom:1.2rem;">Have a Question?</h3>
@@ -148,7 +148,7 @@
     <div class="footer-grid">
       <div class="footer-brand">
         <div class="footer-logo">
-          <img src="https://cdn1.nucleus-cdn.church/church_96ead70fbfd64a0c9d22d87de963b4a5/file_103ee2718a42463d9cefbd9683cf174a/2025-01-22T19:01:35.667Z/Logo_-_Left_Full_-_on_White.png" alt="Heritage Hill Church" onerror="this.style.display='none'" />
+          <img src="assets/logos/logo-left-full-dark.png" alt="Heritage Hill Church" onerror="this.style.display='none'" />
         </div>
         <p>We're a community of Jesus followers in Papillion, Nebraska. Come as you are — you belong here.</p>
       </div>
@@ -188,6 +188,57 @@
   </div>
 </footer>
 
+<!-- ── Join Group Modal ───────────────────────────────── -->
+<div id="joinModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:999; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:#fff; border-radius:16px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.3);">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:22px 24px 18px; border-bottom:1px solid #e4e4e4;">
+      <div>
+        <h3 style="font-size:1.1rem; margin-bottom:3px;">Join a Small Group</h3>
+        <p id="joinGroupNameDisplay" style="font-size:.85rem; color:var(--primary); font-weight:600;"></p>
+      </div>
+      <button onclick="closeJoinModal()" style="width:32px; height:32px; border-radius:50%; background:#f4f4f2; border:none; cursor:pointer; font-size:1.1rem; color:#666; display:flex; align-items:center; justify-content:center;">✕</button>
+    </div>
+    <div style="padding:22px 24px;">
+      <!-- Success state -->
+      <div id="joinSuccess" style="display:none; text-align:center; padding:24px 0;">
+        <div style="font-size:2.5rem; margin-bottom:12px;">✅</div>
+        <h4 style="margin-bottom:8px; color:var(--text);">Request Submitted!</h4>
+        <p style="color:var(--text-muted); font-size:.9rem;">Thank you! A group leader will be in touch soon.</p>
+      </div>
+      <!-- Form -->
+      <form id="joinForm" onsubmit="handleJoinSubmit(event)">
+        <input type="hidden" id="joinGroupId" />
+        <input type="hidden" id="joinGroupNameHidden" />
+        <input type="hidden" id="joinGroupLeader" />
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:.82rem; font-weight:600; margin-bottom:5px;">Full Name *</label>
+          <input type="text" id="joinName" required placeholder="Your full name"
+            style="width:100%; padding:.62rem .9rem; border:1.5px solid #e4e4e4; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.9rem; outline:none;" />
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:.82rem; font-weight:600; margin-bottom:5px;">Email Address *</label>
+          <input type="email" id="joinEmail" required placeholder="your@email.com"
+            style="width:100%; padding:.62rem .9rem; border:1.5px solid #e4e4e4; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.9rem; outline:none;" />
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:.82rem; font-weight:600; margin-bottom:5px;">Phone <span style="font-weight:400; color:#888;">(optional)</span></label>
+          <input type="tel" id="joinPhone" placeholder="(402) 555-1234"
+            style="width:100%; padding:.62rem .9rem; border:1.5px solid #e4e4e4; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.9rem; outline:none;" />
+        </div>
+        <div style="margin-bottom:20px;">
+          <label style="display:block; font-size:.82rem; font-weight:600; margin-bottom:5px;">Message <span style="font-weight:400; color:#888;">(optional)</span></label>
+          <textarea id="joinMessage" rows="3" placeholder="Anything you'd like the group leader to know…"
+            style="width:100%; padding:.62rem .9rem; border:1.5px solid #e4e4e4; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.9rem; outline:none; resize:vertical;"></textarea>
+        </div>
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+          <button type="button" onclick="closeJoinModal()" style="padding:.55rem 1.2rem; border-radius:50px; border:2px solid #e4e4e4; background:transparent; font-family:'DM Sans',sans-serif; font-size:.875rem; font-weight:600; cursor:pointer; color:#666;">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <!-- Admin floating button -->
 <div class="admin-edit-bar" id="adminBar">
   <a href="admin/dashboard.html?tab=groups" class="admin-fab" title="Manage Groups">✏️</a>
@@ -221,7 +272,7 @@
         <p style="font-size:.875rem;">${g.description}</p>
         <div style="margin-top:14px; display:flex; justify-content:space-between; align-items:center;">
           <span style="font-size:.8rem; color:var(--text-muted);">Led by ${g.leader}</span>
-          <a href="mailto:heritagehillchurch@gmail.com?subject=Interest in ${encodeURIComponent(g.name)}" class="btn btn-primary btn-sm">Join Group</a>
+          <button class="btn btn-primary btn-sm" onclick="openJoinModal(${g.id})">Join Group</button>
         </div>
       </div>
     </article>`;
@@ -265,10 +316,59 @@
 
   function handleGroupContact(e) {
     e.preventDefault();
-    // In a real deployment this would POST to a server; here we just show success
     document.getElementById('groupContactForm').style.display = 'none';
     document.getElementById('gcSuccess').style.display = 'block';
   }
+
+  /* ── Join Group Modal ───────────────────────────────── */
+  function openJoinModal(groupId) {
+    const g = DB.get('hhc_groups').find(g => g.id === groupId);
+    if (!g) return;
+    document.getElementById('joinGroupNameDisplay').textContent = g.name;
+    document.getElementById('joinGroupId').value = groupId;
+    document.getElementById('joinGroupNameHidden').value = g.name;
+    document.getElementById('joinGroupLeader').value = g.leader || '';
+    document.getElementById('joinForm').reset();
+    document.getElementById('joinForm').style.display = '';
+    document.getElementById('joinSuccess').style.display = 'none';
+    const modal = document.getElementById('joinModal');
+    modal.style.display = 'flex';
+  }
+
+  function closeJoinModal() {
+    document.getElementById('joinModal').style.display = 'none';
+  }
+
+  function handleJoinSubmit(e) {
+    e.preventDefault();
+    const groups = DB.get('hhc_groups');
+    const groupId = parseInt(document.getElementById('joinGroupId').value);
+    const g = groups.find(g => g.id === groupId);
+    const signup = {
+      id: Date.now(),
+      groupId,
+      groupName: document.getElementById('joinGroupNameHidden').value,
+      leaderName: g ? g.leader : '',
+      leaderEmail: g ? (g.leaderEmail || '') : '',
+      name: document.getElementById('joinName').value.trim(),
+      email: document.getElementById('joinEmail').value.trim(),
+      phone: document.getElementById('joinPhone').value.trim(),
+      message: document.getElementById('joinMessage').value.trim(),
+      date: new Date().toISOString(),
+      contacted: false
+    };
+    const signups = DB.get('hhc_signups') || [];
+    signups.push(signup);
+    DB.set('hhc_signups', signups);
+    document.getElementById('joinForm').style.display = 'none';
+    document.getElementById('joinSuccess').style.display = '';
+    setTimeout(closeJoinModal, 2800);
+  }
+
+  // Close join modal on overlay click
+  document.getElementById('joinModal').addEventListener('click', function(e) {
+    if (e.target === this) closeJoinModal();
+  });
 </script>
 </body>
 </html>

@@ -4,98 +4,55 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard | Heritage Hill Church</title>
-  <link rel="icon" href="https://cdn1.nucleus-cdn.church/church_96ead70fbfd64a0c9d22d87de963b4a5/file_c0f1de7b7a114ae28c91ac98c34365d9/2025-01-21T22:28:37.820Z/Logo_-_Icon_-_Color_on_White.png" />
+  <link rel="icon" href="../assets/logos/logo-icon-color-white.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --primary: #BC7A1E;
-      --primary-dark: #9A6118;
-      --secondary: #155CA2;
-      --dark: #0D0F14;
-      --sidebar: #111318;
-      --border: #E4E4E4;
-      --bg: #F4F4F2;
-      --bg-card: #FFFFFF;
-      --text: #1C1C1E;
-      --text-muted: #6B6B6B;
-      --danger: #ef4444;
-      --success: #16a34a;
-      --radius: 10px;
-      --radius-lg: 16px;
-      --shadow: 0 2px 12px rgba(0,0,0,.07);
+      --primary: #BC7A1E; --primary-dark: #9A6118; --secondary: #155CA2;
+      --dark: #0D0F14; --sidebar: #111318; --border: #E4E4E4;
+      --bg: #F4F4F2; --bg-card: #FFFFFF; --text: #1C1C1E;
+      --text-muted: #6B6B6B; --danger: #ef4444; --success: #16a34a;
+      --radius: 10px; --radius-lg: 16px; --shadow: 0 2px 12px rgba(0,0,0,.07);
     }
     body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
-
-    /* Sidebar */
-    .sidebar {
-      width: 240px; background: var(--sidebar); color: #fff;
-      flex-shrink: 0; display: flex; flex-direction: column;
-      position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
-    }
+    .sidebar { width: 240px; background: var(--sidebar); color: #fff; flex-shrink: 0; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; }
     .sidebar-brand { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,.08); }
-    .sidebar-brand img { height: 36px; filter: brightness(0) invert(1); margin-bottom: 4px; }
+    .sidebar-brand img { height: 36px; filter: brightness(0) invert(1); }
     .sidebar-brand span { display: block; font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.35); margin-top: 6px; }
-    .sidebar-nav { padding: 16px 12px; flex: 1; }
-    .sidebar-nav a {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px; border-radius: 8px;
-      color: rgba(255,255,255,.6); text-decoration: none;
-      font-size: .9rem; font-weight: 500;
-      transition: background .2s, color .2s; margin-bottom: 2px; cursor: pointer;
-    }
+    .sidebar-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+    .sidebar-nav a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: rgba(255,255,255,.6); text-decoration: none; font-size: .9rem; font-weight: 500; transition: background .2s, color .2s; margin-bottom: 2px; cursor: pointer; }
     .sidebar-nav a:hover { background: rgba(255,255,255,.08); color: #fff; }
     .sidebar-nav a.active { background: var(--primary); color: #fff; }
     .sidebar-nav a svg { flex-shrink: 0; opacity: .75; }
     .sidebar-nav a.active svg { opacity: 1; }
+    .sidebar-nav .nav-section { font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,.25); padding: 14px 12px 6px; }
     .sidebar-footer { padding: 16px 12px; border-top: 1px solid rgba(255,255,255,.08); }
-    .sidebar-footer a {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 12px; border-radius: 8px;
-      color: rgba(255,255,255,.5); font-size: .85rem;
-      text-decoration: none; transition: all .2s;
-    }
+    .sidebar-footer a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: rgba(255,255,255,.5); font-size: .85rem; text-decoration: none; transition: all .2s; }
     .sidebar-footer a:hover { background: rgba(255,255,255,.08); color: #fff; }
-
-    /* Main */
     .main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
-
-    /* Top bar */
-    .topbar {
-      background: #fff; border-bottom: 1px solid var(--border);
-      padding: 0 28px; height: 60px;
-      display: flex; align-items: center; justify-content: space-between;
-      position: sticky; top: 0; z-index: 50;
-    }
+    .topbar { background: #fff; border-bottom: 1px solid var(--border); padding: 0 28px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
     .topbar h1 { font-size: 1.1rem; font-weight: 700; }
-    .topbar-actions { display: flex; align-items: center; gap: 12px; }
     .admin-badge { font-size: .8rem; background: rgba(188,122,30,.12); color: var(--primary); border-radius: 50px; padding: 4px 12px; font-weight: 600; }
-
-    /* Content */
     .content { padding: 28px; flex: 1; }
-
-    /* Action bar */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
     .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
     .action-bar h2 { font-size: 1.1rem; }
-    .btn {
-      display: inline-flex; align-items: center; gap: .4rem;
-      padding: .55rem 1.2rem; border-radius: 50px;
-      font-family: 'DM Sans', sans-serif; font-size: .875rem; font-weight: 600;
-      cursor: pointer; border: 2px solid transparent; transition: all .2s;
-    }
+    .btn { display: inline-flex; align-items: center; gap: .4rem; padding: .55rem 1.2rem; border-radius: 50px; font-family: 'DM Sans', sans-serif; font-size: .875rem; font-weight: 600; cursor: pointer; border: 2px solid transparent; transition: all .2s; }
     .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
     .btn-primary:hover { background: var(--primary-dark); }
     .btn-secondary { background: var(--secondary); color: #fff; border-color: var(--secondary); }
-    .btn-secondary:hover { background: #1149824; filter: brightness(.9); }
-    .btn-danger  { background: var(--danger); color: #fff; border-color: var(--danger); }
+    .btn-secondary:hover { filter: brightness(.9); }
+    .btn-success { background: var(--success); color: #fff; border-color: var(--success); }
+    .btn-success:hover { filter: brightness(.9); }
+    .btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
     .btn-danger:hover { background: #dc2626; }
-    .btn-ghost   { background: transparent; color: var(--text-muted); border-color: var(--border); }
+    .btn-ghost { background: transparent; color: var(--text-muted); border-color: var(--border); }
     .btn-ghost:hover { background: var(--bg); color: var(--text); }
     .btn-sm { padding: .35rem .85rem; font-size: .8rem; }
     .btn:disabled { opacity: .55; cursor: not-allowed; }
-
-    /* Table */
     .table-wrap { background: var(--bg-card); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }
     table { width: 100%; border-collapse: collapse; }
     thead tr { background: var(--bg); }
@@ -104,99 +61,50 @@
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: rgba(0,0,0,.015); }
     .td-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-
-    /* Empty state */
     .empty { text-align: center; padding: 48px 24px; color: var(--text-muted); }
     .empty svg { margin: 0 auto 12px; opacity: .3; }
     .empty h3 { color: var(--text); font-size: 1.05rem; margin-bottom: .4rem; }
-
-    /* Modal overlay */
-    .modal-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,.55); z-index: 1000;
-      align-items: center; justify-content: center; padding: 24px;
-    }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 1000; align-items: center; justify-content: center; padding: 24px; }
     .modal-overlay.open { display: flex; }
-    .modal {
-      background: #fff; border-radius: var(--radius-lg);
-      width: 100%; max-width: 600px; max-height: 92vh;
-      overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3);
-    }
+    .modal { background: #fff; border-radius: var(--radius-lg); width: 100%; max-width: 600px; max-height: 92vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+    .modal.modal-lg { max-width: 720px; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 22px 28px; border-bottom: 1px solid var(--border); }
     .modal-header h3 { font-size: 1.1rem; }
     .modal-close { width: 32px; height: 32px; border-radius: 50%; background: var(--bg); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--text-muted); transition: background .2s; }
     .modal-close:hover { background: var(--border); color: var(--text); }
     .modal-body { padding: 24px 28px; }
-    .modal-footer { padding: 16px 28px 24px; display: flex; justify-content: flex-end; gap: 10px; }
-
-    /* Form */
+    .modal-footer { padding: 16px 28px 24px; display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
     .form-row.full { grid-template-columns: 1fr; }
     .field label { display: block; font-size: .82rem; font-weight: 600; color: var(--text); margin-bottom: 5px; }
-    .field input, .field select, .field textarea {
-      width: 100%; padding: .62rem .9rem;
-      border: 1.5px solid var(--border); border-radius: 8px;
-      font-family: 'DM Sans', sans-serif; font-size: .9rem;
-      outline: none; transition: border-color .2s; background: #fff;
-    }
-    .field input:focus, .field select:focus, .field textarea:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(188,122,30,.12);
-    }
+    .field input, .field select, .field textarea { width: 100%; padding: .62rem .9rem; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: .9rem; outline: none; transition: border-color .2s; background: #fff; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(188,122,30,.12); }
     .field textarea { resize: vertical; min-height: 90px; }
     .field.checkbox { display: flex; align-items: center; gap: 8px; }
     .field.checkbox input { width: auto; }
     .field.checkbox label { margin-bottom: 0; font-weight: 500; }
-
-    /* Published toggle */
-    .publish-toggle-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 16px; border-radius: 10px;
-      border: 1.5px solid var(--border); margin-bottom: 16px;
-      background: var(--bg);
-    }
+    .publish-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-radius: 10px; border: 1.5px solid var(--border); margin-bottom: 16px; background: var(--bg); }
     .publish-toggle-row .ptlabel { font-size: .9rem; font-weight: 600; }
     .publish-toggle-row .ptsub { font-size: .78rem; color: var(--text-muted); margin-top: 2px; }
     .toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
     .toggle-switch input { opacity: 0; width: 0; height: 0; }
-    .toggle-slider {
-      position: absolute; inset: 0; background: #ccc; border-radius: 50px;
-      cursor: pointer; transition: background .2s;
-    }
-    .toggle-slider::before {
-      content: ''; position: absolute;
-      width: 18px; height: 18px; left: 3px; bottom: 3px;
-      background: #fff; border-radius: 50%; transition: transform .2s;
-    }
+    .toggle-slider { position: absolute; inset: 0; background: #ccc; border-radius: 50px; cursor: pointer; transition: background .2s; }
+    .toggle-slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: transform .2s; }
     .toggle-switch input:checked + .toggle-slider { background: var(--success); }
     .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
-
-    /* Image picker */
     .img-picker { border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
     .img-picker-tabs { display: flex; border-bottom: 1px solid var(--border); }
-    .img-tab {
-      flex: 1; padding: 9px 8px; border: none; background: var(--bg);
-      font-family: 'DM Sans', sans-serif; font-size: .82rem; font-weight: 600;
-      color: var(--text-muted); cursor: pointer; transition: all .2s;
-      border-right: 1px solid var(--border);
-    }
+    .img-tab { flex: 1; padding: 9px 8px; border: none; background: var(--bg); font-family: 'DM Sans', sans-serif; font-size: .82rem; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all .2s; border-right: 1px solid var(--border); }
     .img-tab:last-child { border-right: none; }
     .img-tab.active { background: #fff; color: var(--primary); }
     .img-tab:hover:not(.active) { background: #eee; }
     .img-panel { display: none; padding: 14px; }
     .img-panel.active { display: block; }
     .img-preview { margin-top: 10px; }
-    .img-preview img {
-      width: 100%; max-height: 160px; object-fit: cover;
-      border-radius: 8px; border: 1px solid var(--border); display: none;
-    }
+    .img-preview img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); display: none; }
     .img-preview img.visible { display: block; }
     .img-preview-label { font-size: .75rem; color: var(--text-muted); margin-bottom: 6px; }
-    .upload-drop {
-      border: 2px dashed var(--border); border-radius: 8px;
-      padding: 20px; text-align: center; cursor: pointer;
-      transition: border-color .2s, background .2s;
-    }
+    .upload-drop { border: 2px dashed var(--border); border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; }
     .upload-drop:hover, .upload-drop.dragover { border-color: var(--primary); background: rgba(188,122,30,.04); }
     .upload-drop svg { color: var(--text-muted); margin-bottom: 8px; }
     .upload-drop p { font-size: .85rem; color: var(--text-muted); }
@@ -207,54 +115,52 @@
     .ai-status { font-size: .78rem; color: var(--text-muted); margin-top: 6px; min-height: 18px; }
     .ai-status.loading { color: var(--primary); }
     .ai-status.error { color: var(--danger); }
-
-    /* Tags */
     .badge { display: inline-block; padding: 3px 9px; border-radius: 50px; font-size: .73rem; font-weight: 600; }
     .badge-green  { background: rgba(22,163,74,.1);  color: #16a34a; }
     .badge-red    { background: rgba(239,68,68,.1);  color: #ef4444; }
     .badge-amber  { background: rgba(188,122,30,.1); color: var(--primary); }
     .badge-blue   { background: rgba(21,92,162,.1);  color: var(--secondary); }
     .badge-gray   { background: rgba(0,0,0,.07);     color: #555; }
-
-    /* Toast */
-    .toast {
-      position: fixed; bottom: 24px; right: 24px;
-      background: #111; color: #fff;
-      padding: 12px 20px; border-radius: 50px; font-size: .9rem;
-      box-shadow: 0 4px 20px rgba(0,0,0,.3); z-index: 2000;
-      transform: translateY(80px); opacity: 0; transition: all .3s ease;
-    }
+    .toast { position: fixed; bottom: 24px; right: 24px; background: #111; color: #fff; padding: 12px 20px; border-radius: 50px; font-size: .9rem; box-shadow: 0 4px 20px rgba(0,0,0,.3); z-index: 2000; transform: translateY(80px); opacity: 0; transition: all .3s ease; }
     .toast.show { transform: none; opacity: 1; }
-
-    /* Stats cards */
-    .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 28px; }
-    .stat-card { background: var(--bg-card); border-radius: var(--radius-lg); padding: 20px 22px; box-shadow: var(--shadow); }
-    .stat-card .num  { font-size: 2rem; font-weight: 700; color: var(--text); }
-    .stat-card .lbl  { font-size: .8rem; color: var(--text-muted); margin-top: 2px; }
-
-    /* Responsive */
-    @media (max-width: 900px) {
-      .sidebar { width: 200px; }
-      .main { margin-left: 200px; }
-      .form-row { grid-template-columns: 1fr; }
-      .stats-row { grid-template-columns: repeat(2,1fr); }
-    }
-    @media (max-width: 680px) {
-      .sidebar { display: none; }
-      .main { margin-left: 0; }
-    }
+    .stats-row { display: grid; grid-template-columns: repeat(6,1fr); gap: 12px; margin-bottom: 28px; }
+    .stat-card { background: var(--bg-card); border-radius: var(--radius-lg); padding: 16px 18px; box-shadow: var(--shadow); }
+    .stat-card .num { font-size: 1.75rem; font-weight: 700; color: var(--text); }
+    .stat-card .lbl { font-size: .75rem; color: var(--text-muted); margin-top: 2px; }
+    /* Signups grid */
+    .signups-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+    .signup-card { background: var(--bg-card); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow); border-left: 4px solid var(--primary); }
+    .signup-card.contacted { border-left-color: var(--success); opacity: .75; }
+    .signup-card-name { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+    .signup-card-group { font-size: .78rem; font-weight: 600; color: var(--primary); margin-bottom: 10px; }
+    .signup-card-detail { font-size: .82rem; color: var(--text-muted); margin-bottom: 3px; display: flex; gap: 6px; }
+    .signup-card-detail strong { color: var(--text); min-width: 50px; }
+    .signup-card-message { margin-top: 10px; font-size: .82rem; background: var(--bg); padding: 8px 10px; border-radius: 6px; color: var(--text-muted); font-style: italic; }
+    .signup-card-footer { display: flex; gap: 6px; justify-content: flex-end; margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }
+    .signup-filter-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; background: var(--bg-card); padding: 14px 18px; border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+    .signup-filter-bar select { padding: .5rem .9rem; border: 1.5px solid var(--border); border-radius: 8px; font-family: 'DM Sans',sans-serif; font-size: .875rem; outline: none; }
+    .signup-filter-bar label { font-size: .82rem; font-weight: 600; color: var(--text-muted); }
+    /* Application detail */
+    .app-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; margin: 12px 0; }
+    .app-detail-item label { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); display: block; margin-bottom: 2px; }
+    .app-detail-item p { font-size: .9rem; }
+    .app-detail-item.full { grid-column: 1/-1; }
+    .app-detail-item p.narrative { background: var(--bg); border-radius: 8px; padding: 10px 12px; font-size: .875rem; color: var(--text-muted); margin-top: 2px; }
+    .app-section-label { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--primary); margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 1px solid rgba(188,122,30,.2); }
+    @media (max-width: 1200px) { .stats-row { grid-template-columns: repeat(3,1fr); } }
+    @media (max-width: 900px) { .sidebar { width: 200px; } .main { margin-left: 200px; } .form-row { grid-template-columns: 1fr; } .stats-row { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 680px) { .sidebar { display: none; } .main { margin-left: 0; } }
   </style>
 </head>
 <body>
 
-<!-- ── Sidebar ──────────────────────────────────────────── -->
 <aside class="sidebar">
   <div class="sidebar-brand">
-    <img src="https://cdn1.nucleus-cdn.church/church_96ead70fbfd64a0c9d22d87de963b4a5/file_103ee2718a42463d9cefbd9683cf174a/2025-01-22T19:01:35.667Z/Logo_-_Left_Full_-_on_White.png"
-         alt="Heritage Hill" onerror="this.style.display='none'" />
+    <img src="../assets/logos/logo-left-full-white.png" alt="Heritage Hill" onerror="this.style.display='none'" />
     <span>Admin Dashboard</span>
   </div>
   <nav class="sidebar-nav">
+    <div class="nav-section">Content</div>
     <a onclick="switchTab('events')" id="sideEvents" class="active">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Events
@@ -262,6 +168,15 @@
     <a onclick="switchTab('groups')" id="sideGroups">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
       Small Groups
+    </a>
+    <div class="nav-section" style="margin-top:8px;">People</div>
+    <a onclick="switchTab('signups')" id="sideSignups">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+      Sign-Up Requests
+    </a>
+    <a onclick="switchTab('applications')" id="sideApplications">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Leader Applications
     </a>
   </nav>
   <div class="sidebar-footer">
@@ -276,105 +191,124 @@
   </div>
 </aside>
 
-<!-- ── Main ────────────────────────────────────────────── -->
 <div class="main">
   <div class="topbar">
     <h1 id="topbarTitle">Events</h1>
-    <div class="topbar-actions">
+    <div style="display:flex;align-items:center;gap:12px;">
       <span class="admin-badge">Admin</span>
     </div>
   </div>
 
   <div class="content">
-    <!-- Stats -->
-    <div class="stats-row" id="statsRow">
+    <div class="stats-row">
       <div class="stat-card"><div class="num" id="statEvents">–</div><div class="lbl">Total Events</div></div>
       <div class="stat-card"><div class="num" id="statGroups">–</div><div class="lbl">Small Groups</div></div>
       <div class="stat-card"><div class="num" id="statPublished">–</div><div class="lbl">Published Groups</div></div>
       <div class="stat-card"><div class="num" id="statOpen">–</div><div class="lbl">Open Groups</div></div>
+      <div class="stat-card"><div class="num" id="statSignups">–</div><div class="lbl">Sign-Up Requests</div></div>
+      <div class="stat-card"><div class="num" id="statApplications">–</div><div class="lbl">Pending Applications</div></div>
     </div>
 
-    <!-- ── EVENTS TAB ────────────────────────────────── -->
+    <!-- EVENTS -->
     <div class="tab-panel active" id="panelEvents">
       <div class="action-bar">
         <h2>Manage Events</h2>
         <button class="btn btn-primary" onclick="openEventModal()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Add Event
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Event
         </button>
       </div>
       <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Title</th><th>Date</th><th>Category</th><th>Type</th><th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="eventsTable"></tbody>
-        </table>
+        <table><thead><tr><th>Title</th><th>Date</th><th>Category</th><th>Type</th><th>Actions</th></tr></thead>
+        <tbody id="eventsTable"></tbody></table>
         <div class="empty" id="eventsEmpty" style="display:none;">
           <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          <h3>No events yet</h3>
-          <p>Add your first event using the button above.</p>
+          <h3>No events yet</h3><p>Add your first event using the button above.</p>
         </div>
       </div>
     </div>
 
-    <!-- ── GROUPS TAB ──────────────────────────────── -->
+    <!-- GROUPS -->
     <div class="tab-panel" id="panelGroups">
       <div class="action-bar">
         <h2>Manage Small Groups</h2>
         <button class="btn btn-primary" onclick="openGroupModal()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Add Group
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Group
         </button>
       </div>
       <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Group Name</th><th>Day & Time</th><th>Type</th><th>Audience</th><th>Published</th><th>Status</th><th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="groupsTable"></tbody>
-        </table>
+        <table><thead><tr><th>Group Name</th><th>Day & Time</th><th>Type</th><th>Audience</th><th>Published</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="groupsTable"></tbody></table>
         <div class="empty" id="groupsEmpty" style="display:none;">
           <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-          <h3>No groups yet</h3>
-          <p>Add your first small group using the button above.</p>
+          <h3>No groups yet</h3><p>Add your first small group using the button above.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIGNUPS -->
+    <div class="tab-panel" id="panelSignups">
+      <div class="action-bar">
+        <h2>Small Group Sign-Ups</h2>
+        <button class="btn btn-secondary btn-sm" onclick="emailGroupSignups()" id="emailLeaderBtn" style="display:none;">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Email Leader
+        </button>
+      </div>
+      <div class="signup-filter-bar">
+        <label>Filter by Group:</label>
+        <select id="signupFilterGroup" onchange="renderSignupsPanel()"><option value="">All Groups</option></select>
+        <label style="margin-left:8px;">Status:</label>
+        <select id="signupFilterStatus" onchange="renderSignupsPanel()">
+          <option value="">All</option>
+          <option value="new">New Only</option>
+          <option value="contacted">Contacted Only</option>
+        </select>
+        <span id="signupCountLabel" style="margin-left:auto; font-size:.82rem; color:var(--text-muted);"></span>
+      </div>
+      <div class="signups-grid" id="signupsGrid"></div>
+      <div class="empty" id="signupsEmpty" style="display:none;">
+        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        <h3>No sign-up requests yet</h3><p>When visitors join a group from the website, they'll appear here.</p>
+      </div>
+    </div>
+
+    <!-- APPLICATIONS -->
+    <div class="tab-panel" id="panelApplications">
+      <div class="action-bar">
+        <h2>Leader Applications</h2>
+        <select id="appFilterStatus" onchange="renderApplicationsTable()" style="padding:.45rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;">
+          <option value="">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Applicant</th><th>Proposed Group</th><th>Type / Audience</th><th>Day & Time</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="applicationsTable"></tbody></table>
+        <div class="empty" id="applicationsEmpty" style="display:none;">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+          <h3>No applications yet</h3><p>When someone applies to lead a group, it will appear here.</p>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ────────────────────────────────────────────────────── -->
-<!-- EVENT MODAL                                           -->
-<!-- ────────────────────────────────────────────────────── -->
+<!-- EVENT MODAL -->
 <div class="modal-overlay" id="eventModal">
   <div class="modal">
-    <div class="modal-header">
-      <h3 id="eventModalTitle">Add Event</h3>
-      <button class="modal-close" onclick="closeEventModal()">✕</button>
-    </div>
+    <div class="modal-header"><h3 id="eventModalTitle">Add Event</h3><button class="modal-close" onclick="closeEventModal()">✕</button></div>
     <div class="modal-body">
       <input type="hidden" id="evId" />
       <div class="form-row">
-        <div class="field">
-          <label>Event Title *</label>
-          <input type="text" id="evTitle" placeholder="e.g. Community Picnic" required />
-        </div>
-        <div class="field">
-          <label>Category *</label>
+        <div class="field"><label>Event Title *</label><input type="text" id="evTitle" placeholder="e.g. Community Picnic" /></div>
+        <div class="field"><label>Category *</label>
           <select id="evCategory">
-            <option value="Worship">Worship</option>
-            <option value="Community">Community</option>
-            <option value="Men's Ministry">Men's Ministry</option>
-            <option value="Women's Ministry">Women's Ministry</option>
-            <option value="Children's Ministry">Children's Ministry</option>
-            <option value="Youth">Youth</option>
-            <option value="Life Group">Life Group</option>
-            <option value="Other">Other</option>
+            <option value="Worship">Worship</option><option value="Community">Community</option>
+            <option value="Men's Ministry">Men's Ministry</option><option value="Women's Ministry">Women's Ministry</option>
+            <option value="Children's Ministry">Children's Ministry</option><option value="Youth">Youth</option>
+            <option value="Life Group">Life Group</option><option value="Other">Other</option>
           </select>
         </div>
       </div>
@@ -382,846 +316,568 @@
         <div class="field">
           <label>Date *</label>
           <input type="date" id="evDatePicker" onchange="onEvDatePicked(this.value)" style="cursor:pointer;" />
-          <input type="hidden" id="evDate" />
-          <input type="hidden" id="evDateSort" />
+          <input type="hidden" id="evDate" /><input type="hidden" id="evDateSort" />
         </div>
         <div class="field" id="evRecurringOverrideWrap" style="display:none;">
-          <label>Display text override <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+          <label>Display override <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
           <input type="text" id="evDateOverride" placeholder='e.g. Every Sunday · Fall 2026' />
-          <p style="font-size:.75rem;color:var(--text-muted);margin-top:4px;">Leave blank to use the picked date. Fill in for custom recurring labels.</p>
+          <p style="font-size:.75rem;color:var(--text-muted);margin-top:4px;">Leave blank to use the picked date.</p>
         </div>
       </div>
       <div class="form-row">
-        <div class="field">
-          <label>Time *</label>
-          <input type="text" id="evTime" placeholder="e.g. 9:00 AM – 12:00 PM" required />
-        </div>
-        <div class="field">
-          <label>Location *</label>
-          <input type="text" id="evLocation" placeholder="e.g. 6909 Cornhusker Rd, Papillion, NE" required />
-        </div>
+        <div class="field"><label>Time *</label><input type="text" id="evTime" placeholder="e.g. 9:00 AM – 12:00 PM" /></div>
+        <div class="field"><label>Location *</label><input type="text" id="evLocation" placeholder="e.g. 6909 Cornhusker Rd" /></div>
       </div>
-      <div class="form-row full">
-        <div class="field">
-          <label>Description *</label>
-          <textarea id="evDescription" placeholder="Brief description of the event…" required></textarea>
-        </div>
-      </div>
-      <!-- Event image picker -->
-      <label style="display:block; font-size:.82rem; font-weight:600; color:var(--text); margin-bottom:8px;">Event Image</label>
+      <div class="form-row full"><div class="field"><label>Description *</label><textarea id="evDescription" placeholder="Brief description…"></textarea></div></div>
+      <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:8px;">Event Image</label>
       <div class="img-picker">
         <div class="img-picker-tabs">
-          <button class="img-tab active" onclick="switchEvImgTab('url', this)">🔗 Paste URL</button>
-          <button class="img-tab" onclick="switchEvImgTab('upload', this)">⬆️ Upload Photo</button>
-          <button class="img-tab" onclick="switchEvImgTab('ai', this)">✨ AI Generate</button>
+          <button class="img-tab active" onclick="switchEvImgTab('url',this)">🔗 Paste URL</button>
+          <button class="img-tab" onclick="switchEvImgTab('upload',this)">⬆️ Upload Photo</button>
+          <button class="img-tab" onclick="switchEvImgTab('ai',this)">✨ AI Generate</button>
         </div>
         <div class="img-panel active" id="evImgPanelUrl">
-          <div class="field" style="margin:0;">
-            <input type="url" id="evImageUrl" placeholder="https://… (leave blank for default)" oninput="evPreviewFromUrl(this.value)" />
-          </div>
-          <div class="img-preview">
-            <p class="img-preview-label">Preview</p>
-            <img id="evPreviewUrl" alt="Preview" />
-          </div>
+          <div class="field" style="margin:0;"><input type="url" id="evImageUrl" placeholder="https://…" oninput="evPreviewFromUrl(this.value)" /></div>
+          <div class="img-preview"><p class="img-preview-label">Preview</p><img id="evPreviewUrl" alt="Preview" /></div>
         </div>
         <div class="img-panel" id="evImgPanelUpload">
           <div class="upload-drop" id="evUploadDrop" onclick="document.getElementById('evImageFile').click()" ondragover="handleDragOver(event,'evUploadDrop')" ondragleave="handleDragLeave(event,'evUploadDrop')" ondrop="handleEvDrop(event)">
             <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            <p><strong>Click to upload</strong> or drag & drop</p>
-            <p style="font-size:.75rem;margin-top:4px;">JPG, PNG, WEBP · Auto-optimized</p>
+            <p><strong>Click to upload</strong> or drag & drop</p><p style="font-size:.75rem;margin-top:4px;">JPG, PNG, WEBP · Auto-optimized</p>
             <input type="file" id="evImageFile" accept="image/*" onchange="handleEvImageUpload(this)" />
           </div>
-          <div class="img-preview">
-            <p class="img-preview-label">Preview (optimized)</p>
-            <img id="evPreviewUpload" alt="Upload preview" />
-          </div>
+          <div class="img-preview"><p class="img-preview-label">Preview (optimized)</p><img id="evPreviewUpload" alt="Upload preview" /></div>
         </div>
         <div class="img-panel" id="evImgPanelAi">
-          <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:10px;">Describe the image, or use the event description as a starting point.</p>
+          <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:10px;">Describe the image or use the event description.</p>
           <div class="ai-row">
-            <div class="field">
-              <textarea id="evAiPrompt" rows="2" placeholder="e.g. A church community picnic on a sunny day…" style="min-height:60px;"></textarea>
-            </div>
+            <div class="field"><textarea id="evAiPrompt" rows="2" placeholder="e.g. Church picnic on sunny day…" style="min-height:60px;"></textarea></div>
             <button class="btn btn-secondary btn-sm" onclick="generateEvAIImage()" id="evAiGenBtn" style="white-space:nowrap;height:fit-content;align-self:center;">Generate</button>
           </div>
           <div class="ai-status" id="evAiStatus"></div>
-          <div class="img-preview">
-            <p class="img-preview-label">Generated image</p>
-            <img id="evPreviewAi" alt="AI generated preview" />
-          </div>
+          <div class="img-preview"><p class="img-preview-label">Generated image</p><img id="evPreviewAi" alt="AI preview" /></div>
         </div>
       </div>
       <input type="hidden" id="evImageFinal" />
-
-      <div class="form-row full">
-        <div class="field checkbox">
-          <input type="checkbox" id="evRecurring" onchange="toggleRecurringOverride(this.checked)" />
-          <label for="evRecurring">This is a recurring event (weekly, monthly, etc.)</label>
-        </div>
-      </div>
+      <div class="form-row full"><div class="field checkbox"><input type="checkbox" id="evRecurring" onchange="toggleRecurringOverride(this.checked)" /><label for="evRecurring">This is a recurring event</label></div></div>
     </div>
-    <div class="modal-footer" style="flex-wrap:wrap; gap:8px;">
+    <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeEventModal()">Cancel</button>
       <div style="flex:1;"></div>
       <button class="btn btn-ghost" id="evCalBtn" onclick="pushEventToGCal()" style="display:none;">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        Add to Google Calendar
+        📅 Google Calendar
       </button>
       <button class="btn btn-primary" onclick="saveEvent()">Save Event</button>
     </div>
   </div>
 </div>
 
-<!-- ────────────────────────────────────────────────────── -->
-<!-- GROUP MODAL                                           -->
-<!-- ────────────────────────────────────────────────────── -->
+<!-- GROUP MODAL -->
 <div class="modal-overlay" id="groupModal">
   <div class="modal">
-    <div class="modal-header">
-      <h3 id="groupModalTitle">Add Small Group</h3>
-      <button class="modal-close" onclick="closeGroupModal()">✕</button>
-    </div>
+    <div class="modal-header"><h3 id="groupModalTitle">Add Small Group</h3><button class="modal-close" onclick="closeGroupModal()">✕</button></div>
     <div class="modal-body">
       <input type="hidden" id="grId" />
-
-      <!-- Published toggle -->
       <div class="publish-toggle-row">
-        <div>
-          <div class="ptlabel">Published</div>
-          <div class="ptsub">Visible to the public on the Small Groups page</div>
-        </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="grPublished" checked />
-          <span class="toggle-slider"></span>
-        </label>
+        <div><div class="ptlabel">Published</div><div class="ptsub">Visible to the public on the Small Groups page</div></div>
+        <label class="toggle-switch"><input type="checkbox" id="grPublished" checked /><span class="toggle-slider"></span></label>
       </div>
-
       <div class="form-row">
-        <div class="field">
-          <label>Group Name *</label>
-          <input type="text" id="grName" placeholder="e.g. Tuesday Women's Group" required />
-        </div>
-        <div class="field">
-          <label>Leader *</label>
-          <input type="text" id="grLeader" placeholder="e.g. Sarah Jennings" required />
+        <div class="field"><label>Group Name *</label><input type="text" id="grName" placeholder="e.g. Tuesday Women's Group" /></div>
+        <div class="field"><label>Leader Name *</label><input type="text" id="grLeader" placeholder="e.g. Sarah Jennings" /></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Leader Email <span style="font-weight:400;color:var(--text-muted);font-size:.78rem;">(for sign-up notifications)</span></label><input type="email" id="grLeaderEmail" placeholder="leader@email.com" /></div>
+        <div class="field"><label>Day *</label>
+          <select id="grDay"><option>Sunday</option><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option></select>
         </div>
       </div>
       <div class="form-row">
-        <div class="field">
-          <label>Day *</label>
-          <select id="grDay">
-            <option>Sunday</option><option>Monday</option><option>Tuesday</option>
-            <option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Time *</label>
-          <input type="text" id="grTime" placeholder="e.g. 6:30 PM" required />
+        <div class="field"><label>Time *</label><input type="text" id="grTime" placeholder="e.g. 6:30 PM" /></div>
+        <div class="field"><label>Type *</label>
+          <select id="grType"><option value="Bible Study">Bible Study</option><option value="Life Group">Life Group</option><option value="Men's Ministry">Men's Ministry</option><option value="Women's Ministry">Women's Ministry</option><option value="Youth">Youth</option><option value="Other">Other</option></select>
         </div>
       </div>
       <div class="form-row">
-        <div class="field">
-          <label>Type *</label>
-          <select id="grType">
-            <option value="Bible Study">Bible Study</option>
-            <option value="Life Group">Life Group</option>
-            <option value="Men's Ministry">Men's Ministry</option>
-            <option value="Women's Ministry">Women's Ministry</option>
-            <option value="Youth">Youth</option>
-            <option value="Other">Other</option>
-          </select>
+        <div class="field"><label>Audience *</label>
+          <select id="grAudience"><option value="All Ages">All Ages</option><option value="Men">Men</option><option value="Women">Women</option><option value="Youth (6–12th grade)">Youth (6–12th grade)</option><option value="Families">Families</option><option value="Seniors">Seniors</option><option value="Young Adults">Young Adults</option></select>
         </div>
-        <div class="field">
-          <label>Audience *</label>
-          <select id="grAudience">
-            <option value="All Ages">All Ages</option>
-            <option value="Men">Men</option>
-            <option value="Women">Women</option>
-            <option value="Youth (6–12th grade)">Youth (6–12th grade)</option>
-            <option value="Families">Families</option>
-            <option value="Seniors">Seniors</option>
-            <option value="Young Adults">Young Adults</option>
-          </select>
-        </div>
+        <div class="field"><label>Location *</label><input type="text" id="grLocation" placeholder="e.g. Heritage Hill Room A" /></div>
       </div>
-      <div class="form-row full">
-        <div class="field">
-          <label>Location *</label>
-          <input type="text" id="grLocation" placeholder="e.g. Heritage Hill Room" required />
-        </div>
-      </div>
-      <div class="form-row full">
-        <div class="field">
-          <label>Description *</label>
-          <textarea id="grDescription" placeholder="Describe this group — who it's for, what you study/do…" required></textarea>
-        </div>
-      </div>
-
-      <!-- Image picker -->
-      <label style="display:block; font-size:.82rem; font-weight:600; color:var(--text); margin-bottom:8px;">Group Image</label>
+      <div class="form-row full"><div class="field"><label>Description *</label><textarea id="grDescription" placeholder="Describe this group…"></textarea></div></div>
+      <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:8px;">Group Image</label>
       <div class="img-picker">
         <div class="img-picker-tabs">
-          <button class="img-tab active" onclick="switchImgTab('url', this)">🔗 Paste URL</button>
-          <button class="img-tab" onclick="switchImgTab('upload', this)">⬆️ Upload Photo</button>
-          <button class="img-tab" onclick="switchImgTab('ai', this)">✨ AI Generate</button>
+          <button class="img-tab active" onclick="switchImgTab('url',this)">🔗 Paste URL</button>
+          <button class="img-tab" onclick="switchImgTab('upload',this)">⬆️ Upload Photo</button>
+          <button class="img-tab" onclick="switchImgTab('ai',this)">✨ AI Generate</button>
         </div>
-
-        <!-- URL tab -->
         <div class="img-panel active" id="imgPanelUrl">
-          <div class="field" style="margin:0;">
-            <input type="url" id="grImageUrl" placeholder="https://… (leave blank for default)" oninput="previewFromUrl(this.value)" />
-          </div>
-          <div class="img-preview">
-            <p class="img-preview-label">Preview</p>
-            <img id="previewUrl" alt="Preview" />
-          </div>
+          <div class="field" style="margin:0;"><input type="url" id="grImageUrl" placeholder="https://…" oninput="previewFromUrl(this.value)" /></div>
+          <div class="img-preview"><p class="img-preview-label">Preview</p><img id="previewUrl" alt="Preview" /></div>
         </div>
-
-        <!-- Upload tab -->
         <div class="img-panel" id="imgPanelUpload">
-          <div class="upload-drop" id="uploadDrop" onclick="document.getElementById('grImageFile').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+          <div class="upload-drop" id="uploadDrop" onclick="document.getElementById('grImageFile').click()" ondragover="handleDragOver(event,'uploadDrop')" ondragleave="handleDragLeave(event,'uploadDrop')" ondrop="handleDrop(event)">
             <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            <p><strong>Click to upload</strong> or drag & drop</p>
-            <p style="font-size:.75rem; margin-top:4px;">JPG, PNG, WEBP · Auto-optimized to web size</p>
+            <p><strong>Click to upload</strong> or drag & drop</p><p style="font-size:.75rem;margin-top:4px;">JPG, PNG, WEBP · Auto-optimized</p>
             <input type="file" id="grImageFile" accept="image/*" onchange="handleImageUpload(this)" />
           </div>
-          <div class="img-preview">
-            <p class="img-preview-label">Preview (optimized)</p>
-            <img id="previewUpload" alt="Uploaded preview" />
-          </div>
+          <div class="img-preview"><p class="img-preview-label">Preview (optimized)</p><img id="previewUpload" alt="Upload preview" /></div>
         </div>
-
-        <!-- AI tab -->
         <div class="img-panel" id="imgPanelAi">
-          <p style="font-size:.82rem; color:var(--text-muted); margin-bottom:10px;">Describe the image you want — or use the group description as a starting point.</p>
+          <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:10px;">Describe the image you want, or use the group description.</p>
           <div class="ai-row">
-            <div class="field">
-              <textarea id="grAiPrompt" rows="2" placeholder="e.g. A small group of adults studying the Bible together in a warm, welcoming room…" style="min-height:60px;"></textarea>
-            </div>
-            <button class="btn btn-secondary btn-sm" onclick="generateAIImage()" id="aiGenBtn" style="white-space:nowrap; height:fit-content; align-self:center;">Generate</button>
+            <div class="field"><textarea id="grAiPrompt" rows="2" placeholder="e.g. Small group studying Bible together…" style="min-height:60px;"></textarea></div>
+            <button class="btn btn-secondary btn-sm" onclick="generateAIImage()" id="aiGenBtn" style="white-space:nowrap;height:fit-content;align-self:center;">Generate</button>
           </div>
           <div class="ai-status" id="aiStatus"></div>
-          <div class="img-preview">
-            <p class="img-preview-label">Generated image</p>
-            <img id="previewAi" alt="AI generated preview" />
-          </div>
+          <div class="img-preview"><p class="img-preview-label">Generated image</p><img id="previewAi" alt="AI preview" /></div>
         </div>
       </div>
-      <!-- Hidden field that holds the final resolved image value -->
       <input type="hidden" id="grImageFinal" />
+      <div class="form-row full" style="margin-top:4px;"><div class="field checkbox"><input type="checkbox" id="grOpen" checked /><label for="grOpen">Group is open / accepting new members</label></div></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeGroupModal()">Cancel</button><button class="btn btn-primary" onclick="saveGroup()">Save Group</button></div>
+  </div>
+</div>
 
-      <div class="form-row full" style="margin-top:4px;">
-        <div class="field checkbox">
-          <input type="checkbox" id="grOpen" checked />
-          <label for="grOpen">Group is open / accepting new members</label>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeGroupModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveGroup()">Save Group</button>
-    </div>
+<!-- APPLICATION DETAIL MODAL -->
+<div class="modal-overlay" id="appDetailModal">
+  <div class="modal modal-lg">
+    <div class="modal-header"><h3 id="appDetailTitle">Leader Application</h3><button class="modal-close" onclick="closeAppDetailModal()">✕</button></div>
+    <div class="modal-body" id="appDetailBody"></div>
+    <div class="modal-footer" id="appDetailFooter"></div>
   </div>
 </div>
 
 <!-- Delete confirm modal -->
 <div class="modal-overlay" id="deleteModal">
   <div class="modal" style="max-width:400px;">
-    <div class="modal-header">
-      <h3>Confirm Delete</h3>
-      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <p>Are you sure you want to delete <strong id="deleteItemName"></strong>? This cannot be undone.</p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeDeleteModal()">Cancel</button>
-      <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
-    </div>
+    <div class="modal-header"><h3>Confirm Delete</h3><button class="modal-close" onclick="closeDeleteModal()">✕</button></div>
+    <div class="modal-body"><p>Are you sure you want to delete <strong id="deleteItemName"></strong>? This cannot be undone.</p></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeDeleteModal()">Cancel</button><button class="btn btn-danger" onclick="confirmDelete()">Delete</button></div>
   </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
-<!-- ── Scripts ────────────────────────────────────────── -->
 <script src="../js/main.js"></script>
 <script>
-/* ── Auth guard ─────────────────────────────────────── */
-if (sessionStorage.getItem('hhc_admin') !== 'true') {
-  window.location.href = 'login.html?next=dashboard.html';
-}
+if (sessionStorage.getItem('hhc_admin') !== 'true') window.location.href = 'login.html?next=dashboard.html';
 
-/* ── Tab switching ──────────────────────────────────── */
+const ALL_TABS = ['events','groups','signups','applications'];
 function switchTab(tab) {
-  ['events','groups'].forEach(t => {
-    document.getElementById(`panel${t.charAt(0).toUpperCase()+t.slice(1)}`).classList.remove('active');
-    document.getElementById(`side${t.charAt(0).toUpperCase()+t.slice(1)}`).classList.remove('active');
+  ALL_TABS.forEach(t => {
+    const c = t[0].toUpperCase()+t.slice(1);
+    const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
+    if(p) p.classList.remove('active'); if(s) s.classList.remove('active');
   });
-  document.getElementById(`panel${tab.charAt(0).toUpperCase()+tab.slice(1)}`).classList.add('active');
-  document.getElementById(`side${tab.charAt(0).toUpperCase()+tab.slice(1)}`).classList.add('active');
-  document.getElementById('topbarTitle').textContent = tab === 'events' ? 'Events' : 'Small Groups';
-  if (tab === 'events') renderEventsTable();
-  else renderGroupsTable();
+  const c = tab[0].toUpperCase()+tab.slice(1);
+  const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
+  if(p) p.classList.add('active'); if(s) s.classList.add('active');
+  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications'};
+  document.getElementById('topbarTitle').textContent = titles[tab]||tab;
+  if(tab==='events') renderEventsTable();
+  else if(tab==='groups') renderGroupsTable();
+  else if(tab==='signups') renderSignupsPanel();
+  else if(tab==='applications') renderApplicationsTable();
 }
-
 const urlTab = new URLSearchParams(window.location.search).get('tab');
-if (urlTab === 'groups') switchTab('groups');
-else renderEventsTable();
+if(ALL_TABS.includes(urlTab)) switchTab(urlTab); else renderEventsTable();
 updateStats();
 
-/* ── Stats ──────────────────────────────────────────── */
 function updateStats() {
-  const evs = DB.get('hhc_events');
-  const grs = DB.get('hhc_groups');
-  document.getElementById('statEvents').textContent    = evs.length;
-  document.getElementById('statGroups').textContent    = grs.length;
-  document.getElementById('statPublished').textContent = grs.filter(g => g.published !== false).length;
-  document.getElementById('statOpen').textContent      = grs.filter(g => g.open).length;
+  const evs=DB.get('hhc_events'), grs=DB.get('hhc_groups');
+  const sigs=DB.get('hhc_signups')||[], apps=DB.get('hhc_applications')||[];
+  document.getElementById('statEvents').textContent=evs.length;
+  document.getElementById('statGroups').textContent=grs.length;
+  document.getElementById('statPublished').textContent=grs.filter(g=>g.published!==false).length;
+  document.getElementById('statOpen').textContent=grs.filter(g=>g.open).length;
+  document.getElementById('statSignups').textContent=sigs.length;
+  document.getElementById('statApplications').textContent=apps.filter(a=>a.status==='pending').length;
 }
 
-/* ── EVENTS ─────────────────────────────────────────── */
+/* EVENTS */
 function renderEventsTable() {
-  const events = DB.get('hhc_events').sort((a,b) => a.dateSort.localeCompare(b.dateSort));
-  const tbody  = document.getElementById('eventsTable');
-  const empty  = document.getElementById('eventsEmpty');
-  if (!events.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
-  empty.style.display = 'none';
-  tbody.innerHTML = events.map(ev => `
+  const events=DB.get('hhc_events').sort((a,b)=>a.dateSort.localeCompare(b.dateSort));
+  const tbody=document.getElementById('eventsTable'), empty=document.getElementById('eventsEmpty');
+  if(!events.length){tbody.innerHTML='';empty.style.display='';return;} empty.style.display='none';
+  tbody.innerHTML=events.map(ev=>`
     <tr>
       <td><strong>${ev.title}</strong><br><span style="font-size:.8rem;color:var(--text-muted);">${ev.description.slice(0,60)}…</span></td>
       <td>${ev.date}<br><span style="font-size:.8rem;color:var(--text-muted);">${ev.time}</span></td>
       <td><span class="badge badge-blue">${ev.category}</span></td>
-      <td>${ev.recurring ? '<span class="badge badge-amber">Recurring</span>' : '<span class="badge badge-green">One-time</span>'}</td>
-      <td>
-        <div class="td-actions">
-          <button class="btn btn-ghost btn-sm" onclick="editEvent(${ev.id})">Edit</button>
-          <button class="btn btn-ghost btn-sm" onclick="openGCalForEvent(${ev.id})" title="Add to Google Calendar" style="color:var(--secondary);">📅 Calendar</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteItem('event', ${ev.id}, '${ev.title.replace(/'/g,"\\'")}')">Delete</button>
-        </div>
-      </td>
+      <td>${ev.recurring?'<span class="badge badge-amber">Recurring</span>':'<span class="badge badge-green">One-time</span>'}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editEvent(${ev.id})">Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="openGCalForEvent(${ev.id})" style="color:var(--secondary);">📅 Calendar</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteItem('event',${ev.id},'${ev.title.replace(/'/g,"\\'")}')">Delete</button>
+      </div></td>
     </tr>`).join('');
 }
 
-/* ── Date picker helpers ────────────────────────────── */
 function formatDateDisplay(ymd) {
-  // "2026-06-14" → "June 14, 2026"
-  if (!ymd) return '';
-  const [y, m, d] = ymd.split('-').map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  if(!ymd)return'';const[y,m,d]=ymd.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
 }
 function onEvDatePicked(ymd) {
-  document.getElementById('evDate').value     = formatDateDisplay(ymd);
-  document.getElementById('evDateSort').value = ymd;
+  document.getElementById('evDate').value=formatDateDisplay(ymd);
+  document.getElementById('evDateSort').value=ymd;
 }
 function toggleRecurringOverride(checked) {
-  document.getElementById('evRecurringOverrideWrap').style.display = checked ? '' : 'none';
+  document.getElementById('evRecurringOverrideWrap').style.display=checked?'':'none';
 }
 
 function openEventModal(ev) {
-  document.getElementById('eventModalTitle').textContent = ev ? 'Edit Event' : 'Add Event';
-  document.getElementById('evId').value          = ev ? ev.id : '';
-  document.getElementById('evTitle').value       = ev ? ev.title : '';
-  document.getElementById('evCategory').value    = ev ? ev.category : 'Worship';
-  // Populate date picker from stored dateSort; restore display date + override
-  const hasValidDate = ev && ev.dateSort && ev.dateSort !== '2099-12-31';
-  document.getElementById('evDatePicker').value  = hasValidDate ? ev.dateSort : '';
-  document.getElementById('evDate').value        = ev ? ev.date : '';
-  document.getElementById('evDateSort').value    = ev ? ev.dateSort : '';
-  // Detect if display date differs from auto-formatted version (means it's a custom override)
-  if (hasValidDate) {
-    const autoFmt = formatDateDisplay(ev.dateSort);
-    document.getElementById('evDateOverride').value = (ev.date !== autoFmt) ? ev.date : '';
-  } else {
-    document.getElementById('evDateOverride').value = ev ? ev.date : '';
-  }
-  const isRecurring = ev ? ev.recurring : false;
-  document.getElementById('evRecurring').checked = isRecurring;
-  document.getElementById('evRecurringOverrideWrap').style.display = isRecurring ? '' : 'none';
-  document.getElementById('evTime').value        = ev ? ev.time : '';
-  document.getElementById('evLocation').value    = ev ? ev.location : '';
-  document.getElementById('evDescription').value = ev ? ev.description : '';
-
-  // Reset image picker
-  switchEvImgTab('url', null);
-  document.getElementById('evImageUrl').value   = ev ? (ev.image || '') : '';
-  document.getElementById('evImageFinal').value = ev ? (ev.image || '') : '';
-  document.getElementById('evAiStatus').textContent = '';
-  document.getElementById('evAiPrompt').value   = '';
-  ['evPreviewUrl','evPreviewUpload','evPreviewAi'].forEach(id => {
-    const el = document.getElementById(id);
-    el.classList.remove('visible'); el.src = '';
-  });
-  if (ev && ev.image && !ev.image.startsWith('data:')) {
-    const p = document.getElementById('evPreviewUrl');
-    p.src = ev.image; p.classList.add('visible');
-  }
-
-  // Show/hide calendar button based on whether event exists
-  document.getElementById('evCalBtn').style.display = ev ? 'inline-flex' : 'none';
+  document.getElementById('eventModalTitle').textContent=ev?'Edit Event':'Add Event';
+  document.getElementById('evId').value=ev?ev.id:'';
+  document.getElementById('evTitle').value=ev?ev.title:'';
+  document.getElementById('evCategory').value=ev?ev.category:'Worship';
+  const hasDate=ev&&ev.dateSort&&ev.dateSort!=='2099-12-31';
+  document.getElementById('evDatePicker').value=hasDate?ev.dateSort:'';
+  document.getElementById('evDate').value=ev?ev.date:'';
+  document.getElementById('evDateSort').value=ev?ev.dateSort:'';
+  if(hasDate){const af=formatDateDisplay(ev.dateSort);document.getElementById('evDateOverride').value=(ev.date!==af)?ev.date:'';}
+  else document.getElementById('evDateOverride').value=ev?ev.date:'';
+  const isRec=ev?ev.recurring:false;
+  document.getElementById('evRecurring').checked=isRec;
+  document.getElementById('evRecurringOverrideWrap').style.display=isRec?'':'none';
+  document.getElementById('evTime').value=ev?ev.time:'';
+  document.getElementById('evLocation').value=ev?ev.location:'';
+  document.getElementById('evDescription').value=ev?ev.description:'';
+  switchEvImgTab('url',null);
+  document.getElementById('evImageUrl').value=ev?(ev.image||''):'';
+  document.getElementById('evImageFinal').value=ev?(ev.image||''):'';
+  document.getElementById('evAiStatus').textContent='';
+  document.getElementById('evAiPrompt').value='';
+  ['evPreviewUrl','evPreviewUpload','evPreviewAi'].forEach(id=>{const el=document.getElementById(id);el.classList.remove('visible');el.src='';});
+  if(ev&&ev.image&&!ev.image.startsWith('data:')){const p=document.getElementById('evPreviewUrl');p.src=ev.image;p.classList.add('visible');}
+  document.getElementById('evCalBtn').style.display=ev?'inline-flex':'none';
   document.getElementById('eventModal').classList.add('open');
 }
-function closeEventModal() { document.getElementById('eventModal').classList.remove('open'); }
-function editEvent(id) {
-  const ev = DB.get('hhc_events').find(e => e.id === id);
-  if (ev) openEventModal(ev);
-}
-function saveEvent() {
-  const id       = document.getElementById('evId').value;
-  const title    = document.getElementById('evTitle').value.trim();
-  const pickedDate = document.getElementById('evDatePicker').value; // YYYY-MM-DD
-  const override = document.getElementById('evDateOverride').value.trim();
-  const isRecurring = document.getElementById('evRecurring').checked;
-  // Display date: custom override → formatted picker value → existing stored value
-  const date = override || (pickedDate ? formatDateDisplay(pickedDate) : document.getElementById('evDate').value.trim());
-  const dateSort = pickedDate || (isRecurring ? '2099-12-31' : document.getElementById('evDateSort').value.trim() || '2099-12-31');
-  const time  = document.getElementById('evTime').value.trim();
-  const loc   = document.getElementById('evLocation').value.trim();
-  const desc  = document.getElementById('evDescription').value.trim();
-  if (!title || !date || !time || !loc || !desc) { showToast('Please fill in all required fields.', true); return; }
-
-  let image = document.getElementById('evImageFinal').value.trim()
-           || document.getElementById('evImageUrl').value.trim()
-           || 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80';
-
-  const events = DB.get('hhc_events');
-  const newEv = {
-    id:          id ? parseInt(id) : Date.now(),
-    title, date, dateSort,
-    time, location: loc,
-    category:    document.getElementById('evCategory').value,
-    description: desc, image,
-    recurring:   document.getElementById('evRecurring').checked
-  };
-  if (id) {
-    const idx = events.findIndex(e => e.id === parseInt(id));
-    if (idx > -1) events[idx] = newEv;
-  } else { events.push(newEv); }
-  DB.set('hhc_events', events);
-  renderEventsTable(); updateStats();
-  showToast(id ? 'Event updated! ✓' : 'Event added! ✓');
-
-  // Show calendar button after save
-  document.getElementById('evCalBtn').style.display = 'inline-flex';
-  document.getElementById('evId').value = newEv.id; // ensure ID is set for new events
+function closeEventModal(){document.getElementById('eventModal').classList.remove('open');}
+function editEvent(id){const ev=DB.get('hhc_events').find(e=>e.id===id);if(ev)openEventModal(ev);}
+function saveEvent(){
+  const id=document.getElementById('evId').value;
+  const title=document.getElementById('evTitle').value.trim();
+  const pickedDate=document.getElementById('evDatePicker').value;
+  const override=document.getElementById('evDateOverride').value.trim();
+  const isRec=document.getElementById('evRecurring').checked;
+  const date=override||(pickedDate?formatDateDisplay(pickedDate):document.getElementById('evDate').value.trim());
+  const dateSort=pickedDate||(isRec?'2099-12-31':document.getElementById('evDateSort').value.trim()||'2099-12-31');
+  const time=document.getElementById('evTime').value.trim();
+  const loc=document.getElementById('evLocation').value.trim();
+  const desc=document.getElementById('evDescription').value.trim();
+  if(!title||!date||!time||!loc||!desc){showToast('Please fill in all required fields.',true);return;}
+  let image=document.getElementById('evImageFinal').value.trim()||document.getElementById('evImageUrl').value.trim()||'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80';
+  const events=DB.get('hhc_events');
+  const newEv={id:id?parseInt(id):Date.now(),title,date,dateSort,time,location:loc,category:document.getElementById('evCategory').value,description:desc,image,recurring:isRec};
+  if(id){const idx=events.findIndex(e=>e.id===parseInt(id));if(idx>-1)events[idx]=newEv;}else events.push(newEv);
+  DB.set('hhc_events',events);renderEventsTable();updateStats();
+  showToast(id?'Event updated! ✓':'Event added! ✓');
+  document.getElementById('evCalBtn').style.display='inline-flex';
+  document.getElementById('evId').value=newEv.id;
 }
 
-/* ── Event image picker ─────────────────────────────── */
-let _activeEvImgTab = 'url';
-function switchEvImgTab(tab, btnEl) {
-  _activeEvImgTab = tab;
-  const tabs   = document.querySelectorAll('#eventModal .img-tab');
-  const panels = { url: 'evImgPanelUrl', upload: 'evImgPanelUpload', ai: 'evImgPanelAi' };
-  const tabIdx = { url: 0, upload: 1, ai: 2 };
-  tabs.forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('#eventModal .img-panel').forEach(p => p.classList.remove('active'));
-  if (tabs[tabIdx[tab]]) tabs[tabIdx[tab]].classList.add('active');
+let _activeEvImgTab='url';
+function switchEvImgTab(tab,btnEl){
+  _activeEvImgTab=tab;
+  const tabs=document.querySelectorAll('#eventModal .img-tab');
+  const panels={url:'evImgPanelUrl',upload:'evImgPanelUpload',ai:'evImgPanelAi'};
+  const tabIdx={url:0,upload:1,ai:2};
+  tabs.forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#eventModal .img-panel').forEach(p=>p.classList.remove('active'));
+  if(tabs[tabIdx[tab]])tabs[tabIdx[tab]].classList.add('active');
   document.getElementById(panels[tab]).classList.add('active');
 }
-function evPreviewFromUrl(url) {
-  const img = document.getElementById('evPreviewUrl');
-  if (url) { img.src = url; img.classList.add('visible'); document.getElementById('evImageFinal').value = url; }
-  else { img.classList.remove('visible'); document.getElementById('evImageFinal').value = ''; }
+function evPreviewFromUrl(url){const img=document.getElementById('evPreviewUrl');if(url){img.src=url;img.classList.add('visible');document.getElementById('evImageFinal').value=url;}else{img.classList.remove('visible');document.getElementById('evImageFinal').value='';}}
+function handleEvDrop(e){e.preventDefault();document.getElementById('evUploadDrop').classList.remove('dragover');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))processEvImageFile(f);}
+function handleEvImageUpload(input){if(input.files&&input.files[0])processEvImageFile(input.files[0]);}
+function processEvImageFile(file){
+  const reader=new FileReader();reader.onload=function(e){const img=new Image();img.onload=function(){
+    const MAX=900;let w=img.width,h=img.height;if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+    const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);
+    const dataUrl=canvas.toDataURL('image/jpeg',0.80);const sizeKB=Math.round(dataUrl.length*0.75/1024);
+    document.getElementById('evPreviewUpload').src=dataUrl;document.getElementById('evPreviewUpload').classList.add('visible');
+    document.getElementById('evImageFinal').value=dataUrl;
+    document.getElementById('evUploadDrop').querySelector('p').innerHTML=`<strong>✓ Image optimized</strong> — ${w}×${h}px · ~${sizeKB}KB`;
+  };img.src=e.target.result;};reader.readAsDataURL(file);
 }
-function handleEvDrop(e) {
-  e.preventDefault();
-  document.getElementById('evUploadDrop').classList.remove('dragover');
-  const file = e.dataTransfer.files[0];
-  if (file && file.type.startsWith('image/')) processEvImageFile(file);
-}
-function handleEvImageUpload(input) {
-  if (input.files && input.files[0]) processEvImageFile(input.files[0]);
-}
-function processEvImageFile(file) {
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const img = new Image();
-    img.onload = function() {
-      const MAX = 900;
-      let w = img.width, h = img.height;
-      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.80);
-      const sizeKB  = Math.round(dataUrl.length * 0.75 / 1024);
-      document.getElementById('evPreviewUpload').src = dataUrl;
-      document.getElementById('evPreviewUpload').classList.add('visible');
-      document.getElementById('evImageFinal').value = dataUrl;
-      document.getElementById('evUploadDrop').querySelector('p').innerHTML =
-        `<strong>✓ Image optimized</strong> — ${w}×${h}px · ~${sizeKB}KB`;
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-function generateEvAIImage() {
-  const prompt = document.getElementById('evAiPrompt').value.trim()
-               || document.getElementById('evDescription').value.trim();
-  if (!prompt) { showToast('Enter a description or prompt first.', true); return; }
-  const btn = document.getElementById('evAiGenBtn');
-  const status = document.getElementById('evAiStatus');
-  const preview = document.getElementById('evPreviewAi');
-  btn.disabled = true; btn.textContent = 'Generating…';
-  status.className = 'ai-status loading';
-  status.textContent = 'Creating your image — this takes 10–20 seconds…';
-  preview.classList.remove('visible');
-  const seed = Math.floor(Math.random() * 99999);
-  const encoded = encodeURIComponent(prompt + ', church community, photorealistic, warm natural lighting');
-  const url = `https://image.pollinations.ai/prompt/${encoded}?width=800&height=500&nologo=true&seed=${seed}`;
-  const testImg = new Image();
-  testImg.crossOrigin = 'anonymous';
-  testImg.onload = function() {
-    const canvas = document.createElement('canvas');
-    canvas.width = testImg.naturalWidth || 800; canvas.height = testImg.naturalHeight || 500;
-    canvas.getContext('2d').drawImage(testImg, 0, 0);
-    let dataUrl;
-    try { dataUrl = canvas.toDataURL('image/jpeg', 0.82); } catch(e) { dataUrl = url; }
-    preview.src = dataUrl || url; preview.classList.add('visible');
-    document.getElementById('evImageFinal').value = dataUrl || url;
-    status.className = 'ai-status'; status.textContent = '✓ Image generated!';
-    btn.disabled = false; btn.textContent = 'Regenerate';
-  };
-  testImg.onerror = function() {
-    preview.src = url; preview.classList.add('visible');
-    document.getElementById('evImageFinal').value = url;
-    status.className = 'ai-status'; status.textContent = '✓ Image generated!';
-    btn.disabled = false; btn.textContent = 'Regenerate';
-  };
-  testImg.src = url;
+function generateEvAIImage(){
+  const prompt=document.getElementById('evAiPrompt').value.trim()||document.getElementById('evDescription').value.trim();
+  if(!prompt){showToast('Enter a description or prompt first.',true);return;}
+  const btn=document.getElementById('evAiGenBtn'),status=document.getElementById('evAiStatus'),preview=document.getElementById('evPreviewAi');
+  btn.disabled=true;btn.textContent='Generating…';status.className='ai-status loading';status.textContent='Creating your image — this takes 10–20 seconds…';preview.classList.remove('visible');
+  const seed=Math.floor(Math.random()*99999);
+  const url=`https://image.pollinations.ai/prompt/${encodeURIComponent(prompt+', church community, photorealistic, warm natural lighting')}?width=800&height=500&nologo=true&seed=${seed}`;
+  const testImg=new Image();testImg.crossOrigin='anonymous';
+  testImg.onload=function(){const canvas=document.createElement('canvas');canvas.width=testImg.naturalWidth||800;canvas.height=testImg.naturalHeight||500;canvas.getContext('2d').drawImage(testImg,0,0);let dataUrl;try{dataUrl=canvas.toDataURL('image/jpeg',0.82);}catch(e){dataUrl=url;}preview.src=dataUrl||url;preview.classList.add('visible');document.getElementById('evImageFinal').value=dataUrl||url;status.className='ai-status';status.textContent='✓ Image generated!';btn.disabled=false;btn.textContent='Regenerate';};
+  testImg.onerror=function(){preview.src=url;preview.classList.add('visible');document.getElementById('evImageFinal').value=url;status.className='ai-status';status.textContent='✓ Image generated!';btn.disabled=false;btn.textContent='Regenerate';};
+  testImg.src=url;
 }
 
-/* ── Google Calendar integration ───────────────────── */
-function buildGCalUrl(ev) {
-  // Parse dateSort (YYYY-MM-DD) + time string into GCal date format
-  const dateStr = ev.dateSort && ev.dateSort !== '2099-12-31' ? ev.dateSort : null;
-
-  function parseTime(t) {
-    // Handle "10:30 AM", "10:30AM", "10:30 AM – 12:00 PM", "10:30 AM - 12:00 PM"
-    const parts = t.split(/[–\-]/);
-    return parts.map(s => {
-      s = s.trim();
-      const m = s.match(/(\d+):?(\d{0,2})\s*(AM|PM)/i);
-      if (!m) return null;
-      let h = parseInt(m[1]), min = parseInt(m[2] || '0');
-      const ampm = m[3].toUpperCase();
-      if (ampm === 'PM' && h !== 12) h += 12;
-      if (ampm === 'AM' && h === 12) h = 0;
-      return { h, min };
-    });
-  }
-
-  let startDt = '', endDt = '';
-  if (dateStr) {
-    const [y, mo, d] = dateStr.split('-');
-    const times = parseTime(ev.time || '');
-    if (times[0]) {
-      const pad = n => String(n).padStart(2,'0');
-      startDt = `${y}${mo}${d}T${pad(times[0].h)}${pad(times[0].min)}00`;
-      // end = start time + 1h if no end time given, else use end time
-      if (times[1]) {
-        endDt = `${y}${mo}${d}T${pad(times[1].h)}${pad(times[1].min)}00`;
-      } else {
-        endDt = `${y}${mo}${d}T${pad(times[0].h + 1)}${pad(times[0].min)}00`;
-      }
-    } else {
-      // All-day fallback
-      startDt = `${y}${mo}${d}`;
-      const nextDay = new Date(parseInt(y), parseInt(mo)-1, parseInt(d)+1);
-      endDt = `${nextDay.getFullYear()}${pad2(nextDay.getMonth()+1)}${pad2(nextDay.getDate())}`;
-    }
-  }
-
-  function pad2(n) { return String(n).padStart(2,'0'); }
-
-  const params = new URLSearchParams({
-    action:   'TEMPLATE',
-    text:     ev.title,
-    details:  ev.description + '\n\nAdded from Heritage Hill Church website.',
-    location: ev.location,
-  });
-  if (startDt && endDt) params.set('dates', `${startDt}/${endDt}`);
-
-  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+function buildGCalUrl(ev){
+  const dateStr=ev.dateSort&&ev.dateSort!=='2099-12-31'?ev.dateSort:null;
+  function parseTime(t){return t.split(/[–\-]/).map(s=>{s=s.trim();const m=s.match(/(\d+):?(\d{0,2})\s*(AM|PM)/i);if(!m)return null;let h=parseInt(m[1]),min=parseInt(m[2]||'0');const ap=m[3].toUpperCase();if(ap==='PM'&&h!==12)h+=12;if(ap==='AM'&&h===12)h=0;return{h,min};});}
+  function pad2(n){return String(n).padStart(2,'0');}
+  let startDt='',endDt='';
+  if(dateStr){const[y,mo,d]=dateStr.split('-');const times=parseTime(ev.time||'');if(times[0]){startDt=`${y}${mo}${d}T${pad2(times[0].h)}${pad2(times[0].min)}00`;if(times[1]){endDt=`${y}${mo}${d}T${pad2(times[1].h)}${pad2(times[1].min)}00`;}else{endDt=`${y}${mo}${d}T${pad2(times[0].h+1)}${pad2(times[0].min)}00`;}}else{startDt=`${y}${mo}${d}`;const nd=new Date(parseInt(y),parseInt(mo)-1,parseInt(d)+1);endDt=`${nd.getFullYear()}${pad2(nd.getMonth()+1)}${pad2(nd.getDate())}`;}}
+  const params=new URLSearchParams({action:'TEMPLATE',text:ev.title,details:ev.description+'\n\nAdded from Heritage Hill Church website.',location:ev.location});
+  if(startDt&&endDt)params.set('dates',`${startDt}/${endDt}`);
+  return`https://calendar.google.com/calendar/render?${params.toString()}`;
 }
+function pushEventToGCal(){const id=document.getElementById('evId').value;if(!id){showToast('Save the event first.',true);return;}const ev=DB.get('hhc_events').find(e=>e.id===parseInt(id));if(ev)window.open(buildGCalUrl(ev),'_blank');}
+function openGCalForEvent(id){const ev=DB.get('hhc_events').find(e=>e.id===id);if(ev)window.open(buildGCalUrl(ev),'_blank');}
 
-function pushEventToGCal() {
-  const id = document.getElementById('evId').value;
-  if (!id) { showToast('Save the event first, then add to calendar.', true); return; }
-  const ev = DB.get('hhc_events').find(e => e.id === parseInt(id));
-  if (!ev) return;
-  window.open(buildGCalUrl(ev), '_blank');
-}
-
-function openGCalForEvent(id) {
-  const ev = DB.get('hhc_events').find(e => e.id === id);
-  if (!ev) return;
-  if (!ev.dateSort || ev.dateSort === '2099-12-31') {
-    showToast('Add a sort date (YYYY-MM-DD) to the event for accurate calendar times.', false);
-  }
-  window.open(buildGCalUrl(ev), '_blank');
-}
-
-/* ── GROUPS ─────────────────────────────────────────── */
-function renderGroupsTable() {
-  const groups = DB.get('hhc_groups');
-  const tbody  = document.getElementById('groupsTable');
-  const empty  = document.getElementById('groupsEmpty');
-  if (!groups.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
-  empty.style.display = 'none';
-  tbody.innerHTML = groups.map(g => `
+/* GROUPS */
+function renderGroupsTable(){
+  const groups=DB.get('hhc_groups'),tbody=document.getElementById('groupsTable'),empty=document.getElementById('groupsEmpty');
+  if(!groups.length){tbody.innerHTML='';empty.style.display='';return;}empty.style.display='none';
+  tbody.innerHTML=groups.map(g=>`
     <tr>
       <td><strong>${g.name}</strong><br><span style="font-size:.8rem;color:var(--text-muted);">Led by ${g.leader}</span></td>
       <td>${g.day}s at ${g.time}<br><span style="font-size:.8rem;color:var(--text-muted);">${g.location.split('–')[0].trim()}</span></td>
       <td><span class="badge badge-blue">${g.type}</span></td>
       <td>${g.audience}</td>
-      <td>${g.published !== false
-        ? '<span class="badge badge-green">Published</span>'
-        : '<span class="badge badge-gray">Draft</span>'}</td>
-      <td>${g.open
-        ? '<span class="badge badge-amber">Open</span>'
-        : '<span class="badge badge-red">Full</span>'}</td>
-      <td>
-        <div class="td-actions">
-          <button class="btn btn-ghost btn-sm" onclick="editGroup(${g.id})">Edit</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteItem('group', ${g.id}, '${g.name.replace(/'/g,"\\'")}')">Delete</button>
-        </div>
-      </td>
+      <td>${g.published!==false?'<span class="badge badge-green">Published</span>':'<span class="badge badge-gray">Draft</span>'}</td>
+      <td>${g.open?'<span class="badge badge-amber">Open</span>':'<span class="badge badge-red">Full</span>'}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editGroup(${g.id})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteItem('group',${g.id},'${g.name.replace(/'/g,"\\'")}')">Delete</button>
+      </div></td>
     </tr>`).join('');
 }
-
-function openGroupModal(g) {
-  document.getElementById('groupModalTitle').textContent = g ? 'Edit Group' : 'Add Group';
-  document.getElementById('grId').value          = g ? g.id : '';
-  document.getElementById('grPublished').checked = g ? g.published !== false : true;
-  document.getElementById('grName').value        = g ? g.name : '';
-  document.getElementById('grLeader').value      = g ? g.leader : '';
-  document.getElementById('grDay').value         = g ? g.day : 'Sunday';
-  document.getElementById('grTime').value        = g ? g.time : '';
-  document.getElementById('grType').value        = g ? g.type : 'Life Group';
-  document.getElementById('grAudience').value    = g ? g.audience : 'All Ages';
-  document.getElementById('grLocation').value    = g ? g.location : '';
-  document.getElementById('grDescription').value = g ? g.description : '';
-  document.getElementById('grOpen').checked      = g ? g.open : true;
-
-  // Reset image picker
-  switchImgTab('url', document.querySelector('.img-tab'));
-  document.getElementById('grImageUrl').value   = g ? (g.image || '') : '';
-  document.getElementById('grImageFinal').value = g ? (g.image || '') : '';
-  document.getElementById('aiStatus').textContent = '';
-  document.getElementById('grAiPrompt').value   = '';
-  ['previewUrl','previewUpload','previewAi'].forEach(id => {
-    const el = document.getElementById(id);
-    el.classList.remove('visible');
-    el.src = '';
-  });
-  if (g && g.image && !g.image.startsWith('data:')) {
-    const p = document.getElementById('previewUrl');
-    p.src = g.image;
-    p.classList.add('visible');
-  }
-
+function openGroupModal(g){
+  document.getElementById('groupModalTitle').textContent=g?'Edit Group':'Add Group';
+  document.getElementById('grId').value=g?g.id:'';
+  document.getElementById('grPublished').checked=g?g.published!==false:true;
+  document.getElementById('grName').value=g?g.name:'';
+  document.getElementById('grLeader').value=g?g.leader:'';
+  document.getElementById('grLeaderEmail').value=g?(g.leaderEmail||''):'';
+  document.getElementById('grDay').value=g?g.day:'Sunday';
+  document.getElementById('grTime').value=g?g.time:'';
+  document.getElementById('grType').value=g?g.type:'Life Group';
+  document.getElementById('grAudience').value=g?g.audience:'All Ages';
+  document.getElementById('grLocation').value=g?g.location:'';
+  document.getElementById('grDescription').value=g?g.description:'';
+  document.getElementById('grOpen').checked=g?g.open:true;
+  switchImgTab('url',document.querySelector('#groupModal .img-tab'));
+  document.getElementById('grImageUrl').value=g?(g.image||''):'';
+  document.getElementById('grImageFinal').value=g?(g.image||''):'';
+  document.getElementById('aiStatus').textContent='';
+  document.getElementById('grAiPrompt').value='';
+  ['previewUrl','previewUpload','previewAi'].forEach(id=>{const el=document.getElementById(id);el.classList.remove('visible');el.src='';});
+  if(g&&g.image&&!g.image.startsWith('data:')){const p=document.getElementById('previewUrl');p.src=g.image;p.classList.add('visible');}
   document.getElementById('groupModal').classList.add('open');
 }
-function closeGroupModal() { document.getElementById('groupModal').classList.remove('open'); }
-function editGroup(id) {
-  const g = DB.get('hhc_groups').find(g => g.id === id);
-  if (g) openGroupModal(g);
-}
-function saveGroup() {
-  const id   = document.getElementById('grId').value;
-  const name = document.getElementById('grName').value.trim();
-  const lead = document.getElementById('grLeader').value.trim();
-  const time = document.getElementById('grTime').value.trim();
-  const loc  = document.getElementById('grLocation').value.trim();
-  const desc = document.getElementById('grDescription').value.trim();
-  if (!name || !lead || !time || !loc || !desc) { showToast('Please fill in all required fields.', true); return; }
-
-  // Resolve image: prefer final hidden field, fall back to url input, then default
-  let image = document.getElementById('grImageFinal').value.trim()
-           || document.getElementById('grImageUrl').value.trim()
-           || 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80';
-
-  const groups = DB.get('hhc_groups');
-  const newGr = {
-    id:          id ? parseInt(id) : Date.now(),
-    published:   document.getElementById('grPublished').checked,
-    name, leader: lead,
-    day:         document.getElementById('grDay').value,
-    time, location: loc,
-    type:        document.getElementById('grType').value,
-    audience:    document.getElementById('grAudience').value,
-    description: desc,
-    image,
-    open:        document.getElementById('grOpen').checked
-  };
-  if (id) {
-    const idx = groups.findIndex(g => g.id === parseInt(id));
-    if (idx > -1) groups[idx] = newGr;
-  } else { groups.push(newGr); }
-  DB.set('hhc_groups', groups);
-  closeGroupModal(); renderGroupsTable(); updateStats();
-  showToast(id ? 'Group updated!' : 'Group added!');
+function closeGroupModal(){document.getElementById('groupModal').classList.remove('open');}
+function editGroup(id){const g=DB.get('hhc_groups').find(g=>g.id===id);if(g)openGroupModal(g);}
+function saveGroup(){
+  const id=document.getElementById('grId').value;
+  const name=document.getElementById('grName').value.trim();
+  const lead=document.getElementById('grLeader').value.trim();
+  const time=document.getElementById('grTime').value.trim();
+  const loc=document.getElementById('grLocation').value.trim();
+  const desc=document.getElementById('grDescription').value.trim();
+  if(!name||!lead||!time||!loc||!desc){showToast('Please fill in all required fields.',true);return;}
+  let image=document.getElementById('grImageFinal').value.trim()||document.getElementById('grImageUrl').value.trim()||'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80';
+  const groups=DB.get('hhc_groups');
+  const newGr={id:id?parseInt(id):Date.now(),published:document.getElementById('grPublished').checked,name,leader:lead,leaderEmail:document.getElementById('grLeaderEmail').value.trim(),day:document.getElementById('grDay').value,time,location:loc,type:document.getElementById('grType').value,audience:document.getElementById('grAudience').value,description:desc,image,open:document.getElementById('grOpen').checked};
+  if(id){const idx=groups.findIndex(g=>g.id===parseInt(id));if(idx>-1)groups[idx]=newGr;}else groups.push(newGr);
+  DB.set('hhc_groups',groups);closeGroupModal();renderGroupsTable();updateStats();
+  showToast(id?'Group updated!':'Group added!');
 }
 
-/* ── Image picker ───────────────────────────────────── */
-let _activeImgTab = 'url';
-
-function switchImgTab(tab, btnEl) {
-  _activeImgTab = tab;
-  document.querySelectorAll('.img-tab').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.img-panel').forEach(p => p.classList.remove('active'));
-  // Find the clicked button — btnEl may be the first tab on reset
-  const tabs = document.querySelectorAll('.img-tab');
-  const panels = { url: 'imgPanelUrl', upload: 'imgPanelUpload', ai: 'imgPanelAi' };
-  const tabIdx = { url: 0, upload: 1, ai: 2 };
-  tabs[tabIdx[tab]].classList.add('active');
+let _activeImgTab='url';
+function switchImgTab(tab,btnEl){
+  _activeImgTab=tab;
+  document.querySelectorAll('#groupModal .img-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#groupModal .img-panel').forEach(p=>p.classList.remove('active'));
+  const tabs=document.querySelectorAll('#groupModal .img-tab');
+  const panels={url:'imgPanelUrl',upload:'imgPanelUpload',ai:'imgPanelAi'};
+  const tabIdx={url:0,upload:1,ai:2};
+  if(tabs[tabIdx[tab]])tabs[tabIdx[tab]].classList.add('active');
   document.getElementById(panels[tab]).classList.add('active');
 }
+function previewFromUrl(url){const img=document.getElementById('previewUrl');if(url){img.src=url;img.classList.add('visible');document.getElementById('grImageFinal').value=url;}else{img.classList.remove('visible');document.getElementById('grImageFinal').value='';}}
+function handleDragOver(e,dropId){e.preventDefault();document.getElementById(dropId||'uploadDrop').classList.add('dragover');}
+function handleDragLeave(e,dropId){document.getElementById(dropId||'uploadDrop').classList.remove('dragover');}
+function handleDrop(e){e.preventDefault();document.getElementById('uploadDrop').classList.remove('dragover');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))processImageFile(f);}
+function handleImageUpload(input){if(input.files&&input.files[0])processImageFile(input.files[0]);}
+function processImageFile(file){
+  const reader=new FileReader();reader.onload=function(e){const img=new Image();img.onload=function(){
+    const MAX=900;let w=img.width,h=img.height;if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+    const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);
+    const dataUrl=canvas.toDataURL('image/jpeg',0.80);const sizeKB=Math.round(dataUrl.length*0.75/1024);
+    document.getElementById('previewUpload').src=dataUrl;document.getElementById('previewUpload').classList.add('visible');
+    document.getElementById('grImageFinal').value=dataUrl;
+    document.getElementById('uploadDrop').querySelector('p').innerHTML=`<strong>✓ Image optimized</strong> — ${w}×${h}px · ~${sizeKB}KB`;
+  };img.src=e.target.result;};reader.readAsDataURL(file);
+}
+function generateAIImage(){
+  const prompt=document.getElementById('grAiPrompt').value.trim()||document.getElementById('grDescription').value.trim();
+  if(!prompt){showToast('Enter a description or prompt first.',true);return;}
+  const btn=document.getElementById('aiGenBtn'),status=document.getElementById('aiStatus'),preview=document.getElementById('previewAi');
+  btn.disabled=true;btn.textContent='Generating…';status.className='ai-status loading';status.textContent='Creating your image — this takes 10–20 seconds…';preview.classList.remove('visible');
+  const seed=Math.floor(Math.random()*99999);
+  const url=`https://image.pollinations.ai/prompt/${encodeURIComponent(prompt+', warm church community, photorealistic, natural lighting')}?width=800&height=500&nologo=true&seed=${seed}`;
+  const testImg=new Image();testImg.crossOrigin='anonymous';
+  testImg.onload=function(){const canvas=document.createElement('canvas');canvas.width=testImg.naturalWidth||800;canvas.height=testImg.naturalHeight||500;canvas.getContext('2d').drawImage(testImg,0,0);let dataUrl;try{dataUrl=canvas.toDataURL('image/jpeg',0.82);}catch(e){dataUrl=url;}preview.src=dataUrl||url;preview.classList.add('visible');document.getElementById('grImageFinal').value=dataUrl||url;status.className='ai-status';status.textContent='✓ Image generated! Save group to keep it.';btn.disabled=false;btn.textContent='Regenerate';};
+  testImg.onerror=function(){preview.src=url;preview.classList.add('visible');document.getElementById('grImageFinal').value=url;status.className='ai-status';status.textContent='✓ Image generated! Save group to keep it.';btn.disabled=false;btn.textContent='Regenerate';};
+  testImg.src=url;
+}
 
-function previewFromUrl(url) {
-  const img = document.getElementById('previewUrl');
-  if (url) {
-    img.src = url;
-    img.classList.add('visible');
-    document.getElementById('grImageFinal').value = url;
-  } else {
-    img.classList.remove('visible');
-    document.getElementById('grImageFinal').value = '';
+/* SIGNUPS */
+function populateSignupGroupFilter(){
+  const sel=document.getElementById('signupFilterGroup');
+  const groups=DB.get('hhc_groups');
+  sel.innerHTML='<option value="">All Groups</option>'+groups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
+}
+function renderSignupsPanel(){
+  populateSignupGroupFilter();
+  const filterGroupId=document.getElementById('signupFilterGroup').value;
+  const filterStatus=document.getElementById('signupFilterStatus').value;
+  let signups=DB.get('hhc_signups')||[];
+  if(filterGroupId)signups=signups.filter(s=>String(s.groupId)===filterGroupId);
+  if(filterStatus==='new')signups=signups.filter(s=>!s.contacted);
+  if(filterStatus==='contacted')signups=signups.filter(s=>s.contacted);
+  signups.sort((a,b)=>b.id-a.id);
+  const grid=document.getElementById('signupsGrid'),empty=document.getElementById('signupsEmpty');
+  const countLabel=document.getElementById('signupCountLabel');
+  countLabel.textContent=`${signups.length} sign-up${signups.length!==1?'s':''}`;
+  document.getElementById('emailLeaderBtn').style.display=filterGroupId?'inline-flex':'none';
+  if(!signups.length){grid.innerHTML='';empty.style.display='';}
+  else{
+    empty.style.display='none';
+    grid.innerHTML=signups.map(s=>{
+      const ds=s.date?new Date(s.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
+      return`<div class="signup-card${s.contacted?' contacted':''}" id="sc_${s.id}">
+        <div class="signup-card-name">${s.name}</div>
+        <div class="signup-card-group">${s.contacted?'✓ Contacted · ':''}${s.groupName}</div>
+        <div class="signup-card-detail"><strong>Email</strong><a href="mailto:${s.email}" style="color:var(--primary);">${s.email}</a></div>
+        ${s.phone?`<div class="signup-card-detail"><strong>Phone</strong>${s.phone}</div>`:''}
+        <div class="signup-card-detail"><strong>Date</strong>${ds}</div>
+        ${s.message?`<div class="signup-card-message">"${s.message}"</div>`:''}
+        <div class="signup-card-footer">
+          <button class="btn btn-sm ${s.contacted?'btn-ghost':'btn-success'}" onclick="toggleSignupContacted(${s.id})">${s.contacted?'↩ Mark Uncontacted':'✓ Mark Contacted'}</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteItem('signup',${s.id},'${s.name.replace(/'/g,"\\'")}')">Delete</button>
+        </div>
+      </div>`;
+    }).join('');
   }
 }
-
-/* Upload + Canvas resize/compress */
-function handleDragOver(e, dropId) { e.preventDefault(); document.getElementById(dropId || 'uploadDrop').classList.add('dragover'); }
-function handleDragLeave(e, dropId) { document.getElementById(dropId || 'uploadDrop').classList.remove('dragover'); }
-function handleDrop(e) {
-  e.preventDefault();
-  document.getElementById('uploadDrop').classList.remove('dragover');
-  const file = e.dataTransfer.files[0];
-  if (file && file.type.startsWith('image/')) processImageFile(file);
+function toggleSignupContacted(id){
+  const signups=DB.get('hhc_signups')||[];const idx=signups.findIndex(s=>s.id===id);
+  if(idx>-1){signups[idx].contacted=!signups[idx].contacted;DB.set('hhc_signups',signups);renderSignupsPanel();updateStats();showToast(signups[idx].contacted?'Marked as contacted ✓':'Marked as uncontacted');}
 }
-function handleImageUpload(input) {
-  if (input.files && input.files[0]) processImageFile(input.files[0]);
-}
-function processImageFile(file) {
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const img = new Image();
-    img.onload = function() {
-      // Resize to max 900px wide, compress to ~80% JPEG
-      const MAX = 900;
-      let w = img.width, h = img.height;
-      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, w, h);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.80);
-      const sizeKB = Math.round(dataUrl.length * 0.75 / 1024);
-      document.getElementById('previewUpload').src = dataUrl;
-      document.getElementById('previewUpload').classList.add('visible');
-      document.getElementById('grImageFinal').value = dataUrl;
-      document.getElementById('uploadDrop').querySelector('p').innerHTML =
-        `<strong>✓ Image optimized</strong> — ${w}×${h}px · ~${sizeKB}KB`;
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+function emailGroupSignups(){
+  const filterGroupId=document.getElementById('signupFilterGroup').value;
+  if(!filterGroupId){showToast('Select a specific group first.',true);return;}
+  const groups=DB.get('hhc_groups');const signups=(DB.get('hhc_signups')||[]).filter(s=>String(s.groupId)===filterGroupId);
+  const group=groups.find(g=>String(g.id)===filterGroupId);
+  if(!group)return;if(!signups.length){showToast('No sign-ups for this group yet.',true);return;}
+  const leaderEmail=group.leaderEmail||'';
+  const subject=`Sign-Up Requests for "${group.name}"`;
+  let body=`Hi ${group.leader},\n\nHere are the sign-up requests for your group "${group.name}":\n\n`;
+  signups.forEach((s,i)=>{const ds=s.date?new Date(s.date).toLocaleDateString():'';body+=`${i+1}. ${s.name}\n   Email: ${s.email}\n${s.phone?`   Phone: ${s.phone}\n`:''}${s.message?`   Message: "${s.message}"\n`:''}   Submitted: ${ds}\n\n`;});
+  body+=`Total: ${signups.length} request${signups.length!==1?'s':''}\n\n— Heritage Hill Church Admin`;
+  window.location.href=`mailto:${encodeURIComponent(leaderEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
-/* AI image generation via Pollinations.ai (free, no key) */
-function generateAIImage() {
-  const prompt = document.getElementById('grAiPrompt').value.trim()
-               || document.getElementById('grDescription').value.trim();
-  if (!prompt) { showToast('Enter a description or prompt first.', true); return; }
-
-  const btn    = document.getElementById('aiGenBtn');
-  const status = document.getElementById('aiStatus');
-  const preview = document.getElementById('previewAi');
-
-  btn.disabled = true;
-  btn.textContent = 'Generating…';
-  status.className = 'ai-status loading';
-  status.textContent = 'Creating your image — this takes 10–20 seconds…';
-  preview.classList.remove('visible');
-
-  const seed = Math.floor(Math.random() * 99999);
-  const encoded = encodeURIComponent(prompt + ', warm church community, photorealistic, natural lighting');
-  const url = `https://image.pollinations.ai/prompt/${encoded}?width=800&height=500&nologo=true&seed=${seed}`;
-
-  const testImg = new Image();
-  testImg.crossOrigin = 'anonymous';
-  testImg.onload = function() {
-    // Draw to canvas to get optimized base64
-    const canvas = document.createElement('canvas');
-    canvas.width = testImg.naturalWidth || 800;
-    canvas.height = testImg.naturalHeight || 500;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(testImg, 0, 0);
-    let dataUrl;
-    try { dataUrl = canvas.toDataURL('image/jpeg', 0.82); } catch(e) { dataUrl = url; }
-
-    preview.src = dataUrl || url;
-    preview.classList.add('visible');
-    document.getElementById('grImageFinal').value = dataUrl || url;
-    status.className = 'ai-status';
-    status.textContent = '✓ Image generated! Save group to keep it.';
-    btn.disabled = false;
-    btn.textContent = 'Regenerate';
-  };
-  testImg.onerror = function() {
-    // Fall back to using the URL directly
-    preview.src = url;
-    preview.classList.add('visible');
-    document.getElementById('grImageFinal').value = url;
-    status.className = 'ai-status';
-    status.textContent = '✓ Image generated! Save group to keep it.';
-    btn.disabled = false;
-    btn.textContent = 'Regenerate';
-  };
-  testImg.src = url;
+/* APPLICATIONS */
+function renderApplicationsTable(){
+  const filterStatus=document.getElementById('appFilterStatus').value;
+  let apps=DB.get('hhc_applications')||[];
+  if(filterStatus)apps=apps.filter(a=>a.status===filterStatus);
+  apps.sort((a,b)=>b.id-a.id);
+  const tbody=document.getElementById('applicationsTable'),empty=document.getElementById('applicationsEmpty');
+  if(!apps.length){tbody.innerHTML='';empty.style.display='';return;}empty.style.display='none';
+  const sb={pending:'badge-amber',approved:'badge-green',rejected:'badge-red'};
+  tbody.innerHTML=apps.map(a=>{
+    const ds=a.submittedDate?new Date(a.submittedDate).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
+    return`<tr>
+      <td><strong>${a.name}</strong><br><a href="mailto:${a.email}" style="font-size:.8rem;color:var(--primary);">${a.email}</a>${a.phone?`<br><span style="font-size:.8rem;color:var(--text-muted);">${a.phone}</span>`:''}</td>
+      <td><strong>${a.groupName}</strong></td>
+      <td><span class="badge badge-blue">${a.type}</span><br><span style="font-size:.8rem;color:var(--text-muted);">${a.audience}</span></td>
+      <td>${a.day}s at ${a.time}</td>
+      <td style="font-size:.82rem;color:var(--text-muted);">${ds}</td>
+      <td><span class="badge ${sb[a.status]||'badge-gray'}">${a.status[0].toUpperCase()+a.status.slice(1)}</span></td>
+      <td><div class="td-actions">
+        <button class="btn btn-ghost btn-sm" onclick="viewApplication(${a.id})">View</button>
+        ${a.status==='pending'?`<button class="btn btn-success btn-sm" onclick="approveApplication(${a.id})">Approve</button><button class="btn btn-danger btn-sm" onclick="rejectApplication(${a.id})">Reject</button>`:''}
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function viewApplication(id){
+  const apps=DB.get('hhc_applications')||[];const a=apps.find(x=>x.id===id);if(!a)return;
+  document.getElementById('appDetailTitle').textContent=`Application: ${a.groupName}`;
+  const ds=a.submittedDate?new Date(a.submittedDate).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):'';
+  document.getElementById('appDetailBody').innerHTML=`
+    <p style="margin-bottom:14px;font-size:.85rem;color:var(--text-muted);">Submitted ${ds} · Status: <strong>${a.status}</strong></p>
+    <p class="app-section-label">Applicant</p>
+    <div class="app-detail-grid">
+      <div class="app-detail-item"><label>Name</label><p>${a.name}</p></div>
+      <div class="app-detail-item"><label>Email</label><p><a href="mailto:${a.email}" style="color:var(--primary);">${a.email}</a></p></div>
+      <div class="app-detail-item"><label>Phone</label><p>${a.phone||'—'}</p></div>
+      <div class="app-detail-item"><label>Attendance</label><p>${a.attendance||'—'}</p></div>
+    </div>
+    <p class="app-section-label">Proposed Group</p>
+    <div class="app-detail-grid">
+      <div class="app-detail-item"><label>Group Name</label><p>${a.groupName}</p></div>
+      <div class="app-detail-item"><label>Type</label><p>${a.type}</p></div>
+      <div class="app-detail-item"><label>Audience</label><p>${a.audience}</p></div>
+      <div class="app-detail-item"><label>Location</label><p>${a.location}</p></div>
+      <div class="app-detail-item"><label>Day</label><p>${a.day}</p></div>
+      <div class="app-detail-item"><label>Time</label><p>${a.time}</p></div>
+      <div class="app-detail-item full"><label>Description</label><p class="narrative">${a.description}</p></div>
+      <div class="app-detail-item full"><label>Why they want to lead</label><p class="narrative">${a.why}</p></div>
+      ${a.notes?`<div class="app-detail-item full"><label>Additional Notes</label><p class="narrative">${a.notes}</p></div>`:''}
+    </div>`;
+  const footer=document.getElementById('appDetailFooter');
+  if(a.status==='pending'){
+    footer.innerHTML=`<button class="btn btn-ghost" onclick="closeAppDetailModal()">Close</button><div style="flex:1"></div><button class="btn btn-danger btn-sm" onclick="rejectApplication(${a.id});closeAppDetailModal()">Reject</button><button class="btn btn-success" onclick="approveApplication(${a.id});closeAppDetailModal()">✓ Approve & Create Draft Group</button>`;
+  }else{footer.innerHTML=`<button class="btn btn-ghost" onclick="closeAppDetailModal()">Close</button>`;}
+  document.getElementById('appDetailModal').classList.add('open');
+}
+function closeAppDetailModal(){document.getElementById('appDetailModal').classList.remove('open');}
+function approveApplication(id){
+  const apps=DB.get('hhc_applications')||[];const idx=apps.findIndex(a=>a.id===id);if(idx===-1)return;
+  const a=apps[idx];
+  const groups=DB.get('hhc_groups');
+  groups.push({id:Date.now(),published:false,name:a.groupName,leader:a.name,leaderEmail:a.email,day:a.day,time:a.time,type:a.type,audience:a.audience,location:a.location,description:a.description,image:'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80',open:true});
+  DB.set('hhc_groups',groups);
+  apps[idx].status='approved';apps[idx].approvedDate=new Date().toISOString();DB.set('hhc_applications',apps);
+  renderApplicationsTable();updateStats();
+  showToast(`✓ Approved! Draft group "${a.groupName}" created — review in Small Groups.`);
+}
+function rejectApplication(id){
+  const apps=DB.get('hhc_applications')||[];const idx=apps.findIndex(a=>a.id===id);if(idx===-1)return;
+  apps[idx].status='rejected';apps[idx].rejectedDate=new Date().toISOString();DB.set('hhc_applications',apps);
+  renderApplicationsTable();updateStats();showToast('Application marked as rejected.');
 }
 
-/* ── Delete ─────────────────────────────────────────── */
-let _deleteType, _deleteId;
-function deleteItem(type, id, name) {
-  _deleteType = type; _deleteId = id;
-  document.getElementById('deleteItemName').textContent = name;
-  document.getElementById('deleteModal').classList.add('open');
-}
-function closeDeleteModal() { document.getElementById('deleteModal').classList.remove('open'); }
-function confirmDelete() {
-  const key = _deleteType === 'event' ? 'hhc_events' : 'hhc_groups';
-  const items = DB.get(key).filter(i => i.id !== _deleteId);
-  DB.set(key, items);
-  closeDeleteModal();
-  if (_deleteType === 'event') renderEventsTable();
-  else renderGroupsTable();
-  updateStats();
-  showToast('Deleted successfully.');
+/* DELETE */
+let _deleteType,_deleteId;
+function deleteItem(type,id,name){_deleteType=type;_deleteId=id;document.getElementById('deleteItemName').textContent=name;document.getElementById('deleteModal').classList.add('open');}
+function closeDeleteModal(){document.getElementById('deleteModal').classList.remove('open');}
+function confirmDelete(){
+  const km={event:'hhc_events',group:'hhc_groups',signup:'hhc_signups',application:'hhc_applications'};
+  const items=(DB.get(km[_deleteType])||[]).filter(i=>i.id!==_deleteId);
+  DB.set(km[_deleteType],items);closeDeleteModal();
+  if(_deleteType==='event')renderEventsTable();
+  else if(_deleteType==='group')renderGroupsTable();
+  else if(_deleteType==='signup')renderSignupsPanel();
+  else if(_deleteType==='application')renderApplicationsTable();
+  updateStats();showToast('Deleted successfully.');
 }
 
-/* ── Toast ──────────────────────────────────────────── */
-function showToast(msg, isError = false) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.style.background = isError ? '#dc2626' : '#111';
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
+/* TOAST & LOGOUT */
+function showToast(msg,isError=false){const t=document.getElementById('toast');t.textContent=msg;t.style.background=isError?'#dc2626':'#111';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+function logout(){sessionStorage.removeItem('hhc_admin');window.location.href='login.html';}
 
-/* ── Logout ─────────────────────────────────────────── */
-function logout() {
-  sessionStorage.removeItem('hhc_admin');
-  window.location.href = 'login.html';
-}
-
-/* Close modals on overlay click */
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) overlay.classList.remove('open');
-  });
-});
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 </script>
 </body>
 </html>
