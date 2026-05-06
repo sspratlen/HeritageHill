@@ -198,7 +198,7 @@ window.SupaDB = {
   async saveEvent(ev) {
     if (!db()) return { error: 'Not configured' };
     try {
-      const row = eventToDb(ev);
+      const { id: _id, ...row } = eventToDb(ev);
       const { data, error } = ev.id
         ? await db().from('events').update(row).eq('id', ev.id).select().single()
         : await db().from('events').insert(row).select().single();
@@ -226,7 +226,7 @@ window.SupaDB = {
   async saveGroup(g) {
     if (!db()) return { error: 'Not configured' };
     try {
-      const row = groupToDb(g);
+      const { id: _id, ...row } = groupToDb(g);
       const { data, error } = g.id
         ? await db().from('groups').update(row).eq('id', g.id).select().single()
         : await db().from('groups').insert(row).select().single();
@@ -302,7 +302,7 @@ window.SupaDB = {
   async saveSermon(s) {
     if (!db()) return { error: 'Not configured' };
     try {
-      const row = sermonToDb(s);
+      const { id: _id, ...row } = sermonToDb(s);
       const { data, error } = s.id
         ? await db().from('sermons').update(row).eq('id', s.id).select().single()
         : await db().from('sermons').insert(row).select().single();
