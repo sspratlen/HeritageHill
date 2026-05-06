@@ -569,6 +569,10 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeFlyerModal()">Close</button>
+      <button class="btn btn-secondary" id="flyerPptxBtn" onclick="downloadFlyersPptx()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6M9 15l3 3 3-3"/></svg>
+        ⬇ Download as PowerPoint (.pptx)
+      </button>
     </div>
   </div>
 </div>
@@ -1119,7 +1123,7 @@ async function syncFromYouTube() {
 /* ── FLYER GENERATOR ─────────────────────────────────────────── */
 const FW = 800, FH = 1000;
 
-// Wrap text and return array of lines
+/* ── Canvas helpers ──────────────────────────────────────────── */
 function _fLines(ctx, text, maxW) {
   if (!text) return [''];
   const words = String(text).split(' ');
@@ -1132,255 +1136,253 @@ function _fLines(ctx, text, maxW) {
   if (cur) lines.push(cur);
   return lines;
 }
-
-// Draw wrapped text and return total height used
 function _fDraw(ctx, text, x, y, maxW, lh) {
   const lines = _fLines(ctx, String(text || ''), maxW);
   lines.forEach((l, i) => ctx.fillText(l, x, y + i * lh));
   return lines.length * lh;
 }
-
-// Draw a rounded rect path
 function _fRRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
-  ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
 }
-
-// Draw a small cross icon
 function _fCross(ctx, cx, cy, sz, color, lw) {
-  ctx.strokeStyle = color; ctx.lineWidth = lw || 2; ctx.lineCap = 'round';
+  ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=lw||2; ctx.lineCap='round';
   ctx.beginPath();
-  ctx.moveTo(cx, cy - sz); ctx.lineTo(cx, cy + sz);
-  ctx.moveTo(cx - sz * 0.6, cy - sz * 0.15); ctx.lineTo(cx + sz * 0.6, cy - sz * 0.15);
-  ctx.stroke();
+  ctx.moveTo(cx,cy-sz); ctx.lineTo(cx,cy+sz);
+  ctx.moveTo(cx-sz*0.6,cy-sz*0.12); ctx.lineTo(cx+sz*0.6,cy-sz*0.12);
+  ctx.stroke(); ctx.restore();
 }
-
-// Draw category pill
 function _fCatPill(ctx, cat, cx, y, bgColor, textColor) {
   if (!cat) return y;
   const uc = cat.toUpperCase();
-  ctx.font = 'bold 14px "DM Sans", Arial, sans-serif';
+  ctx.font = 'bold 14px "DM Sans",Arial,sans-serif';
   const cw = ctx.measureText(uc).width + 36;
-  const px = cx - cw / 2;
-  ctx.fillStyle = bgColor; _fRRect(ctx, px, y, cw, 30, 15); ctx.fill();
-  ctx.fillStyle = textColor; ctx.textAlign = 'center';
-  ctx.fillText(uc, cx, y + 20);
+  ctx.fillStyle = bgColor; _fRRect(ctx, cx-cw/2, y, cw, 30, 15); ctx.fill();
+  ctx.fillStyle = textColor; ctx.textAlign = 'center'; ctx.fillText(uc, cx, y+20);
   return y + 44;
+}
+
+/* ── Decorative: worship crowd silhouette ───────────────────── */
+function _fCrowd(ctx, W, baseY, color, opacity) {
+  ctx.save(); ctx.globalAlpha = opacity; ctx.fillStyle = color; ctx.strokeStyle = color;
+  const people = [
+    {x:.05,h:.115,a:'right'},{x:.145,h:.130,a:'both'},{x:.245,h:.103,a:'none'},
+    {x:.34, h:.122,a:'left'},{x:.44, h:.140,a:'both'},{x:.545,h:.115,a:'right'},
+    {x:.64, h:.132,a:'none'},{x:.74, h:.106,a:'both'},{x:.84, h:.124,a:'left'},
+    {x:.935,h:.116,a:'right'},
+  ];
+  people.forEach(p => {
+    const ph=p.h*FH, px=p.x*W;
+    const headR=ph*.148, headCY=baseY-ph+headR, shoulderY=headCY+headR*1.38;
+    const sw=ph*.132, hw=sw*.72;
+    ctx.beginPath(); ctx.arc(px,headCY,headR,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(px-sw,shoulderY); ctx.lineTo(px+sw,shoulderY);
+    ctx.lineTo(px+hw,baseY); ctx.lineTo(px-hw,baseY); ctx.closePath(); ctx.fill();
+    ctx.lineWidth=headR*.72; ctx.lineCap='round';
+    if(p.a==='both'||p.a==='left'){ctx.beginPath();ctx.moveTo(px-sw,shoulderY+ph*.04);ctx.lineTo(px-sw-ph*.13,shoulderY-ph*.22);ctx.stroke();}
+    if(p.a==='both'||p.a==='right'){ctx.beginPath();ctx.moveTo(px+sw,shoulderY+ph*.04);ctx.lineTo(px+sw+ph*.13,shoulderY-ph*.22);ctx.stroke();}
+  });
+  ctx.restore();
+}
+
+/* ── Decorative: radiating light rays ───────────────────────── */
+function _fRays(ctx, cx, cy, innerR, outerR, count, color, opacity) {
+  ctx.save(); ctx.globalAlpha=opacity; ctx.strokeStyle=color; ctx.lineWidth=1.2;
+  for(let i=0;i<count;i++){
+    const a=(i/count)*Math.PI*2;
+    ctx.beginPath();
+    ctx.moveTo(cx+Math.cos(a)*innerR,cy+Math.sin(a)*innerR);
+    ctx.lineTo(cx+Math.cos(a)*outerR,cy+Math.sin(a)*outerR);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/* ── Decorative: scattered cross motifs ────────────────────── */
+function _fCrossPattern(ctx, W, H, color, opacity) {
+  ctx.save(); ctx.globalAlpha=opacity; ctx.strokeStyle=color; ctx.lineWidth=1.5; ctx.lineCap='round';
+  for(let x=70;x<W;x+=110){for(let y=90;y<H-80;y+=110){
+    const jx=x+(Math.sin(x*.07+y*.03)*22), jy=y+(Math.cos(x*.04+y*.06)*22), s=5;
+    ctx.beginPath(); ctx.moveTo(jx-s,jy); ctx.lineTo(jx+s,jy); ctx.moveTo(jx,jy-s); ctx.lineTo(jx,jy+s); ctx.stroke();
+  }}
+  ctx.restore();
+}
+
+/* ── Decorative: leaf/branch corner ────────────────────────── */
+function _fLeaves(ctx, ax, ay, color, opacity) {
+  ctx.save(); ctx.globalAlpha=opacity; ctx.translate(ax,ay);
+  ctx.fillStyle=color; ctx.strokeStyle=color; ctx.lineWidth=2; ctx.lineCap='round';
+  // Two curving stems
+  [[0,0,-20,-80,-60,-170],[0,0,15,-65,5,-160]].forEach(p => {
+    ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.bezierCurveTo(p[2],p[3]-30,p[2]-10,p[3]-10,p[4],p[5]); ctx.stroke();
+  });
+  // Five leaves
+  [[-18,-65,-0.55,20,34],[-12,-108,0.40,17,30],[-48,-138,-0.75,18,31],[-68,-90,0.50,15,27],[-95,-155,-0.30,14,25]]
+  .forEach(([lx,ly,rot,hw,hh]) => {
+    ctx.save(); ctx.translate(lx,ly); ctx.rotate(rot);
+    ctx.beginPath();
+    ctx.moveTo(0,hh/2); ctx.bezierCurveTo(hw*.9,hh*.3,hw*.9,-hh*.3,0,-hh/2);
+    ctx.bezierCurveTo(-hw*.9,-hh*.3,-hw*.9,hh*.3,0,hh/2);
+    ctx.fill(); ctx.restore();
+  });
+  ctx.restore();
 }
 
 /* ─ Style 1: Heritage Dark ─────────────────────────────────── */
 function drawFlyer1(canvas, ev) {
-  const ctx = canvas.getContext('2d');
-  const W = FW, H = FH;
-
+  const ctx=canvas.getContext('2d'), W=FW, H=FH;
   // Background
-  ctx.fillStyle = '#0D0F14'; ctx.fillRect(0, 0, W, H);
-
-  // Subtle gold glow
-  const g = ctx.createRadialGradient(W/2, 280, 30, W/2, 280, 500);
-  g.addColorStop(0, 'rgba(188,122,30,0.09)'); g.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-
+  ctx.fillStyle='#0D0F14'; ctx.fillRect(0,0,W,H);
+  // Glow behind title area
+  const g=ctx.createRadialGradient(W/2,320,20,W/2,320,440);
+  g.addColorStop(0,'rgba(188,122,30,0.11)'); g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  // Subtle cross-dot pattern
+  _fCrossPattern(ctx,W,H,'#BC7A1E',0.038);
+  // Worship crowd (semi-transparent gold, behind footer)
+  _fCrowd(ctx,W,H-58,'#BC7A1E',0.15);
   // Top gold bar
-  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(0, 0, W, 10);
-
+  ctx.fillStyle='#BC7A1E'; ctx.fillRect(0,0,W,10);
   // Church name
-  ctx.fillStyle = '#BC7A1E'; ctx.font = 'bold 20px "DM Sans", Arial, sans-serif';
-  ctx.textAlign = 'center'; ctx.fillText('HERITAGE HILL CHURCH', W/2, 58);
-
-  // Thin gold rule
-  ctx.strokeStyle = 'rgba(188,122,30,0.38)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(190, 73); ctx.lineTo(610, 73); ctx.stroke();
-
+  ctx.fillStyle='#BC7A1E'; ctx.font='bold 20px "DM Sans",Arial,sans-serif';
+  ctx.textAlign='center'; ctx.fillText('HERITAGE HILL CHURCH',W/2,58);
+  // Thin rule
+  ctx.save(); ctx.strokeStyle='rgba(188,122,30,0.38)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(190,73); ctx.lineTo(610,73); ctx.stroke(); ctx.restore();
   // Category
-  let ty = _fCatPill(ctx, ev.category, W/2, 88, 'rgba(188,122,30,0.18)', '#BC7A1E');
-
+  let ty=_fCatPill(ctx,ev.category,W/2,88,'rgba(188,122,30,0.18)','#BC7A1E');
   // Title
-  ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 68px "DM Sans", Arial, sans-serif';
-  ctx.textAlign = 'center';
-  const titleLines = _fLines(ctx, ev.title || '', W - 120).slice(0, 3);
-  titleLines.forEach(l => { ctx.fillText(l, W/2, ty); ty += 78; });
-
+  ctx.fillStyle='#FFFFFF'; ctx.font='bold 68px "DM Sans",Arial,sans-serif'; ctx.textAlign='center';
+  _fLines(ctx,ev.title||'',W-120).slice(0,3).forEach(l=>{ctx.fillText(l,W/2,ty);ty+=78;});
   // Gold divider
-  ty += 22;
-  ctx.strokeStyle = '#BC7A1E'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(120, ty); ctx.lineTo(680, ty); ctx.stroke();
-  ty += 52;
-
-  // Date (gold)
-  ctx.fillStyle = '#BC7A1E'; ctx.font = 'bold 34px "DM Sans", Arial, sans-serif';
-  ctx.textAlign = 'center'; ctx.fillText(ev.date || '', W/2, ty); ty += 50;
-
+  ty+=22; ctx.save(); ctx.strokeStyle='#BC7A1E'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(120,ty); ctx.lineTo(680,ty); ctx.stroke(); ctx.restore(); ty+=52;
+  // Date
+  ctx.fillStyle='#BC7A1E'; ctx.font='bold 34px "DM Sans",Arial,sans-serif';
+  ctx.textAlign='center'; ctx.fillText(ev.date||'',W/2,ty); ty+=50;
   // Time
-  ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.font = '500 26px "DM Sans", Arial, sans-serif';
-  ctx.fillText(ev.time || '', W/2, ty); ty += 44;
-
+  ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.font='500 26px "DM Sans",Arial,sans-serif';
+  ctx.fillText(ev.time||'',W/2,ty); ty+=44;
   // Location
-  ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = '400 22px "DM Sans", Arial, sans-serif';
-  ty += _fDraw(ctx, ev.location || '', W/2, ty, W - 160, 30) + 40;
-
+  ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.font='400 22px "DM Sans",Arial,sans-serif';
+  ty+=_fDraw(ctx,ev.location||'',W/2,ty,W-160,30)+42;
   // Description
-  const desc = (ev.description || '').slice(0, 220);
-  if (desc) {
-    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '400 21px "DM Sans", Arial, sans-serif';
-    _fDraw(ctx, desc, W/2, ty, W - 160, 30);
-  }
-
-  // Bottom gold bar
-  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(0, H - 54, W, 54);
-  ctx.fillStyle = '#0D0F14'; ctx.font = 'bold 17px "DM Sans", Arial, sans-serif';
-  ctx.textAlign = 'center'; ctx.fillText('heritagehill.church  ·  Papillion, NE', W/2, H - 18);
+  const d1=(ev.description||'').slice(0,220);
+  if(d1){ctx.fillStyle='rgba(255,255,255,0.42)'; ctx.font='400 21px "DM Sans",Arial,sans-serif'; _fDraw(ctx,d1,W/2,ty,W-160,30);}
+  // Footer bar over crowd
+  ctx.fillStyle='#BC7A1E'; ctx.fillRect(0,H-54,W,54);
+  ctx.fillStyle='#0D0F14'; ctx.font='bold 17px "DM Sans",Arial,sans-serif';
+  ctx.textAlign='center'; ctx.fillText('heritagehill.church  ·  Papillion, NE',W/2,H-18);
 }
 
 /* ─ Style 2: Clean Light ───────────────────────────────────── */
 function drawFlyer2(canvas, ev) {
-  const ctx = canvas.getContext('2d');
-  const W = FW, H = FH;
-
+  const ctx=canvas.getContext('2d'), W=FW, H=FH;
   // Warm white background
-  ctx.fillStyle = '#F9F7F2'; ctx.fillRect(0, 0, W, H);
-
+  ctx.fillStyle='#F9F7F2'; ctx.fillRect(0,0,W,H);
+  // Leaf corner decoration top-right (drawn first, behind everything)
+  _fLeaves(ctx,W-10,30,'#BC7A1E',0.17);
+  // Worship crowd near bottom (very subtle)
+  _fCrowd(ctx,W,H-58,'#BC7A1E',0.09);
   // Left gold accent bar
-  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(0, 0, 12, H);
-
+  ctx.fillStyle='#BC7A1E'; ctx.fillRect(0,0,12,H);
   // Church name — upper right
-  ctx.fillStyle = '#BC7A1E'; ctx.font = 'bold 16px "DM Sans", Arial, sans-serif';
-  ctx.textAlign = 'right'; ctx.fillText('HERITAGE HILL CHURCH', W - 44, 46);
-  ctx.strokeStyle = 'rgba(188,122,30,0.35)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(W - 370, 56); ctx.lineTo(W - 44, 56); ctx.stroke();
-
+  ctx.fillStyle='#BC7A1E'; ctx.font='bold 16px "DM Sans",Arial,sans-serif';
+  ctx.textAlign='right'; ctx.fillText('HERITAGE HILL CHURCH',W-44,46);
+  ctx.save(); ctx.strokeStyle='rgba(188,122,30,0.35)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(W-375,56); ctx.lineTo(W-44,56); ctx.stroke(); ctx.restore();
   // Category pill — left aligned
-  const cat = (ev.category || '').toUpperCase();
-  if (cat) {
-    ctx.font = 'bold 14px "DM Sans", Arial, sans-serif'; ctx.textAlign = 'left';
-    const cw = ctx.measureText(cat).width + 28;
-    ctx.fillStyle = 'rgba(188,122,30,0.14)'; _fRRect(ctx, 44, 76, cw, 28, 14); ctx.fill();
-    ctx.fillStyle = '#BC7A1E'; ctx.fillText(cat, 58, 95);
+  const cat2=(ev.category||'').toUpperCase();
+  if(cat2){
+    ctx.font='bold 14px "DM Sans",Arial,sans-serif'; ctx.textAlign='left';
+    const cw=ctx.measureText(cat2).width+28;
+    ctx.fillStyle='rgba(188,122,30,0.14)'; _fRRect(ctx,44,76,cw,28,14); ctx.fill();
+    ctx.fillStyle='#BC7A1E'; ctx.fillText(cat2,58,95);
   }
-
   // Title
-  ctx.fillStyle = '#0D0F14'; ctx.font = 'bold 70px "DM Sans", Arial, sans-serif';
-  ctx.textAlign = 'left';
-  let ty = 200;
-  _fLines(ctx, ev.title || '', W - 110).slice(0, 3).forEach(l => { ctx.fillText(l, 44, ty); ty += 80; });
-
+  ctx.fillStyle='#0D0F14'; ctx.font='bold 70px "DM Sans",Arial,sans-serif'; ctx.textAlign='left';
+  let ty=200;
+  _fLines(ctx,ev.title||'',W-110).slice(0,3).forEach(l=>{ctx.fillText(l,44,ty);ty+=80;});
   // Short gold underline
-  ctx.strokeStyle = '#BC7A1E'; ctx.lineWidth = 5; ctx.lineCap = 'square';
-  ctx.beginPath(); ctx.moveTo(44, ty + 8); ctx.lineTo(220, ty + 8); ctx.stroke();
-  ctx.lineCap = 'butt'; ty += 50;
-
-  // Date label + value
-  ctx.fillStyle = '#BC7A1E'; ctx.font = 'bold 13px "DM Sans", Arial, sans-serif';
-  ctx.textAlign = 'left'; ctx.fillText('DATE', 44, ty);
-  ctx.fillStyle = '#0D0F14'; ctx.font = 'bold 32px "DM Sans", Arial, sans-serif';
-  ctx.fillText(ev.date || '', 44, ty + 36); ty += 74;
-
+  ctx.save(); ctx.strokeStyle='#BC7A1E'; ctx.lineWidth=5; ctx.lineCap='square';
+  ctx.beginPath(); ctx.moveTo(44,ty+8); ctx.lineTo(220,ty+8); ctx.stroke(); ctx.restore(); ty+=50;
+  // Date
+  ctx.fillStyle='#BC7A1E'; ctx.font='bold 13px "DM Sans",Arial,sans-serif'; ctx.textAlign='left'; ctx.fillText('DATE',44,ty);
+  ctx.fillStyle='#0D0F14'; ctx.font='bold 32px "DM Sans",Arial,sans-serif'; ctx.fillText(ev.date||'',44,ty+36); ty+=74;
   // Time
-  ctx.fillStyle = '#BC7A1E'; ctx.font = 'bold 13px "DM Sans", Arial, sans-serif';
-  ctx.fillText('TIME', 44, ty);
-  ctx.fillStyle = '#1C1C1E'; ctx.font = '500 24px "DM Sans", Arial, sans-serif';
-  ctx.fillText(ev.time || '', 44, ty + 32); ty += 66;
-
+  ctx.fillStyle='#BC7A1E'; ctx.font='bold 13px "DM Sans",Arial,sans-serif'; ctx.fillText('TIME',44,ty);
+  ctx.fillStyle='#1C1C1E'; ctx.font='500 24px "DM Sans",Arial,sans-serif'; ctx.fillText(ev.time||'',44,ty+32); ty+=66;
   // Location
-  ctx.fillStyle = '#BC7A1E'; ctx.font = 'bold 13px "DM Sans", Arial, sans-serif';
-  ctx.fillText('LOCATION', 44, ty);
-  ctx.fillStyle = '#1C1C1E'; ctx.font = '500 22px "DM Sans", Arial, sans-serif';
-  ty += _fDraw(ctx, ev.location || '', 44, ty + 32, W - 100, 30) + 56;
-
+  ctx.fillStyle='#BC7A1E'; ctx.font='bold 13px "DM Sans",Arial,sans-serif'; ctx.fillText('LOCATION',44,ty);
+  ctx.fillStyle='#1C1C1E'; ctx.font='500 22px "DM Sans",Arial,sans-serif';
+  ty+=_fDraw(ctx,ev.location||'',44,ty+32,W-100,30)+56;
   // Light divider
-  ctx.strokeStyle = 'rgba(0,0,0,0.10)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(44, ty); ctx.lineTo(W - 44, ty); ctx.stroke();
-  ty += 30;
-
+  ctx.save(); ctx.strokeStyle='rgba(0,0,0,0.10)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(44,ty); ctx.lineTo(W-44,ty); ctx.stroke(); ctx.restore(); ty+=30;
   // Description
-  const desc = (ev.description || '').slice(0, 220);
-  if (desc) {
-    ctx.fillStyle = '#6B6B6B'; ctx.font = '400 21px "DM Sans", Arial, sans-serif';
-    ctx.textAlign = 'left'; _fDraw(ctx, desc, 44, ty, W - 100, 30);
-  }
-
-  // Bottom bar
-  ctx.fillStyle = '#0D0F14'; ctx.fillRect(0, H - 54, W, 54);
-  ctx.fillStyle = '#F9F7F2'; ctx.font = 'bold 17px "DM Sans", Arial, sans-serif';
-  ctx.textAlign = 'center'; ctx.fillText('heritagehill.church  ·  Papillion, NE', W/2, H - 18);
+  const d2=(ev.description||'').slice(0,220);
+  if(d2){ctx.fillStyle='#6B6B6B'; ctx.font='400 21px "DM Sans",Arial,sans-serif'; ctx.textAlign='left'; _fDraw(ctx,d2,44,ty,W-100,30);}
+  // Footer
+  ctx.fillStyle='#0D0F14'; ctx.fillRect(0,H-54,W,54);
+  ctx.fillStyle='#F9F7F2'; ctx.font='bold 17px "DM Sans",Arial,sans-serif';
+  ctx.textAlign='center'; ctx.fillText('heritagehill.church  ·  Papillion, NE',W/2,H-18);
 }
 
 /* ─ Style 3: Bold Blue ─────────────────────────────────────── */
 function drawFlyer3(canvas, ev) {
-  const ctx = canvas.getContext('2d');
-  const W = FW, H = FH;
-
+  const ctx=canvas.getContext('2d'), W=FW, H=FH;
   // Blue background
-  ctx.fillStyle = '#155CA2'; ctx.fillRect(0, 0, W, H);
-
-  // Diagonal shadow shape (bottom-right corner)
-  ctx.fillStyle = 'rgba(0,0,0,0.18)';
-  ctx.beginPath(); ctx.moveTo(W, H * 0.52); ctx.lineTo(W, H); ctx.lineTo(W * 0.35, H); ctx.closePath(); ctx.fill();
-
+  ctx.fillStyle='#155CA2'; ctx.fillRect(0,0,W,H);
+  // Diagonal dark shape bottom-right
+  ctx.fillStyle='rgba(0,0,0,0.18)';
+  ctx.beginPath(); ctx.moveTo(W,H*.52); ctx.lineTo(W,H); ctx.lineTo(W*.32,H); ctx.closePath(); ctx.fill();
+  // Radiant light rays from upper center
+  _fRays(ctx,W/2,300,90,540,28,'#FFFFFF',0.045);
+  // Worship crowd — more visible on blue (drawn before footer)
+  _fCrowd(ctx,W,H-58,'#FFFFFF',0.18);
   // Top gold bar
-  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(0, 0, W, 10);
-
+  ctx.fillStyle='#BC7A1E'; ctx.fillRect(0,0,W,10);
   // Church name
-  ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.font = 'bold 20px "DM Sans", Arial, sans-serif';
-  ctx.textAlign = 'center'; ctx.fillText('HERITAGE HILL CHURCH', W/2, 56);
-
-  // Small cross
-  _fCross(ctx, W/2, 84, 13, 'rgba(255,255,255,0.45)', 2.5);
-
+  ctx.fillStyle='rgba(255,255,255,0.92)'; ctx.font='bold 20px "DM Sans",Arial,sans-serif';
+  ctx.textAlign='center'; ctx.fillText('HERITAGE HILL CHURCH',W/2,56);
+  // Cross
+  _fCross(ctx,W/2,84,13,'rgba(255,255,255,0.45)',2.5);
   // Category pill
-  let ty = _fCatPill(ctx, ev.category, W/2, 110, 'rgba(188,122,30,0.28)', '#BC7A1E');
-
+  let ty=_fCatPill(ctx,ev.category,W/2,110,'rgba(188,122,30,0.30)','#BC7A1E');
   // Title
-  ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 68px "DM Sans", Arial, sans-serif';
-  ctx.textAlign = 'center';
-  _fLines(ctx, ev.title || '', W - 120).slice(0, 3).forEach(l => { ctx.fillText(l, W/2, ty); ty += 78; });
-
+  ctx.fillStyle='#FFFFFF'; ctx.font='bold 68px "DM Sans",Arial,sans-serif'; ctx.textAlign='center';
+  _fLines(ctx,ev.title||'',W-120).slice(0,3).forEach(l=>{ctx.fillText(l,W/2,ty);ty+=78;});
   // Gold divider
-  ty += 22;
-  ctx.strokeStyle = '#BC7A1E'; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(W*0.18, ty); ctx.lineTo(W*0.82, ty); ctx.stroke();
-  ty += 52;
-
+  ty+=22; ctx.save(); ctx.strokeStyle='#BC7A1E'; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.moveTo(W*.18,ty); ctx.lineTo(W*.82,ty); ctx.stroke(); ctx.restore(); ty+=52;
   // Date
-  ctx.fillStyle = '#BC7A1E'; ctx.font = 'bold 36px "DM Sans", Arial, sans-serif';
-  ctx.textAlign = 'center'; ctx.fillText(ev.date || '', W/2, ty); ty += 52;
-
+  ctx.fillStyle='#BC7A1E'; ctx.font='bold 36px "DM Sans",Arial,sans-serif';
+  ctx.textAlign='center'; ctx.fillText(ev.date||'',W/2,ty); ty+=52;
   // Time
-  ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.font = '500 27px "DM Sans", Arial, sans-serif';
-  ctx.fillText(ev.time || '', W/2, ty); ty += 46;
-
+  ctx.fillStyle='rgba(255,255,255,0.92)'; ctx.font='500 27px "DM Sans",Arial,sans-serif';
+  ctx.fillText(ev.time||'',W/2,ty); ty+=46;
   // Location
-  ctx.fillStyle = 'rgba(255,255,255,0.72)'; ctx.font = '400 23px "DM Sans", Arial, sans-serif';
-  ty += _fDraw(ctx, ev.location || '', W/2, ty, W - 160, 32) + 44;
-
+  ctx.fillStyle='rgba(255,255,255,0.72)'; ctx.font='400 23px "DM Sans",Arial,sans-serif';
+  ty+=_fDraw(ctx,ev.location||'',W/2,ty,W-160,32)+44;
   // Description
-  const desc = (ev.description || '').slice(0, 220);
-  if (desc) {
-    ctx.fillStyle = 'rgba(255,255,255,0.48)'; ctx.font = '400 21px "DM Sans", Arial, sans-serif';
-    _fDraw(ctx, desc, W/2, ty, W - 160, 30);
-  }
-
-  // Bottom bar
-  ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.fillRect(0, H - 54, W, 54);
-  ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 17px "DM Sans", Arial, sans-serif';
-  ctx.fillText('heritagehill.church  ·  Papillion, NE', W/2, H - 18);
+  const d3=(ev.description||'').slice(0,220);
+  if(d3){ctx.fillStyle='rgba(255,255,255,0.50)'; ctx.font='400 21px "DM Sans",Arial,sans-serif'; _fDraw(ctx,d3,W/2,ty,W-160,30);}
+  // Footer bar over crowd
+  ctx.fillStyle='rgba(0,0,0,0.30)'; ctx.fillRect(0,H-54,W,54);
+  ctx.fillStyle='#FFFFFF'; ctx.font='bold 17px "DM Sans",Arial,sans-serif';
+  ctx.fillText('heritagehill.church  ·  Papillion, NE',W/2,H-18);
 }
 
+/* ── Modal open/close/download ──────────────────────────────── */
 let _flyerEvent = null;
 function openFlyerModal(id) {
   _flyerEvent = _cachedEvents.find(e => e.id === id);
   if (!_flyerEvent) { showToast('Event not found.', true); return; }
   document.getElementById('flyerModalTitle').textContent = 'Flyers: ' + _flyerEvent.title;
   document.getElementById('flyerModal').classList.add('open');
-  // Defer drawing until the modal is visible
   requestAnimationFrame(() => {
     drawFlyer1(document.getElementById('flyerCanvas1'), _flyerEvent);
     drawFlyer2(document.getElementById('flyerCanvas2'), _flyerEvent);
@@ -1396,6 +1398,43 @@ function downloadFlyer(n) {
   a.download = `hhc_flyer_${safeName}_style${n}.png`;
   a.href = canvas.toDataURL('image/png');
   a.click();
+}
+
+/* ── PowerPoint export ──────────────────────────────────────── */
+function _loadPptxGen() {
+  return new Promise((resolve, reject) => {
+    if (window.PptxGenJS) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/pptxgenjs/dist/pptxgen.bundled.js';
+    s.onload = resolve; s.onerror = () => reject(new Error('Could not load PptxGenJS'));
+    document.head.appendChild(s);
+  });
+}
+async function downloadFlyersPptx() {
+  if (!_flyerEvent) return;
+  const btn = document.getElementById('flyerPptxBtn');
+  btn.disabled = true; btn.textContent = 'Building PPTX…';
+  try {
+    await _loadPptxGen();
+    const pptx = new PptxGenJS();
+    pptx.defineLayout({ name: 'FLYER', width: 8, height: 10 });
+    pptx.layout = 'FLYER';
+    const labels = ['Heritage Dark', 'Clean Light', 'Bold Blue'];
+    for (let i = 1; i <= 3; i++) {
+      const imgData = document.getElementById('flyerCanvas' + i).toDataURL('image/png');
+      const slide = pptx.addSlide();
+      slide.addImage({ data: imgData, x: 0, y: 0, w: 8, h: 10 });
+      slide.addNotes('Style ' + i + ': ' + labels[i-1] + ' — ' + (_flyerEvent.title || ''));
+    }
+    const safeName = (_flyerEvent.title || 'event').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    await pptx.writeFile({ fileName: 'hhc_flyers_' + safeName + '.pptx' });
+    showToast('✓ PowerPoint downloaded!');
+  } catch(e) {
+    showToast('PPTX error: ' + e.message, true);
+    console.error('[Flyers] PPTX:', e);
+  } finally {
+    btn.disabled = false; btn.textContent = '⬇ Download as PowerPoint (.pptx)';
+  }
 }
 
 /* DELETE */
