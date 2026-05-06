@@ -1020,45 +1020,51 @@ async function saveSermon(){
 }
 
 /* YOUTUBE SYNC */
+const _ytSyncIcon = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.36-3.36L23 10M1 14l5.13 4.36A9 9 0 0020.49 15"/></svg>';
 async function syncFromYouTube() {
   const btn = document.getElementById('ytSyncBtn');
   btn.disabled = true;
-  btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.36-3.36L23 10M1 14l5.13 4.36A9 9 0 0020.49 15"/></svg> Syncing…';
-
+  btn.innerHTML = _ytSyncIcon + ' Syncing…';
   try {
     const channelId = 'UCiHVvsAETn_BFpydmL6CocQ';
-    const rssUrl = encodeURIComponent(`https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`);
-    const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}&count=20`);
-    const data = await res.json();
-    if (data.status !== 'ok') throw new Error('Could not reach YouTube feed.');
+    const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
+    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(feedUrl)}`);
+    if (!res.ok) throw new Error('Could not reach YouTube feed.');
+    const { contents } = await res.json();
+    if (!contents) throw new Error('Empty response from YouTube.');
 
-    // Get existing YouTube IDs so we don't duplicate
+    const xml = new DOMParser().parseFromString(contents, 'application/xml');
+    const entries = [...xml.querySelectorAll('entry')];
+    if (!entries.length) throw new Error('No videos found in feed.');
+
     const existing = await SupaDB.adminGetAllSermons();
     const existingIds = new Set(existing.map(s => s.youtubeId));
 
-    const newItems = data.items.filter(item => {
-      const ytId = (item.link.split('v=')[1] || '').split('&')[0];
+    const toImport = entries.filter(e => {
+      const ytId = (e.querySelector('id')?.textContent || '').replace('yt:video:', '');
       return ytId && !existingIds.has(ytId);
     });
 
-    if (!newItems.length) { showToast('No new videos found — already up to date.'); return; }
+    if (!toImport.length) { showToast('Already up to date — no new videos found.'); return; }
 
-    for (const item of newItems) {
-      const ytId = (item.link.split('v=')[1] || '').split('&')[0];
-      const pub = new Date(item.pubDate);
+    for (const entry of toImport) {
+      const ytId = (entry.querySelector('id')?.textContent || '').replace('yt:video:', '');
+      const title = entry.querySelector('title')?.textContent || 'Untitled';
+      const pub = new Date(entry.querySelector('published')?.textContent || Date.now());
       const dateSort = pub.toISOString().split('T')[0];
       const date = pub.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
-      const desc = (item.description || '').replace(/<[^>]*>/g, '').trim().slice(0, 400);
-      await SupaDB.saveSermon({ title: item.title, speaker: '', series: '', date, dateSort, youtubeId: ytId, description: desc, published: false });
+      const descEl = entry.getElementsByTagNameNS('http://search.yahoo.com/mrss/', 'description')[0];
+      const desc = (descEl?.textContent || '').trim().slice(0, 400);
+      await SupaDB.saveSermon({ title, speaker:'', series:'', date, dateSort, youtubeId: ytId, description: desc, published: false });
     }
 
     await renderSermonsTable();
-    showToast(`✓ Imported ${newItems.length} new sermon${newItems.length !== 1 ? 's' : ''} as drafts — add speaker & series, then publish.`);
+    showToast(`✓ Imported ${toImport.length} new sermon${toImport.length !== 1 ? 's' : ''} as drafts`);
   } catch(e) {
     showToast('Sync failed: ' + e.message, true);
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.36-3.36L23 10M1 14l5.13 4.36A9 9 0 0020.49 15"/></svg> Sync from YouTube';
+    btn.innerHTML = _ytSyncIcon + ' Sync from YouTube';
   }
 }
 
