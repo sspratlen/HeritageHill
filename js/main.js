@@ -78,22 +78,28 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ── Admin login check ────────────────────────────────── */
-function isAdminLoggedIn() {
-  return sessionStorage.getItem('hhc_admin') === 'true';
+async function isAdminLoggedIn() {
+  if (window.SupaDB) {
+    const user = await window.SupaDB.getUser();
+    return !!user;
+  }
+  return false;
 }
 
-/* ── localStorage helpers ─────────────────────────────── */
+/* ── Legacy localStorage helpers (kept for backwards compat) ── */
 const DB = {
   get(key, fallback = []) {
     try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; }
   },
-  set(key, val) {
-    localStorage.setItem(key, JSON.stringify(val));
-  }
+  set(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
 };
 
-/* ── Default seed data ────────────────────────────────── */
+/* ── Seed data removed — data now lives in Supabase ──────
+   (Run supabase/schema.sql to seed initial data)
+   ──────────────────────────────────────────────────────── */
 function seedData() {
+  // No-op: data is managed through the admin panel and stored in Supabase.
+  // To seed sample data, run the INSERT statements in supabase/schema.sql.
   if (!localStorage.getItem('hhc_seeded')) {
     DB.set('hhc_events', [
       {

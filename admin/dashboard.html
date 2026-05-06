@@ -178,6 +178,11 @@
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
       Leader Applications
     </a>
+    <div class="nav-section" style="margin-top:8px;">Media</div>
+    <a onclick="switchTab('sermons')" id="sideSermons">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      Sermons
+    </a>
   </nav>
   <div class="sidebar-footer">
     <a href="../index.html" target="_blank">
@@ -289,6 +294,24 @@
         <div class="empty" id="applicationsEmpty" style="display:none;">
           <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
           <h3>No applications yet</h3><p>When someone applies to lead a group, it will appear here.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SERMONS -->
+    <div class="tab-panel" id="panelSermons">
+      <div class="action-bar">
+        <h2>Manage Sermons</h2>
+        <button class="btn btn-primary" onclick="openSermonModal()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Sermon
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table><thead><tr><th style="width:72px;">Thumb</th><th>Title / Series</th><th>Speaker</th><th>Date</th><th>YouTube ID</th><th>Published</th><th>Actions</th></tr></thead>
+        <tbody id="sermonsTable"></tbody></table>
+        <div class="empty" id="sermonsEmpty" style="display:none;">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          <h3>No sermons yet</h3><p>Add your first sermon using the button above.</p>
         </div>
       </div>
     </div>
@@ -455,6 +478,48 @@
   </div>
 </div>
 
+<!-- SERMON MODAL -->
+<div class="modal-overlay" id="sermonModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="sermonModalTitle">Add Sermon</h3><button class="modal-close" onclick="closeSermonModal()">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="smId" />
+      <div class="publish-toggle-row">
+        <div><div class="ptlabel">Published</div><div class="ptsub">Visible to the public on the Sermons page</div></div>
+        <label class="toggle-switch"><input type="checkbox" id="smPublished" checked /><span class="toggle-slider"></span></label>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Sermon Title *</label><input type="text" id="smTitle" placeholder="e.g. Walking in Faith" /></div>
+        <div class="field"><label>Speaker</label><input type="text" id="smSpeaker" placeholder="e.g. Pastor John Smith" /></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>Series <span style="font-weight:400;color:var(--text-muted);font-size:.78rem;">(optional)</span></label><input type="text" id="smSeries" placeholder="e.g. The Sermon on the Mount" /></div>
+        <div class="field">
+          <label>Date *</label>
+          <input type="date" id="smDatePicker" onchange="onSmDatePicked(this.value)" style="cursor:pointer;" />
+          <input type="hidden" id="smDate" /><input type="hidden" id="smDateSort" />
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="field">
+          <label>YouTube Video ID or URL *</label>
+          <input type="text" id="smYoutubeId" placeholder="e.g. dQw4w9WgXcQ or full YouTube URL" oninput="updateYtPreview(this.value.trim().replace(/.*v=/,'').replace(/&.*/,''))" />
+          <p style="font-size:.75rem;color:var(--text-muted);margin-top:4px;">Paste the full YouTube URL or just the video ID (the part after <code>v=</code>).</p>
+        </div>
+      </div>
+      <div class="img-preview" style="margin-bottom:16px;">
+        <p class="img-preview-label">Thumbnail preview (from YouTube)</p>
+        <img id="smYtPreview" alt="YouTube thumbnail" style="width:100%;max-height:180px;object-fit:cover;border-radius:8px;border:1px solid var(--border);" />
+      </div>
+      <div class="form-row full"><div class="field"><label>Description <span style="font-weight:400;color:var(--text-muted);font-size:.78rem;">(optional)</span></label><textarea id="smDescription" placeholder="Brief sermon description or key scripture…"></textarea></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeSermonModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSermon()">Save Sermon</button>
+    </div>
+  </div>
+</div>
+
 <!-- Delete confirm modal -->
 <div class="modal-overlay" id="deleteModal">
   <div class="modal" style="max-width:400px;">
@@ -466,11 +531,18 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../js/supabase-client.js"></script>
+<script src="../js/db.js"></script>
 <script src="../js/main.js"></script>
 <script>
-if (sessionStorage.getItem('hhc_admin') !== 'true') window.location.href = 'login.html?next=dashboard.html';
+// Auth guard — redirect to login if not signed in
+(async () => {
+  const user = await SupaDB.getUser();
+  if (!user) window.location.href = 'login.html?next=dashboard.html';
+})();
 
-const ALL_TABS = ['events','groups','signups','applications'];
+const ALL_TABS = ['events','groups','signups','applications','sermons'];
 function switchTab(tab) {
   ALL_TABS.forEach(t => {
     const c = t[0].toUpperCase()+t.slice(1);
@@ -480,40 +552,45 @@ function switchTab(tab) {
   const c = tab[0].toUpperCase()+tab.slice(1);
   const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
   if(p) p.classList.add('active'); if(s) s.classList.add('active');
-  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications'};
+  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',sermons:'Sermons'};
   document.getElementById('topbarTitle').textContent = titles[tab]||tab;
   if(tab==='events') renderEventsTable();
   else if(tab==='groups') renderGroupsTable();
   else if(tab==='signups') renderSignupsPanel();
   else if(tab==='applications') renderApplicationsTable();
+  else if(tab==='sermons') renderSermonsTable();
 }
 const urlTab = new URLSearchParams(window.location.search).get('tab');
 if(ALL_TABS.includes(urlTab)) switchTab(urlTab); else renderEventsTable();
 updateStats();
 
-function updateStats() {
-  const evs=DB.get('hhc_events'), grs=DB.get('hhc_groups');
-  const sigs=DB.get('hhc_signups')||[], apps=DB.get('hhc_applications')||[];
-  document.getElementById('statEvents').textContent=evs.filter(e=>e.published!==false).length;
+async function updateStats() {
+  const [evs, grs, sigs, apps] = await Promise.all([
+    SupaDB.adminGetAllEvents(), SupaDB.adminGetAllGroups(),
+    SupaDB.adminGetAllSignups(), SupaDB.adminGetAllApplications()
+  ]);
+  document.getElementById('statEvents').textContent=evs.filter(e=>e.published).length;
   document.getElementById('statGroups').textContent=grs.length;
-  document.getElementById('statPublished').textContent=grs.filter(g=>g.published!==false).length;
+  document.getElementById('statPublished').textContent=grs.filter(g=>g.published).length;
   document.getElementById('statOpen').textContent=grs.filter(g=>g.open).length;
   document.getElementById('statSignups').textContent=sigs.length;
   document.getElementById('statApplications').textContent=apps.filter(a=>a.status==='pending').length;
 }
 
 /* EVENTS */
-function renderEventsTable() {
-  const events=DB.get('hhc_events').sort((a,b)=>a.dateSort.localeCompare(b.dateSort));
+let _cachedEvents = [];
+async function renderEventsTable() {
+  _cachedEvents = await SupaDB.adminGetAllEvents();
+  const events = [..._cachedEvents].sort((a,b)=>a.dateSort.localeCompare(b.dateSort));
   const tbody=document.getElementById('eventsTable'), empty=document.getElementById('eventsEmpty');
   if(!events.length){tbody.innerHTML='';empty.style.display='';return;} empty.style.display='none';
   tbody.innerHTML=events.map(ev=>`
     <tr>
-      <td><strong>${ev.title}</strong><br><span style="font-size:.8rem;color:var(--text-muted);">${ev.description.slice(0,60)}…</span></td>
+      <td><strong>${ev.title}</strong><br><span style="font-size:.8rem;color:var(--text-muted);">${(ev.description||'').slice(0,60)}…</span></td>
       <td>${ev.date}<br><span style="font-size:.8rem;color:var(--text-muted);">${ev.time}</span></td>
       <td><span class="badge badge-blue">${ev.category}</span></td>
       <td>${ev.recurring?'<span class="badge badge-amber">Recurring</span>':'<span class="badge badge-green">One-time</span>'}</td>
-      <td>${ev.published!==false?'<span class="badge badge-green">Published</span>':'<span class="badge badge-gray">Draft</span>'}</td>
+      <td>${ev.published?'<span class="badge badge-green">Published</span>':'<span class="badge badge-gray">Draft</span>'}</td>
       <td><div class="td-actions">
         <button class="btn btn-ghost btn-sm" onclick="editEvent(${ev.id})">Edit</button>
         <button class="btn btn-ghost btn-sm" onclick="openGCalForEvent(${ev.id})" style="color:var(--secondary);">📅 Calendar</button>
@@ -563,8 +640,8 @@ function openEventModal(ev) {
   document.getElementById('eventModal').classList.add('open');
 }
 function closeEventModal(){document.getElementById('eventModal').classList.remove('open');}
-function editEvent(id){const ev=DB.get('hhc_events').find(e=>e.id===id);if(ev)openEventModal(ev);}
-function saveEvent(){
+function editEvent(id){const ev=_cachedEvents.find(e=>e.id===id);if(ev)openEventModal(ev);}
+async function saveEvent(){
   const id=document.getElementById('evId').value;
   const title=document.getElementById('evTitle').value.trim();
   const pickedDate=document.getElementById('evDatePicker').value;
@@ -577,13 +654,13 @@ function saveEvent(){
   const desc=document.getElementById('evDescription').value.trim();
   if(!title||!date||!time||!loc||!desc){showToast('Please fill in all required fields.',true);return;}
   let image=document.getElementById('evImageFinal').value.trim()||document.getElementById('evImageUrl').value.trim()||'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80';
-  const events=DB.get('hhc_events');
-  const newEv={id:id?parseInt(id):Date.now(),published:document.getElementById('evPublished').checked,title,date,dateSort,time,location:loc,category:document.getElementById('evCategory').value,description:desc,image,recurring:isRec};
-  if(id){const idx=events.findIndex(e=>e.id===parseInt(id));if(idx>-1)events[idx]=newEv;}else events.push(newEv);
-  DB.set('hhc_events',events);renderEventsTable();updateStats();
+  const newEv={id:id?parseInt(id):undefined,published:document.getElementById('evPublished').checked,title,date,dateSort,time,location:loc,category:document.getElementById('evCategory').value,description:desc,image,recurring:isRec};
+  const result = await SupaDB.saveEvent(newEv);
+  if(result.error){showToast('Error saving event: '+result.error,true);return;}
+  renderEventsTable();updateStats();
   showToast(id?'Event updated! ✓':'Event added! ✓');
   document.getElementById('evCalBtn').style.display='inline-flex';
-  document.getElementById('evId').value=newEv.id;
+  if(result.data)document.getElementById('evId').value=result.data.id;
 }
 
 let _activeEvImgTab='url';
@@ -633,20 +710,23 @@ function buildGCalUrl(ev){
   if(startDt&&endDt)params.set('dates',`${startDt}/${endDt}`);
   return`https://calendar.google.com/calendar/render?${params.toString()}`;
 }
-function pushEventToGCal(){const id=document.getElementById('evId').value;if(!id){showToast('Save the event first.',true);return;}const ev=DB.get('hhc_events').find(e=>e.id===parseInt(id));if(ev)window.open(buildGCalUrl(ev),'_blank');}
-function openGCalForEvent(id){const ev=DB.get('hhc_events').find(e=>e.id===id);if(ev)window.open(buildGCalUrl(ev),'_blank');}
+function pushEventToGCal(){const id=document.getElementById('evId').value;if(!id){showToast('Save the event first.',true);return;}const ev=_cachedEvents.find(e=>e.id===parseInt(id));if(ev)window.open(buildGCalUrl(ev),'_blank');}
+function openGCalForEvent(id){const ev=_cachedEvents.find(e=>e.id===id);if(ev)window.open(buildGCalUrl(ev),'_blank');}
 
 /* GROUPS */
-function renderGroupsTable(){
-  const groups=DB.get('hhc_groups'),tbody=document.getElementById('groupsTable'),empty=document.getElementById('groupsEmpty');
+let _cachedGroups = [];
+async function renderGroupsTable(){
+  _cachedGroups = await SupaDB.adminGetAllGroups();
+  const groups = _cachedGroups;
+  const tbody=document.getElementById('groupsTable'),empty=document.getElementById('groupsEmpty');
   if(!groups.length){tbody.innerHTML='';empty.style.display='';return;}empty.style.display='none';
   tbody.innerHTML=groups.map(g=>`
     <tr>
       <td><strong>${g.name}</strong><br><span style="font-size:.8rem;color:var(--text-muted);">Led by ${g.leader}</span></td>
-      <td>${g.day}s at ${g.time}<br><span style="font-size:.8rem;color:var(--text-muted);">${g.location.split('–')[0].trim()}</span></td>
+      <td>${g.day}s at ${g.time}<br><span style="font-size:.8rem;color:var(--text-muted);">${(g.location||'').split('–')[0].trim()}</span></td>
       <td><span class="badge badge-blue">${g.type}</span></td>
       <td>${g.audience}</td>
-      <td>${g.published!==false?'<span class="badge badge-green">Published</span>':'<span class="badge badge-gray">Draft</span>'}</td>
+      <td>${g.published?'<span class="badge badge-green">Published</span>':'<span class="badge badge-gray">Draft</span>'}</td>
       <td>${g.open?'<span class="badge badge-amber">Open</span>':'<span class="badge badge-red">Full</span>'}</td>
       <td><div class="td-actions">
         <button class="btn btn-ghost btn-sm" onclick="editGroup(${g.id})">Edit</button>
@@ -678,8 +758,8 @@ function openGroupModal(g){
   document.getElementById('groupModal').classList.add('open');
 }
 function closeGroupModal(){document.getElementById('groupModal').classList.remove('open');}
-function editGroup(id){const g=DB.get('hhc_groups').find(g=>g.id===id);if(g)openGroupModal(g);}
-function saveGroup(){
+function editGroup(id){const g=_cachedGroups.find(g=>g.id===id);if(g)openGroupModal(g);}
+async function saveGroup(){
   const id=document.getElementById('grId').value;
   const name=document.getElementById('grName').value.trim();
   const lead=document.getElementById('grLeader').value.trim();
@@ -688,10 +768,10 @@ function saveGroup(){
   const desc=document.getElementById('grDescription').value.trim();
   if(!name||!lead||!time||!loc||!desc){showToast('Please fill in all required fields.',true);return;}
   let image=document.getElementById('grImageFinal').value.trim()||document.getElementById('grImageUrl').value.trim()||'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80';
-  const groups=DB.get('hhc_groups');
-  const newGr={id:id?parseInt(id):Date.now(),published:document.getElementById('grPublished').checked,name,leader:lead,leaderEmail:document.getElementById('grLeaderEmail').value.trim(),day:document.getElementById('grDay').value,time,location:loc,type:document.getElementById('grType').value,audience:document.getElementById('grAudience').value,description:desc,image,open:document.getElementById('grOpen').checked};
-  if(id){const idx=groups.findIndex(g=>g.id===parseInt(id));if(idx>-1)groups[idx]=newGr;}else groups.push(newGr);
-  DB.set('hhc_groups',groups);closeGroupModal();renderGroupsTable();updateStats();
+  const newGr={id:id?parseInt(id):undefined,published:document.getElementById('grPublished').checked,name,leader:lead,leaderEmail:document.getElementById('grLeaderEmail').value.trim(),day:document.getElementById('grDay').value,time,location:loc,type:document.getElementById('grType').value,audience:document.getElementById('grAudience').value,description:desc,image,open:document.getElementById('grOpen').checked};
+  const result = await SupaDB.saveGroup(newGr);
+  if(result.error){showToast('Error saving group: '+result.error,true);return;}
+  closeGroupModal();renderGroupsTable();updateStats();
   showToast(id?'Group updated!':'Group added!');
 }
 
@@ -735,20 +815,24 @@ function generateAIImage(){
 }
 
 /* SIGNUPS */
-function populateSignupGroupFilter(){
+let _cachedSignups = [], _cachedSignupGroups = [];
+async function renderSignupsPanel(){
+  [_cachedSignups, _cachedSignupGroups] = await Promise.all([
+    SupaDB.adminGetAllSignups(), SupaDB.adminGetAllGroups()
+  ]);
+  // Populate filter
   const sel=document.getElementById('signupFilterGroup');
-  const groups=DB.get('hhc_groups');
-  sel.innerHTML='<option value="">All Groups</option>'+groups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
-}
-function renderSignupsPanel(){
-  populateSignupGroupFilter();
-  const filterGroupId=document.getElementById('signupFilterGroup').value;
+  const currentVal=sel.value;
+  sel.innerHTML='<option value="">All Groups</option>'+_cachedSignupGroups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
+  if(currentVal)sel.value=currentVal;
+
+  const filterGroupId=sel.value;
   const filterStatus=document.getElementById('signupFilterStatus').value;
-  let signups=DB.get('hhc_signups')||[];
+  let signups=[..._cachedSignups];
   if(filterGroupId)signups=signups.filter(s=>String(s.groupId)===filterGroupId);
   if(filterStatus==='new')signups=signups.filter(s=>!s.contacted);
   if(filterStatus==='contacted')signups=signups.filter(s=>s.contacted);
-  signups.sort((a,b)=>b.id-a.id);
+  signups.sort((a,b)=>new Date(b.date)-new Date(a.date));
   const grid=document.getElementById('signupsGrid'),empty=document.getElementById('signupsEmpty');
   const countLabel=document.getElementById('signupCountLabel');
   countLabel.textContent=`${signups.length} sign-up${signups.length!==1?'s':''}`;
@@ -773,15 +857,18 @@ function renderSignupsPanel(){
     }).join('');
   }
 }
-function toggleSignupContacted(id){
-  const signups=DB.get('hhc_signups')||[];const idx=signups.findIndex(s=>s.id===id);
-  if(idx>-1){signups[idx].contacted=!signups[idx].contacted;DB.set('hhc_signups',signups);renderSignupsPanel();updateStats();showToast(signups[idx].contacted?'Marked as contacted ✓':'Marked as uncontacted');}
+async function toggleSignupContacted(id){
+  const s=_cachedSignups.find(s=>s.id===id);
+  if(!s)return;
+  const newVal=!s.contacted;
+  await SupaDB.updateSignup(id,{contacted:newVal});
+  renderSignupsPanel();showToast(newVal?'Marked as contacted ✓':'Marked as uncontacted');
 }
 function emailGroupSignups(){
   const filterGroupId=document.getElementById('signupFilterGroup').value;
   if(!filterGroupId){showToast('Select a specific group first.',true);return;}
-  const groups=DB.get('hhc_groups');const signups=(DB.get('hhc_signups')||[]).filter(s=>String(s.groupId)===filterGroupId);
-  const group=groups.find(g=>String(g.id)===filterGroupId);
+  const signups=_cachedSignups.filter(s=>String(s.groupId)===filterGroupId);
+  const group=_cachedSignupGroups.find(g=>String(g.id)===filterGroupId);
   if(!group)return;if(!signups.length){showToast('No sign-ups for this group yet.',true);return;}
   const leaderEmail=group.leaderEmail||'';
   const subject=`Sign-Up Requests for "${group.name}"`;
@@ -792,11 +879,13 @@ function emailGroupSignups(){
 }
 
 /* APPLICATIONS */
-function renderApplicationsTable(){
+let _cachedApplications = [];
+async function renderApplicationsTable(){
+  _cachedApplications = await SupaDB.adminGetAllApplications();
   const filterStatus=document.getElementById('appFilterStatus').value;
-  let apps=DB.get('hhc_applications')||[];
+  let apps=[..._cachedApplications];
   if(filterStatus)apps=apps.filter(a=>a.status===filterStatus);
-  apps.sort((a,b)=>b.id-a.id);
+  apps.sort((a,b)=>new Date(b.submittedDate)-new Date(a.submittedDate));
   const tbody=document.getElementById('applicationsTable'),empty=document.getElementById('applicationsEmpty');
   if(!apps.length){tbody.innerHTML='';empty.style.display='';return;}empty.style.display='none';
   const sb={pending:'badge-amber',approved:'badge-green',rejected:'badge-red'};
@@ -817,7 +906,7 @@ function renderApplicationsTable(){
   }).join('');
 }
 function viewApplication(id){
-  const apps=DB.get('hhc_applications')||[];const a=apps.find(x=>x.id===id);if(!a)return;
+  const a=_cachedApplications.find(x=>x.id===id);if(!a)return;
   document.getElementById('appDetailTitle').textContent=`Application: ${a.groupName}`;
   const ds=a.submittedDate?new Date(a.submittedDate).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):'';
   document.getElementById('appDetailBody').innerHTML=`
@@ -848,40 +937,102 @@ function viewApplication(id){
   document.getElementById('appDetailModal').classList.add('open');
 }
 function closeAppDetailModal(){document.getElementById('appDetailModal').classList.remove('open');}
-function approveApplication(id){
-  const apps=DB.get('hhc_applications')||[];const idx=apps.findIndex(a=>a.id===id);if(idx===-1)return;
-  const a=apps[idx];
-  const groups=DB.get('hhc_groups');
-  groups.push({id:Date.now(),published:false,name:a.groupName,leader:a.name,leaderEmail:a.email,day:a.day,time:a.time,type:a.type,audience:a.audience,location:a.location,description:a.description,image:'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80',open:true});
-  DB.set('hhc_groups',groups);
-  apps[idx].status='approved';apps[idx].approvedDate=new Date().toISOString();DB.set('hhc_applications',apps);
+async function approveApplication(id){
+  const a=_cachedApplications.find(x=>x.id===id);if(!a)return;
+  const draftGroup={published:false,name:a.groupName,leader:a.name,leaderEmail:a.email,day:a.day,time:a.time,type:a.type,audience:a.audience,location:a.location,description:a.description,image:'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80',open:true};
+  await Promise.all([
+    SupaDB.saveGroup(draftGroup),
+    SupaDB.updateApplication(id,{status:'approved'})
+  ]);
   renderApplicationsTable();updateStats();
   showToast(`✓ Approved! Draft group "${a.groupName}" created — review in Small Groups.`);
 }
-function rejectApplication(id){
-  const apps=DB.get('hhc_applications')||[];const idx=apps.findIndex(a=>a.id===id);if(idx===-1)return;
-  apps[idx].status='rejected';apps[idx].rejectedDate=new Date().toISOString();DB.set('hhc_applications',apps);
+async function rejectApplication(id){
+  await SupaDB.updateApplication(id,{status:'rejected'});
   renderApplicationsTable();updateStats();showToast('Application marked as rejected.');
+}
+
+/* SERMONS */
+let _cachedSermons = [];
+async function renderSermonsTable(){
+  _cachedSermons = await SupaDB.adminGetAllSermons();
+  const tbody=document.getElementById('sermonsTable'), empty=document.getElementById('sermonsEmpty');
+  if(!_cachedSermons.length){tbody.innerHTML='';empty.style.display='';return;}empty.style.display='none';
+  tbody.innerHTML=_cachedSermons.map(s=>{
+    const thumb=`<img src="https://img.youtube.com/vi/${s.youtubeId}/default.jpg" style="width:60px;height:34px;object-fit:cover;border-radius:4px;vertical-align:middle;" onerror="this.style.display='none'" />`;
+    return`<tr>
+      <td>${thumb}</td>
+      <td><strong>${s.title}</strong><br><span style="font-size:.8rem;color:var(--text-muted);">${s.series||''}</span></td>
+      <td>${s.speaker||'—'}</td>
+      <td>${s.date}</td>
+      <td><a href="https://youtu.be/${s.youtubeId}" target="_blank" style="color:var(--primary);font-size:.8rem;">${s.youtubeId}</a></td>
+      <td>${s.published?'<span class="badge badge-green">Published</span>':'<span class="badge badge-gray">Draft</span>'}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editSermon(${s.id})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteItem('sermon',${s.id},'${s.title.replace(/'/g,"\\'")}')">Delete</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function openSermonModal(s){
+  document.getElementById('sermonModalTitle').textContent=s?'Edit Sermon':'Add Sermon';
+  document.getElementById('smId').value=s?s.id:'';
+  document.getElementById('smTitle').value=s?s.title:'';
+  document.getElementById('smSpeaker').value=s?s.speaker:'';
+  document.getElementById('smSeries').value=s?s.series:'';
+  document.getElementById('smDate').value=s?s.date:'';
+  document.getElementById('smDateSort').value=s?s.dateSort:'';
+  document.getElementById('smDatePicker').value=s&&s.dateSort&&s.dateSort!=='2099-12-31'?s.dateSort:'';
+  document.getElementById('smYoutubeId').value=s?s.youtubeId:'';
+  document.getElementById('smDescription').value=s?s.description:'';
+  document.getElementById('smPublished').checked=s?s.published:true;
+  updateYtPreview(s?s.youtubeId:'');
+  document.getElementById('sermonModal').classList.add('open');
+}
+function closeSermonModal(){document.getElementById('sermonModal').classList.remove('open');}
+function editSermon(id){const s=_cachedSermons.find(x=>x.id===id);if(s)openSermonModal(s);}
+function onSmDatePicked(ymd){
+  document.getElementById('smDateSort').value=ymd;
+  document.getElementById('smDate').value=formatDateDisplay(ymd);
+}
+function updateYtPreview(id){
+  const p=document.getElementById('smYtPreview');
+  if(id){p.src=`https://img.youtube.com/vi/${id}/hqdefault.jpg`;p.classList.add('visible');}
+  else{p.classList.remove('visible');p.src='';}
+}
+async function saveSermon(){
+  const id=document.getElementById('smId').value;
+  const title=document.getElementById('smTitle').value.trim();
+  const youtubeId=document.getElementById('smYoutubeId').value.trim().replace(/.*v=/,'').replace(/&.*/,'');
+  const date=document.getElementById('smDate').value.trim();
+  const dateSort=document.getElementById('smDateSort').value.trim()||'2099-12-31';
+  if(!title||!youtubeId||!date){showToast('Title, YouTube ID, and Date are required.',true);return;}
+  const newS={id:id?parseInt(id):undefined,title,speaker:document.getElementById('smSpeaker').value.trim(),series:document.getElementById('smSeries').value.trim(),date,dateSort,youtubeId,description:document.getElementById('smDescription').value.trim(),published:document.getElementById('smPublished').checked};
+  const result=await SupaDB.saveSermon(newS);
+  if(result.error){showToast('Error saving sermon: '+result.error,true);return;}
+  closeSermonModal();renderSermonsTable();showToast(id?'Sermon updated! ✓':'Sermon added! ✓');
 }
 
 /* DELETE */
 let _deleteType,_deleteId;
 function deleteItem(type,id,name){_deleteType=type;_deleteId=id;document.getElementById('deleteItemName').textContent=name;document.getElementById('deleteModal').classList.add('open');}
 function closeDeleteModal(){document.getElementById('deleteModal').classList.remove('open');}
-function confirmDelete(){
-  const km={event:'hhc_events',group:'hhc_groups',signup:'hhc_signups',application:'hhc_applications'};
-  const items=(DB.get(km[_deleteType])||[]).filter(i=>i.id!==_deleteId);
-  DB.set(km[_deleteType],items);closeDeleteModal();
+async function confirmDelete(){
+  const delFns={event:SupaDB.deleteEvent,group:SupaDB.deleteGroup,signup:SupaDB.deleteSignup,application:SupaDB.deleteApplication,sermon:SupaDB.deleteSermon};
+  const fn=delFns[_deleteType];
+  if(fn)await fn.call(SupaDB,_deleteId);
+  closeDeleteModal();
   if(_deleteType==='event')renderEventsTable();
   else if(_deleteType==='group')renderGroupsTable();
   else if(_deleteType==='signup')renderSignupsPanel();
   else if(_deleteType==='application')renderApplicationsTable();
+  else if(_deleteType==='sermon')renderSermonsTable();
   updateStats();showToast('Deleted successfully.');
 }
 
 /* TOAST & LOGOUT */
 function showToast(msg,isError=false){const t=document.getElementById('toast');t.textContent=msg;t.style.background=isError?'#dc2626':'#111';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
-function logout(){sessionStorage.removeItem('hhc_admin');window.location.href='login.html';}
+async function logout(){await SupaDB.signOut();window.location.href='login.html';}
 
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 </script>

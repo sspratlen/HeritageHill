@@ -244,10 +244,16 @@
   <a href="admin/dashboard.html?tab=groups" class="admin-fab" title="Manage Groups">✏️</a>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/db.js"></script>
 <script src="js/main.js"></script>
 <script>
   document.getElementById('footerYear').textContent = new Date().getFullYear();
-  if (isAdminLoggedIn()) document.getElementById('adminBar').classList.add('show');
+  isAdminLoggedIn().then(ok => { if (ok) document.getElementById('adminBar').classList.add('show'); });
+
+  // Cache all published groups so filters don't re-query on every keystroke
+  let _allGroups = [];
 
   function renderGroupCard(g) {
     const openBadge = g.open
@@ -283,7 +289,7 @@
     const day      = document.getElementById('groupDay').value;
     const type     = document.getElementById('groupType').value;
     const audience = document.getElementById('groupAudience').value;
-    let groups = DB.get('hhc_groups').filter(g => g.published !== false);
+    let groups = [..._allGroups];
 
     if (q)        groups = groups.filter(g => g.name.toLowerCase().includes(q) || g.description.toLowerCase().includes(q) || g.leader.toLowerCase().includes(q));
     if (day)      groups = groups.filter(g => g.day === day);
@@ -303,16 +309,20 @@
     }
   }
 
-  filterGroups();
+  // Load groups from Supabase then apply any URL param filter
+  SupaDB.getPublishedGroups().then(data => {
+    _allGroups = data;
 
-  // URL param pre-filter
-  const urlParams = new URLSearchParams(window.location.search);
-  const fp = urlParams.get('filter');
-  if (fp) {
-    const sel = document.getElementById('groupType');
-    for (let o of sel.options) { if (o.value === fp) { sel.value = fp; break; } }
+    // URL param pre-filter
+    const urlParams = new URLSearchParams(window.location.search);
+    const fp = urlParams.get('filter');
+    if (fp) {
+      const sel = document.getElementById('groupType');
+      for (let o of sel.options) { if (o.value === fp) { sel.value = fp; break; } }
+    }
+
     filterGroups();
-  }
+  });
 
   function handleGroupContact(e) {
     e.preventDefault();
@@ -321,8 +331,10 @@
   }
 
   /* ── Join Group Modal ───────────────────────────────── */
-  function openJoinModal(groupId) {
-    const g = DB.get('hhc_groups').find(g => g.id === groupId);
+  async function openJoinModal(groupId) {
+    // Try cached data first, fall back to DB lookup
+    let g = _allGroups.find(g => g.id === groupId);
+    if (!g) g = await SupaDB.getGroupById(groupId);
     if (!g) return;
     document.getElementById('joinGroupNameDisplay').textContent = g.name;
     document.getElementById('joinGroupId').value = groupId;
@@ -339,13 +351,11 @@
     document.getElementById('joinModal').style.display = 'none';
   }
 
-  function handleJoinSubmit(e) {
+  async function handleJoinSubmit(e) {
     e.preventDefault();
-    const groups = DB.get('hhc_groups');
     const groupId = parseInt(document.getElementById('joinGroupId').value);
-    const g = groups.find(g => g.id === groupId);
+    const g = _allGroups.find(g => g.id === groupId);
     const signup = {
-      id: Date.now(),
       groupId,
       groupName: document.getElementById('joinGroupNameHidden').value,
       leaderName: g ? g.leader : '',
@@ -354,12 +364,12 @@
       email: document.getElementById('joinEmail').value.trim(),
       phone: document.getElementById('joinPhone').value.trim(),
       message: document.getElementById('joinMessage').value.trim(),
-      date: new Date().toISOString(),
-      contacted: false
     };
-    const signups = DB.get('hhc_signups') || [];
-    signups.push(signup);
-    DB.set('hhc_signups', signups);
+    const result = await SupaDB.submitSignup(signup);
+    if (result.error) {
+      alert('Sorry, there was an error submitting your request. Please try again or email us directly.');
+      return;
+    }
     document.getElementById('joinForm').style.display = 'none';
     document.getElementById('joinSuccess').style.display = '';
     setTimeout(closeJoinModal, 2800);

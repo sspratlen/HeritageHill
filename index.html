@@ -254,15 +254,18 @@
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/db.js"></script>
 <script src="js/main.js"></script>
 <script>
   document.getElementById('footerYear').textContent = new Date().getFullYear();
 
   /* Home — load 3 upcoming events */
-  (function loadHomeEvents() {
-    const events = DB.get('hhc_events').filter(e => e.published !== false);
-    const grid   = document.getElementById('homeEventGrid');
+  async function loadHomeEvents() {
+    const grid = document.getElementById('homeEventGrid');
     if (!grid) return;
+    const events = await SupaDB.getPublishedEvents();
     const sorted = [...events].sort((a, b) => a.dateSort.localeCompare(b.dateSort)).slice(0, 3);
     if (!sorted.length) { grid.innerHTML = '<p class="text-muted">No events scheduled. Check back soon!</p>'; return; }
     grid.innerHTML = sorted.map(ev => {
@@ -286,13 +289,13 @@
         </div>
       </article>`;
     }).join('');
-  })();
+  }
 
   /* Home — load 4 groups */
-  (function loadHomeGroups() {
-    const groups = DB.get('hhc_groups').filter(g => g.published !== false);
-    const grid   = document.getElementById('homeGroupGrid');
+  async function loadHomeGroups() {
+    const grid = document.getElementById('homeGroupGrid');
     if (!grid) return;
+    const groups = await SupaDB.getPublishedGroups();
     const show = groups.slice(0, 4);
     grid.innerHTML = show.map(g => `
       <article class="card group-card" data-reveal>
@@ -305,7 +308,10 @@
           <p>${g.description.slice(0,70)}…</p>
         </div>
       </article>`).join('');
-  })();
+  }
+
+  loadHomeEvents();
+  loadHomeGroups();
 </script>
 </body>
 </html>

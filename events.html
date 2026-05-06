@@ -154,10 +154,16 @@
   <a href="admin/dashboard.html?tab=events" class="admin-fab" title="Manage Events">✏️</a>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/db.js"></script>
 <script src="js/main.js"></script>
 <script>
   document.getElementById('footerYear').textContent = new Date().getFullYear();
-  if (isAdminLoggedIn()) document.getElementById('adminBar').classList.add('show');
+  isAdminLoggedIn().then(ok => { if (ok) document.getElementById('adminBar').classList.add('show'); });
+
+  // Cache all published events so filters don't re-query on every keystroke
+  let _allEvents = [];
 
   function renderEventCard(ev) {
     const dateParts = ev.date.match(/([A-Za-z]+)\s+(\d+)/);
@@ -188,7 +194,7 @@
     const q   = document.getElementById('eventSearch').value.toLowerCase();
     const cat = document.getElementById('eventCategory').value;
     const time= document.getElementById('eventTime').value;
-    let events = DB.get('hhc_events').filter(e => e.published !== false);
+    let events = [..._allEvents];
 
     if (q)    events = events.filter(e => e.title.toLowerCase().includes(q) || e.description.toLowerCase().includes(q));
     if (cat)  events = events.filter(e => e.category === cat);
@@ -207,18 +213,22 @@
     }
   }
 
-  filterEvents();
+  // Load events from Supabase then apply any URL param filter
+  SupaDB.getPublishedEvents().then(data => {
+    _allEvents = data;
 
-  // Check for URL param filter
-  const urlParams = new URLSearchParams(window.location.search);
-  const filterParam = urlParams.get('filter');
-  if (filterParam) {
-    const catSelect = document.getElementById('eventCategory');
-    for (let opt of catSelect.options) {
-      if (opt.value === filterParam) { catSelect.value = filterParam; break; }
+    // Check for URL param filter
+    const urlParams = new URLSearchParams(window.location.search);
+    const filterParam = urlParams.get('filter');
+    if (filterParam) {
+      const catSelect = document.getElementById('eventCategory');
+      for (let opt of catSelect.options) {
+        if (opt.value === filterParam) { catSelect.value = filterParam; break; }
+      }
     }
+
     filterEvents();
-  }
+  });
 </script>
 </body>
 </html>

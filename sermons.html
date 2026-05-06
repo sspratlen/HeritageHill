@@ -4,19 +4,66 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sermons | Heritage Hill Church</title>
-  <meta name="description" content="Watch or listen to recent sermons from Heritage Hill Church in Papillion, Nebraska." />
+  <meta name="description" content="Watch and listen to messages from Heritage Hill Church in Papillion, Nebraska." />
   <link rel="icon" href="assets/logos/logo-icon-color-white.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .featured-sermon { background:var(--bg-dark); padding:60px 0; color:#fff; }
+    .featured-sermon-inner { display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center; }
+    @media(max-width:768px){ .featured-sermon-inner{ grid-template-columns:1fr; } }
+    .yt-embed-wrap { position:relative; padding-bottom:56.25%; height:0; border-radius:var(--radius-lg); overflow:hidden; box-shadow:0 16px 48px rgba(0,0,0,.4); }
+    .yt-embed-wrap iframe { position:absolute; inset:0; width:100%; height:100%; border:none; }
+    .featured-sermon-info .section-label { color:rgba(255,255,255,.5); }
+    .featured-sermon-info h2 { color:#fff; font-size:1.75rem; margin:.5rem 0 .75rem; }
+    .featured-sermon-info .sermon-meta { color:rgba(255,255,255,.6); font-size:.875rem; margin-bottom:1.25rem; }
+    .featured-sermon-info .sermon-meta span { display:inline-flex; align-items:center; gap:5px; margin-right:18px; }
+    .featured-sermon-info p { color:rgba(255,255,255,.7); line-height:1.7; }
+    .sermon-card { background:var(--bg); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-sm); transition:transform .2s,box-shadow .2s; cursor:pointer; }
+    .sermon-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-md); }
+    .sermon-thumb { position:relative; aspect-ratio:16/9; overflow:hidden; background:#1a1a2e; }
+    .sermon-thumb img { width:100%; height:100%; object-fit:cover; transition:transform .3s; }
+    .sermon-card:hover .sermon-thumb img { transform:scale(1.04); }
+    .play-overlay { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.25); transition:background .2s; }
+    .sermon-card:hover .play-overlay { background:rgba(0,0,0,.4); }
+    .play-btn { width:48px; height:48px; border-radius:50%; background:rgba(255,255,255,.9); display:flex; align-items:center; justify-content:center; box-shadow:0 4px 16px rgba(0,0,0,.3); }
+    .sermon-body { padding:16px 18px 20px; }
+    .sermon-series-tag { display:inline-block; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--primary); background:rgba(188,122,30,.1); border-radius:4px; padding:2px 8px; margin-bottom:8px; }
+    .sermon-body h4 { font-size:1rem; font-weight:700; margin-bottom:5px; line-height:1.35; color:var(--text); }
+    .sermon-body .sermon-sub { font-size:.8125rem; color:var(--text-muted); display:flex; gap:12px; flex-wrap:wrap; }
+    #videoModal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:1000; align-items:center; justify-content:center; padding:20px; }
+    #videoModal.open { display:flex; }
+    .modal-video-wrap { width:100%; max-width:900px; }
+    .modal-video-close { display:flex; justify-content:flex-end; margin-bottom:10px; }
+    .modal-video-close button { background:rgba(255,255,255,.15); border:none; color:#fff; width:36px; height:36px; border-radius:50%; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+    .modal-video-close button:hover { background:rgba(255,255,255,.3); }
+    .modal-yt-wrap { position:relative; padding-bottom:56.25%; height:0; border-radius:var(--radius-lg); overflow:hidden; }
+    .modal-yt-wrap iframe { position:absolute; inset:0; width:100%; height:100%; border:none; }
+    .modal-title { color:#fff; margin-top:14px; font-size:1rem; font-weight:600; text-align:center; }
+    .yt-feed-card { background:var(--bg); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-sm); transition:transform .2s,box-shadow .2s; cursor:pointer; }
+    .yt-feed-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-md); }
+    .yt-thumb { aspect-ratio:16/9; overflow:hidden; background:#1a1a2e; position:relative; }
+    .yt-thumb img { width:100%; height:100%; object-fit:cover; transition:transform .3s; }
+    .yt-feed-card:hover .yt-thumb img { transform:scale(1.04); }
+    .yt-body { padding:14px 16px 18px; }
+    .yt-body h4 { font-size:.9375rem; font-weight:700; margin-bottom:4px; line-height:1.35; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .yt-body .yt-date { font-size:.8rem; color:var(--text-muted); }
+    .skeleton { background:linear-gradient(90deg,#e8e8e8 25%,#f5f5f5 50%,#e8e8e8 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:6px; }
+    @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+    .skel-card { background:var(--bg); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-sm); }
+    .skel-thumb { aspect-ratio:16/9; }
+    .skel-body { padding:14px 16px; }
+    .skel-line { height:14px; margin-bottom:10px; }
+    .skel-line.short { width:60%; }
+  </style>
 </head>
 <body>
 
 <nav id="navbar" class="scrolled">
   <div class="container nav-inner">
     <a href="index.html" class="nav-logo">
-      <img src="assets/logos/logo-left-full-white.png"
-           alt="Heritage Hill Church" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+      <img src="assets/logos/logo-left-full-white.png" alt="Heritage Hill Church" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
       <span style="display:none; font-size:1.15rem; font-weight:700; color:var(--primary);">Heritage Hill</span>
     </a>
     <div class="nav-links">
@@ -27,7 +74,9 @@
       <a href="give.html">Give</a>
     </div>
     <a href="about.html#visit" class="btn btn-primary btn-sm nav-cta">Plan a Visit</a>
-    <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
 <div class="nav-mobile" id="mobileNav">
@@ -40,80 +89,91 @@
 </div>
 
 <div class="page-hero" style="padding-top:var(--nav-h);">
-  <div class="page-hero-bg" style="background-image:url('https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1400&q=80');"></div>
+  <div class="page-hero-bg" style="background-image:url('https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1400&q=80');"></div>
   <div class="page-hero-overlay"></div>
   <div class="container page-hero-content">
-    <h1>Sermons</h1>
-    <p>Teaching rooted in Scripture, relevant to life.</p>
+    <h1>Messages</h1>
+    <p>Watch, listen, and grow — wherever you are.</p>
   </div>
 </div>
 
-<section class="section">
+<!-- Featured / Latest Sermon — hidden until data loads -->
+<section class="featured-sermon" id="featuredSection" style="display:none;">
+  <div class="container">
+    <div class="featured-sermon-inner">
+      <div class="yt-embed-wrap" id="featuredEmbed"></div>
+      <div class="featured-sermon-info">
+        <span class="section-label">Latest Message</span>
+        <h2 id="featuredTitle">—</h2>
+        <div class="sermon-meta" id="featuredMeta"></div>
+        <p id="featuredDesc"></p>
+        <a href="https://www.youtube.com/@heritagehillchurch" target="_blank" rel="noopener"
+           class="btn btn-white btn-lg" style="margin-top:1.5rem;">View Full Channel →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Sermon Archive — hidden until data loads -->
+<section class="section" id="archiveSection" style="display:none;">
   <div class="container">
     <div class="section-head" data-reveal>
-      <span class="section-label">Recent Messages</span>
-      <h2>Watch &amp; Listen</h2>
-      <p>Catch up on recent sermons from Heritage Hill. New messages posted each week.</p>
+      <span class="section-label">Message Archive</span>
+      <h2>Past Messages</h2>
+      <p>Browse our full library of messages organized by series and date.</p>
     </div>
-
-    <!-- Featured sermon -->
-    <div style="background:var(--bg-soft); border-radius:var(--radius-lg); padding:36px; border:1px solid var(--border); margin-bottom:48px; display:grid; grid-template-columns:1.4fr 1fr; gap:36px; align-items:center;" data-reveal>
-      <div style="border-radius:var(--radius); overflow:hidden; aspect-ratio:16/9; background:#000; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.5); font-size:.9rem;">
-        <div style="text-align:center;">
-          <svg width="52" height="52" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 12px; opacity:.4;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          <p>Video sermons hosted on<br><strong>YouTube / Vimeo</strong></p>
-          <p style="font-size:.8rem; margin-top:8px;">Add your embed URL below</p>
-        </div>
-      </div>
-      <div>
-        <span class="group-tag" style="margin-bottom:12px; display:inline-block;">Featured</span>
-        <h2 style="font-size:1.6rem; margin-bottom:.5rem;">The God Who Sees You</h2>
-        <p style="font-size:.875rem; color:var(--text-muted); margin-bottom:.75rem;">Pastor Mike Thompson &nbsp;·&nbsp; May 4, 2026</p>
-        <p style="font-size:.9375rem; margin-bottom:1.5rem;">From the story of Hagar in Genesis 16 — a message about God's personal, attentive care for those who feel unseen and forgotten.</p>
-        <p style="font-size:.85rem; color:var(--text-muted); font-style:italic;">Scripture: Genesis 16:1–16 &nbsp;|&nbsp; Series: <em>Seen</em></p>
+    <div class="filter-bar" style="margin-bottom:32px;">
+      <div class="filter-row">
+        <input type="text" id="sermonSearch" class="filter-input" placeholder="Search messages..." oninput="filterSermons()" />
+        <select id="sermonSeries" class="filter-select" onchange="filterSermons()">
+          <option value="">All Series</option>
+        </select>
+        <select id="sermonSpeaker" class="filter-select" onchange="filterSermons()">
+          <option value="">All Speakers</option>
+        </select>
       </div>
     </div>
-
-    <!-- Sermon grid -->
-    <div class="grid-3">
-      <article class="card" data-reveal>
-        <div class="card-img" style="background:#1a1a2e; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.25); aspect-ratio:16/9;">
-          <svg width="36" height="36" fill="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        </div>
-        <div class="card-body">
-          <p style="font-size:.8rem; margin-bottom:.5rem; color:var(--primary); font-weight:600;">Series: Seen</p>
-          <h3 style="font-size:1.05rem;">When You Feel Alone</h3>
-          <p style="font-size:.85rem;">April 27, 2026 &nbsp;·&nbsp; Pastor Mike Thompson</p>
-          <p style="font-size:.875rem; margin-top:.5rem;">Finding God in the wilderness — Elijah under the juniper tree.</p>
-        </div>
-      </article>
-      <article class="card" data-reveal>
-        <div class="card-img" style="background:#1a1a2e; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.25); aspect-ratio:16/9;">
-          <svg width="36" height="36" fill="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        </div>
-        <div class="card-body">
-          <p style="font-size:.8rem; margin-bottom:.5rem; color:var(--primary); font-weight:600;">Series: Seen</p>
-          <h3 style="font-size:1.05rem;">Known Before You Were Born</h3>
-          <p style="font-size:.85rem;">April 20, 2026 &nbsp;·&nbsp; Pastor Mike Thompson</p>
-          <p style="font-size:.875rem; margin-top:.5rem;">Jeremiah 1 and the God who knew your name before you breathed your first breath.</p>
-        </div>
-      </article>
-      <article class="card" data-reveal>
-        <div class="card-img" style="background:#1a1a2e; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.25); aspect-ratio:16/9;">
-          <svg width="36" height="36" fill="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        </div>
-        <div class="card-body">
-          <p style="font-size:.8rem; margin-bottom:.5rem; color:var(--secondary); font-weight:600;">Series: Deep Roots</p>
-          <h3 style="font-size:1.05rem;">Building on the Rock</h3>
-          <p style="font-size:.85rem;">April 13, 2026 &nbsp;·&nbsp; Pastor Mike Thompson</p>
-          <p style="font-size:.875rem; margin-top:.5rem;">Matthew 7 — what it truly means to build your life on a firm foundation.</p>
-        </div>
-      </article>
+    <div class="grid-3" id="sermonGrid"></div>
+    <div id="sermonEmpty" class="empty-state" style="display:none;">
+      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.362a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
+      <h3>No messages found</h3>
+      <p>Try adjusting your filters, or check back soon for new content.</p>
     </div>
+  </div>
+</section>
 
-    <div style="text-align:center; margin-top:40px;" data-reveal>
-      <p style="color:var(--text-muted); margin-bottom:16px;">All sermons are available on our YouTube channel.</p>
-      <a href="https://www.youtube.com/@heritagehillchurch" target="_blank" rel="noopener" class="btn btn-primary btn-lg">Visit Our YouTube Channel</a>
+<!-- Latest from YouTube -->
+<section class="section bg-soft" id="ytSection">
+  <div class="container">
+    <div class="section-head" data-reveal>
+      <span class="section-label">YouTube</span>
+      <h2>Latest from Our Channel</h2>
+      <p>All of our services and messages are available on YouTube. Subscribe to never miss one.</p>
+    </div>
+    <div class="grid-3" id="ytFeedGrid">
+      <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-body"><div class="skeleton skel-line"></div><div class="skeleton skel-line short"></div></div></div>
+      <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-body"><div class="skeleton skel-line"></div><div class="skeleton skel-line short"></div></div></div>
+      <div class="skel-card"><div class="skel-thumb skeleton"></div><div class="skel-body"><div class="skeleton skel-line"></div><div class="skeleton skel-line short"></div></div></div>
+    </div>
+    <div style="text-align:center; margin-top:36px;">
+      <a href="https://www.youtube.com/@heritagehillchurch" target="_blank" rel="noopener" class="btn btn-secondary btn-lg">
+        <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24" style="vertical-align:middle; margin-right:7px;"><path d="M22.54 6.42a2.78 2.78 0 00-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 00-1.95 1.96A29 29 0 001 12a29 29 0 00.46 5.58A2.78 2.78 0 003.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.4a2.78 2.78 0 001.95-1.95A29 29 0 0023 12a29 29 0 00-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="white"/></svg>
+        Subscribe on YouTube
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container-narrow text-center">
+    <div data-reveal>
+      <span class="section-label">Join Us Live</span>
+      <h2>Experience It In Person</h2>
+      <p style="margin:1rem auto 2rem; max-width:480px;">Videos are great, but there is nothing like worshipping together. We would love for you to join us Sunday morning.</p>
+      <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+        <a href="about.html#visit" class="btn btn-primary btn-lg">Plan a Visit</a>
+        <a href="https://www.youtube.com/@heritagehillchurch" target="_blank" rel="noopener" class="btn btn-secondary btn-lg">Watch Live</a>
+      </div>
     </div>
   </div>
 </section>
@@ -125,25 +185,160 @@
         <div class="footer-logo">
           <img src="assets/logos/logo-left-full-dark.png" alt="Heritage Hill Church" onerror="this.style.display='none'" />
         </div>
-        <p>We're a community of Jesus followers in Papillion, Nebraska. Come as you are — you belong here.</p>
+        <p>We are a community of Jesus followers in Papillion, Nebraska. Come as you are — you belong here.</p>
       </div>
-      <div class="footer-col"><h5>Navigate</h5><ul><li><a href="index.html">Home</a></li><li><a href="about.html">About Us</a></li><li><a href="events.html">Events</a></li><li><a href="small-groups.html">Small Groups</a></li><li><a href="sermons.html">Sermons</a></li><li><a href="give.html">Give</a></li></ul></div>
-      <div class="footer-col"><h5>Ministries</h5><ul><li><a href="small-groups.html">Small Groups</a></li><li><a href="#">Children's Ministry</a></li><li><a href="#">Youth Ministry</a></li><li><a href="#">Women's Ministry</a></li><li><a href="#">Men's Ministry</a></li></ul></div>
+      <div class="footer-col">
+        <h5>Navigate</h5>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="events.html">Events</a></li>
+          <li><a href="small-groups.html">Small Groups</a></li>
+          <li><a href="sermons.html">Sermons</a></li>
+          <li><a href="give.html">Give</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Ministries</h5>
+        <ul>
+          <li><a href="small-groups.html">Small Groups</a></li>
+          <li><a href="small-groups.html?filter=Children's Ministry">Children's Ministry</a></li>
+          <li><a href="small-groups.html?filter=Youth">Youth Ministry</a></li>
+          <li><a href="small-groups.html?filter=Women's Ministry">Women's Ministry</a></li>
+          <li><a href="small-groups.html?filter=Men's Ministry">Men's Ministry</a></li>
+        </ul>
+      </div>
       <div class="footer-col footer-contact">
         <h5>Contact Us</h5>
         <p><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>6909 Cornhusker Rd, Papillion, NE 68133</p>
         <p><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.73 8.7 19.79 19.79 0 01.67 4.1 2 2 0 012.63 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L7.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg><a href="tel:4023318900">(402) 331-8900</a></p>
+        <p><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><a href="mailto:heritagehillchurch@gmail.com">heritagehillchurch@gmail.com</a></p>
         <p><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Sun 10:30 AM</p>
       </div>
     </div>
     <hr class="footer-divider" />
     <div class="footer-bottom">
-      <p>&copy; <span id="footerYear"></span> Heritage Hill Church · Papillion, Nebraska</p>
+      <p>&copy; <span id="footerYear"></span> Heritage Hill Church · Papillion, Nebraska · All rights reserved.</p>
       <p><a href="admin/login.html" style="color:rgba(255,255,255,.2); font-size:.75rem;">Admin</a></p>
     </div>
   </div>
 </footer>
+
+<!-- Video Modal -->
+<div id="videoModal" aria-modal="true" role="dialog">
+  <div class="modal-video-wrap">
+    <div class="modal-video-close">
+      <button onclick="closeVideoModal()" aria-label="Close video">x</button>
+    </div>
+    <div class="modal-yt-wrap">
+      <iframe id="modalIframe" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+    </div>
+    <p class="modal-title" id="modalTitle"></p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/db.js"></script>
 <script src="js/main.js"></script>
-<script>document.getElementById('footerYear').textContent = new Date().getFullYear();</script>
+<script>
+  document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+  let _allSermons = [];
+
+  function openVideoModal(youtubeId, title) {
+    document.getElementById('modalIframe').src = 'https://www.youtube.com/embed/' + youtubeId + '?autoplay=1&rel=0';
+    document.getElementById('modalTitle').textContent = title || '';
+    document.getElementById('videoModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeVideoModal() {
+    document.getElementById('videoModal').classList.remove('open');
+    document.getElementById('modalIframe').src = '';
+    document.body.style.overflow = '';
+  }
+  document.getElementById('videoModal').addEventListener('click', function(e) { if (e.target === this) closeVideoModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeVideoModal(); });
+
+  function renderSermonCard(s) {
+    const thumb = 'https://img.youtube.com/vi/' + s.youtubeId + '/hqdefault.jpg';
+    const seriesBadge = s.series ? '<span class="sermon-series-tag">' + s.series + '</span>' : '';
+    const safeTitle = s.title.replace(/'/g, "\\'");
+    return '<article class="sermon-card" onclick="openVideoModal(\'' + s.youtubeId + '\',\'' + safeTitle + '\')">'
+      + '<div class="sermon-thumb"><img src="' + thumb + '" alt="' + s.title + '" loading="lazy" onerror="this.src=\'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&q=80\'" />'
+      + '<div class="play-overlay"><div class="play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="var(--primary)"><polygon points="5 3 19 12 5 21 5 3"/></svg></div></div></div>'
+      + '<div class="sermon-body">' + seriesBadge
+      + '<h4>' + s.title + '</h4>'
+      + '<div class="sermon-sub">'
+      + (s.speaker ? '<span>' + s.speaker + '</span>' : '')
+      + '<span>' + s.date + '</span>'
+      + '</div></div></article>';
+  }
+
+  function filterSermons() {
+    const q       = document.getElementById('sermonSearch').value.toLowerCase();
+    const series  = document.getElementById('sermonSeries').value;
+    const speaker = document.getElementById('sermonSpeaker').value;
+    let sermons = _allSermons.slice();
+    if (q)       sermons = sermons.filter(s => s.title.toLowerCase().includes(q) || (s.description||'').toLowerCase().includes(q) || (s.series||'').toLowerCase().includes(q));
+    if (series)  sermons = sermons.filter(s => s.series === series);
+    if (speaker) sermons = sermons.filter(s => s.speaker === speaker);
+    const grid  = document.getElementById('sermonGrid');
+    const empty = document.getElementById('sermonEmpty');
+    if (!sermons.length) { grid.innerHTML = ''; empty.style.display = ''; }
+    else { grid.innerHTML = sermons.map(renderSermonCard).join(''); empty.style.display = 'none'; }
+  }
+
+  async function loadSermons() {
+    const sermons = await SupaDB.getPublishedSermons();
+    if (!sermons.length) return;
+    document.getElementById('archiveSection').style.display = '';
+
+    // Featured = latest
+    const latest = sermons[0];
+    document.getElementById('featuredSection').style.display = '';
+    document.getElementById('featuredEmbed').innerHTML =
+      '<iframe src="https://www.youtube.com/embed/' + latest.youtubeId + '?rel=0" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>';
+    document.getElementById('featuredTitle').textContent = latest.title;
+    const metaParts = [];
+    if (latest.speaker) metaParts.push('<span>' + latest.speaker + '</span>');
+    if (latest.series)  metaParts.push('<span>' + latest.series  + '</span>');
+    metaParts.push('<span>' + latest.date + '</span>');
+    document.getElementById('featuredMeta').innerHTML = metaParts.join('');
+    document.getElementById('featuredDesc').textContent = latest.description || '';
+
+    // Archive = rest (skip featured)
+    const rest = sermons.slice(1);
+    const seriesSet   = [...new Set(rest.map(s => s.series).filter(Boolean))];
+    const speakerSet  = [...new Set(rest.map(s => s.speaker).filter(Boolean))];
+    const seriesSel   = document.getElementById('sermonSeries');
+    const speakerSel  = document.getElementById('sermonSpeaker');
+    seriesSet.forEach(sv => { const o = document.createElement('option'); o.value = sv; o.textContent = sv; seriesSel.appendChild(o); });
+    speakerSet.forEach(sp => { const o = document.createElement('option'); o.value = sp; o.textContent = sp; speakerSel.appendChild(o); });
+    _allSermons = rest;
+    filterSermons();
+  }
+
+  async function loadYTFeed() {
+    const grid = document.getElementById('ytFeedGrid');
+    const videos = await SupaDB.getLatestYouTubeVideos(6);
+    if (!videos.length) {
+      grid.innerHTML = '<p class="text-muted" style="grid-column:1/-1;">Videos unavailable right now. <a href="https://www.youtube.com/@heritagehillchurch" target="_blank" rel="noopener" style="color:var(--primary);">Visit our YouTube channel</a></p>';
+      return;
+    }
+    grid.innerHTML = videos.map(v => {
+      const d = v.publishedAt ? new Date(v.publishedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+      return '<article class="yt-feed-card" onclick="window.open(\'https://www.youtube.com/watch?v=' + v.id + '\',\'_blank\')">'
+        + '<div class="yt-thumb"><img src="' + v.thumbnail + '" alt="' + v.title.replace(/"/g,'&quot;') + '" loading="lazy" onerror="this.src=\'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&q=80\'" />'
+        + '<div class="play-overlay"><div class="play-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="var(--primary)"><polygon points="5 3 19 12 5 21 5 3"/></svg></div></div></div>'
+        + '<div class="yt-body"><h4>' + v.title + '</h4>'
+        + (d ? '<p class="yt-date">' + d + '</p>' : '')
+        + '</div></article>';
+    }).join('');
+  }
+
+  loadSermons();
+  loadYTFeed();
+</script>
 </body>
 </html>

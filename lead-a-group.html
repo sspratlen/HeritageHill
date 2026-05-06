@@ -334,23 +334,25 @@
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/db.js"></script>
 <script src="js/main.js"></script>
 <script>
   document.getElementById('footerYear').textContent = new Date().getFullYear();
 
-  function handleLagSubmit(e) {
+  async function handleLagSubmit(e) {
     e.preventDefault();
 
+    const submitBtn = e.target.querySelector('[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
+
     const application = {
-      id: Date.now(),
-      status: 'pending',
-      submittedDate: new Date().toISOString(),
-      // Applicant info
-      name:       document.getElementById('lagName').value.trim(),
-      email:      document.getElementById('lagEmail').value.trim(),
-      phone:      document.getElementById('lagPhone').value.trim(),
-      attendance: document.getElementById('lagAttendance').value,
-      // Group proposal
+      name:        document.getElementById('lagName').value.trim(),
+      email:       document.getElementById('lagEmail').value.trim(),
+      phone:       document.getElementById('lagPhone').value.trim(),
+      attendance:  document.getElementById('lagAttendance').value,
       groupName:   document.getElementById('lagGroupName').value.trim(),
       type:        document.getElementById('lagType').value,
       audience:    document.getElementById('lagAudience').value,
@@ -362,11 +364,14 @@
       notes:       document.getElementById('lagNotes').value.trim()
     };
 
-    const apps = DB.get('hhc_applications') || [];
-    apps.push(application);
-    DB.set('hhc_applications', apps);
+    const result = await SupaDB.submitApplication(application);
+    if (result.error) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Application';
+      alert('Sorry, there was an error submitting your application. Please try again or email us directly.');
+      return;
+    }
 
-    // Show success
     document.getElementById('lagFormWrap').style.display = 'none';
     document.getElementById('lagSuccess').style.display = '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
