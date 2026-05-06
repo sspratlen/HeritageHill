@@ -302,9 +302,15 @@
     <div class="tab-panel" id="panelSermons">
       <div class="action-bar">
         <h2>Manage Sermons</h2>
-        <button class="btn btn-primary" onclick="openSermonModal()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Sermon
-        </button>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-ghost" id="ytSyncBtn" onclick="syncFromYouTube()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.36-3.36L23 10M1 14l5.13 4.36A9 9 0 0020.49 15"/></svg>
+            Sync from YouTube
+          </button>
+          <button class="btn btn-primary" onclick="openSermonModal()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Sermon
+          </button>
+        </div>
       </div>
       <div class="table-wrap">
         <table><thead><tr><th style="width:72px;">Thumb</th><th>Title / Series</th><th>Speaker</th><th>Date</th><th>YouTube ID</th><th>Published</th><th>Actions</th></tr></thead>
@@ -1011,6 +1017,49 @@ async function saveSermon(){
   const result=await SupaDB.saveSermon(newS);
   if(result.error){showToast('Error saving sermon: '+result.error,true);return;}
   closeSermonModal();renderSermonsTable();showToast(id?'Sermon updated! ✓':'Sermon added! ✓');
+}
+
+/* YOUTUBE SYNC */
+async function syncFromYouTube() {
+  const btn = document.getElementById('ytSyncBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.36-3.36L23 10M1 14l5.13 4.36A9 9 0 0020.49 15"/></svg> Syncing…';
+
+  try {
+    const channelId = 'UCiHVvsAETn_BFpydmL6CocQ';
+    const rssUrl = encodeURIComponent(`https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`);
+    const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}&count=20`);
+    const data = await res.json();
+    if (data.status !== 'ok') throw new Error('Could not reach YouTube feed.');
+
+    // Get existing YouTube IDs so we don't duplicate
+    const existing = await SupaDB.adminGetAllSermons();
+    const existingIds = new Set(existing.map(s => s.youtubeId));
+
+    const newItems = data.items.filter(item => {
+      const ytId = (item.link.split('v=')[1] || '').split('&')[0];
+      return ytId && !existingIds.has(ytId);
+    });
+
+    if (!newItems.length) { showToast('No new videos found — already up to date.'); return; }
+
+    for (const item of newItems) {
+      const ytId = (item.link.split('v=')[1] || '').split('&')[0];
+      const pub = new Date(item.pubDate);
+      const dateSort = pub.toISOString().split('T')[0];
+      const date = pub.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+      const desc = (item.description || '').replace(/<[^>]*>/g, '').trim().slice(0, 400);
+      await SupaDB.saveSermon({ title: item.title, speaker: '', series: '', date, dateSort, youtubeId: ytId, description: desc, published: false });
+    }
+
+    await renderSermonsTable();
+    showToast(`✓ Imported ${newItems.length} new sermon${newItems.length !== 1 ? 's' : ''} as drafts — add speaker & series, then publish.`);
+  } catch(e) {
+    showToast('Sync failed: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.36-3.36L23 10M1 14l5.13 4.36A9 9 0 0020.49 15"/></svg> Sync from YouTube';
+  }
 }
 
 /* DELETE */
