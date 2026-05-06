@@ -147,6 +147,11 @@
     .app-detail-item.full { grid-column: 1/-1; }
     .app-detail-item p.narrative { background: var(--bg); border-radius: 8px; padding: 10px 12px; font-size: .875rem; color: var(--text-muted); margin-top: 2px; }
     .app-section-label { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--primary); margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 1px solid rgba(188,122,30,.2); }
+    .modal-xl { max-width: 1040px; }
+    .flyer-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    .flyer-col-label { font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); margin-bottom:8px; }
+    .flyer-canvas-wrap canvas { width:100%; border-radius:8px; display:block; box-shadow: 0 4px 16px rgba(0,0,0,.12); }
+    .flyer-dl-btn { width:100%; margin-top:10px; justify-content:center; }
     @media (max-width: 1200px) { .stats-row { grid-template-columns: repeat(3,1fr); } }
     @media (max-width: 900px) { .sidebar { width: 200px; } .main { margin-left: 200px; } .form-row { grid-template-columns: 1fr; } .stats-row { grid-template-columns: repeat(2,1fr); } }
     @media (max-width: 680px) { .sidebar { display: none; } .main { margin-left: 0; } }
@@ -526,6 +531,48 @@
   </div>
 </div>
 
+<!-- FLYER GENERATOR MODAL -->
+<div class="modal-overlay" id="flyerModal">
+  <div class="modal modal-xl">
+    <div class="modal-header">
+      <h3 id="flyerModalTitle">Generate Flyers</h3>
+      <button class="modal-close" onclick="closeFlyerModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:20px;">Three branded flyer options — each is a full-resolution 800×1000 PNG ready to print or share.</p>
+      <div class="flyer-grid">
+        <div>
+          <div class="flyer-col-label">Style 1 — Heritage Dark</div>
+          <div class="flyer-canvas-wrap"><canvas id="flyerCanvas1" width="800" height="1000"></canvas></div>
+          <button class="btn btn-ghost btn-sm flyer-dl-btn" onclick="downloadFlyer(1)">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download PNG
+          </button>
+        </div>
+        <div>
+          <div class="flyer-col-label">Style 2 — Clean Light</div>
+          <div class="flyer-canvas-wrap"><canvas id="flyerCanvas2" width="800" height="1000"></canvas></div>
+          <button class="btn btn-ghost btn-sm flyer-dl-btn" onclick="downloadFlyer(2)">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download PNG
+          </button>
+        </div>
+        <div>
+          <div class="flyer-col-label">Style 3 — Bold Blue</div>
+          <div class="flyer-canvas-wrap"><canvas id="flyerCanvas3" width="800" height="1000"></canvas></div>
+          <button class="btn btn-ghost btn-sm flyer-dl-btn" onclick="downloadFlyer(3)">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download PNG
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeFlyerModal()">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- Delete confirm modal -->
 <div class="modal-overlay" id="deleteModal">
   <div class="modal" style="max-width:400px;">
@@ -599,6 +646,7 @@ async function renderEventsTable() {
       <td>${ev.published?'<span class="badge badge-green">Published</span>':'<span class="badge badge-gray">Draft</span>'}</td>
       <td><div class="td-actions">
         <button class="btn btn-ghost btn-sm" onclick="editEvent(${ev.id})">Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="openFlyerModal(${ev.id})" style="color:var(--primary);">🎨 Flyers</button>
         <button class="btn btn-ghost btn-sm" onclick="openGCalForEvent(${ev.id})" style="color:var(--secondary);">📅 Calendar</button>
         <button class="btn btn-danger btn-sm" onclick="deleteItem('event',${ev.id},'${ev.title.replace(/'/g,"\\'")}')">Delete</button>
       </div></td>
@@ -1066,6 +1114,288 @@ async function syncFromYouTube() {
     btn.disabled = false;
     btn.innerHTML = _ytSyncIcon + ' Sync from YouTube';
   }
+}
+
+/* ── FLYER GENERATOR ─────────────────────────────────────────── */
+const FW = 800, FH = 1000;
+
+// Wrap text and return array of lines
+function _fLines(ctx, text, maxW) {
+  if (!text) return [''];
+  const words = String(text).split(' ');
+  const lines = []; let cur = '';
+  for (const w of words) {
+    const test = cur ? cur + ' ' + w : w;
+    if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = w; }
+    else cur = test;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+// Draw wrapped text and return total height used
+function _fDraw(ctx, text, x, y, maxW, lh) {
+  const lines = _fLines(ctx, String(text || ''), maxW);
+  lines.forEach((l, i) => ctx.fillText(l, x, y + i * lh));
+  return lines.length * lh;
+}
+
+// Draw a rounded rect path
+function _fRRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+// Draw a small cross icon
+function _fCross(ctx, cx, cy, sz, color, lw) {
+  ctx.strokeStyle = color; ctx.lineWidth = lw || 2; ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - sz); ctx.lineTo(cx, cy + sz);
+  ctx.moveTo(cx - sz * 0.6, cy - sz * 0.15); ctx.lineTo(cx + sz * 0.6, cy - sz * 0.15);
+  ctx.stroke();
+}
+
+// Draw category pill
+function _fCatPill(ctx, cat, cx, y, bgColor, textColor) {
+  if (!cat) return y;
+  const uc = cat.toUpperCase();
+  ctx.font = 'bold 14px "DM Sans", Arial, sans-serif';
+  const cw = ctx.measureText(uc).width + 36;
+  const px = cx - cw / 2;
+  ctx.fillStyle = bgColor; _fRRect(ctx, px, y, cw, 30, 15); ctx.fill();
+  ctx.fillStyle = textColor; ctx.textAlign = 'center';
+  ctx.fillText(uc, cx, y + 20);
+  return y + 44;
+}
+
+/* ─ Style 1: Heritage Dark ─────────────────────────────────── */
+function drawFlyer1(canvas, ev) {
+  const ctx = canvas.getContext('2d');
+  const W = FW, H = FH;
+
+  // Background
+  ctx.fillStyle = '#0D0F14'; ctx.fillRect(0, 0, W, H);
+
+  // Subtle gold glow
+  const g = ctx.createRadialGradient(W/2, 280, 30, W/2, 280, 500);
+  g.addColorStop(0, 'rgba(188,122,30,0.09)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+  // Top gold bar
+  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(0, 0, W, 10);
+
+  // Church name
+  ctx.fillStyle = '#BC7A1E'; ctx.font = 'bold 20px "DM Sans", Arial, sans-serif';
+  ctx.textAlign = 'center'; ctx.fillText('HERITAGE HILL CHURCH', W/2, 58);
+
+  // Thin gold rule
+  ctx.strokeStyle = 'rgba(188,122,30,0.38)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(190, 73); ctx.lineTo(610, 73); ctx.stroke();
+
+  // Category
+  let ty = _fCatPill(ctx, ev.category, W/2, 88, 'rgba(188,122,30,0.18)', '#BC7A1E');
+
+  // Title
+  ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 68px "DM Sans", Arial, sans-serif';
+  ctx.textAlign = 'center';
+  const titleLines = _fLines(ctx, ev.title || '', W - 120).slice(0, 3);
+  titleLines.forEach(l => { ctx.fillText(l, W/2, ty); ty += 78; });
+
+  // Gold divider
+  ty += 22;
+  ctx.strokeStyle = '#BC7A1E'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(120, ty); ctx.lineTo(680, ty); ctx.stroke();
+  ty += 52;
+
+  // Date (gold)
+  ctx.fillStyle = '#BC7A1E'; ctx.font = 'bold 34px "DM Sans", Arial, sans-serif';
+  ctx.textAlign = 'center'; ctx.fillText(ev.date || '', W/2, ty); ty += 50;
+
+  // Time
+  ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.font = '500 26px "DM Sans", Arial, sans-serif';
+  ctx.fillText(ev.time || '', W/2, ty); ty += 44;
+
+  // Location
+  ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = '400 22px "DM Sans", Arial, sans-serif';
+  ty += _fDraw(ctx, ev.location || '', W/2, ty, W - 160, 30) + 40;
+
+  // Description
+  const desc = (ev.description || '').slice(0, 220);
+  if (desc) {
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '400 21px "DM Sans", Arial, sans-serif';
+    _fDraw(ctx, desc, W/2, ty, W - 160, 30);
+  }
+
+  // Bottom gold bar
+  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(0, H - 54, W, 54);
+  ctx.fillStyle = '#0D0F14'; ctx.font = 'bold 17px "DM Sans", Arial, sans-serif';
+  ctx.textAlign = 'center'; ctx.fillText('heritagehill.church  ·  Papillion, NE', W/2, H - 18);
+}
+
+/* ─ Style 2: Clean Light ───────────────────────────────────── */
+function drawFlyer2(canvas, ev) {
+  const ctx = canvas.getContext('2d');
+  const W = FW, H = FH;
+
+  // Warm white background
+  ctx.fillStyle = '#F9F7F2'; ctx.fillRect(0, 0, W, H);
+
+  // Left gold accent bar
+  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(0, 0, 12, H);
+
+  // Church name — upper right
+  ctx.fillStyle = '#BC7A1E'; ctx.font = 'bold 16px "DM Sans", Arial, sans-serif';
+  ctx.textAlign = 'right'; ctx.fillText('HERITAGE HILL CHURCH', W - 44, 46);
+  ctx.strokeStyle = 'rgba(188,122,30,0.35)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(W - 370, 56); ctx.lineTo(W - 44, 56); ctx.stroke();
+
+  // Category pill — left aligned
+  const cat = (ev.category || '').toUpperCase();
+  if (cat) {
+    ctx.font = 'bold 14px "DM Sans", Arial, sans-serif'; ctx.textAlign = 'left';
+    const cw = ctx.measureText(cat).width + 28;
+    ctx.fillStyle = 'rgba(188,122,30,0.14)'; _fRRect(ctx, 44, 76, cw, 28, 14); ctx.fill();
+    ctx.fillStyle = '#BC7A1E'; ctx.fillText(cat, 58, 95);
+  }
+
+  // Title
+  ctx.fillStyle = '#0D0F14'; ctx.font = 'bold 70px "DM Sans", Arial, sans-serif';
+  ctx.textAlign = 'left';
+  let ty = 200;
+  _fLines(ctx, ev.title || '', W - 110).slice(0, 3).forEach(l => { ctx.fillText(l, 44, ty); ty += 80; });
+
+  // Short gold underline
+  ctx.strokeStyle = '#BC7A1E'; ctx.lineWidth = 5; ctx.lineCap = 'square';
+  ctx.beginPath(); ctx.moveTo(44, ty + 8); ctx.lineTo(220, ty + 8); ctx.stroke();
+  ctx.lineCap = 'butt'; ty += 50;
+
+  // Date label + value
+  ctx.fillStyle = '#BC7A1E'; ctx.font = 'bold 13px "DM Sans", Arial, sans-serif';
+  ctx.textAlign = 'left'; ctx.fillText('DATE', 44, ty);
+  ctx.fillStyle = '#0D0F14'; ctx.font = 'bold 32px "DM Sans", Arial, sans-serif';
+  ctx.fillText(ev.date || '', 44, ty + 36); ty += 74;
+
+  // Time
+  ctx.fillStyle = '#BC7A1E'; ctx.font = 'bold 13px "DM Sans", Arial, sans-serif';
+  ctx.fillText('TIME', 44, ty);
+  ctx.fillStyle = '#1C1C1E'; ctx.font = '500 24px "DM Sans", Arial, sans-serif';
+  ctx.fillText(ev.time || '', 44, ty + 32); ty += 66;
+
+  // Location
+  ctx.fillStyle = '#BC7A1E'; ctx.font = 'bold 13px "DM Sans", Arial, sans-serif';
+  ctx.fillText('LOCATION', 44, ty);
+  ctx.fillStyle = '#1C1C1E'; ctx.font = '500 22px "DM Sans", Arial, sans-serif';
+  ty += _fDraw(ctx, ev.location || '', 44, ty + 32, W - 100, 30) + 56;
+
+  // Light divider
+  ctx.strokeStyle = 'rgba(0,0,0,0.10)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(44, ty); ctx.lineTo(W - 44, ty); ctx.stroke();
+  ty += 30;
+
+  // Description
+  const desc = (ev.description || '').slice(0, 220);
+  if (desc) {
+    ctx.fillStyle = '#6B6B6B'; ctx.font = '400 21px "DM Sans", Arial, sans-serif';
+    ctx.textAlign = 'left'; _fDraw(ctx, desc, 44, ty, W - 100, 30);
+  }
+
+  // Bottom bar
+  ctx.fillStyle = '#0D0F14'; ctx.fillRect(0, H - 54, W, 54);
+  ctx.fillStyle = '#F9F7F2'; ctx.font = 'bold 17px "DM Sans", Arial, sans-serif';
+  ctx.textAlign = 'center'; ctx.fillText('heritagehill.church  ·  Papillion, NE', W/2, H - 18);
+}
+
+/* ─ Style 3: Bold Blue ─────────────────────────────────────── */
+function drawFlyer3(canvas, ev) {
+  const ctx = canvas.getContext('2d');
+  const W = FW, H = FH;
+
+  // Blue background
+  ctx.fillStyle = '#155CA2'; ctx.fillRect(0, 0, W, H);
+
+  // Diagonal shadow shape (bottom-right corner)
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.beginPath(); ctx.moveTo(W, H * 0.52); ctx.lineTo(W, H); ctx.lineTo(W * 0.35, H); ctx.closePath(); ctx.fill();
+
+  // Top gold bar
+  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(0, 0, W, 10);
+
+  // Church name
+  ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.font = 'bold 20px "DM Sans", Arial, sans-serif';
+  ctx.textAlign = 'center'; ctx.fillText('HERITAGE HILL CHURCH', W/2, 56);
+
+  // Small cross
+  _fCross(ctx, W/2, 84, 13, 'rgba(255,255,255,0.45)', 2.5);
+
+  // Category pill
+  let ty = _fCatPill(ctx, ev.category, W/2, 110, 'rgba(188,122,30,0.28)', '#BC7A1E');
+
+  // Title
+  ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 68px "DM Sans", Arial, sans-serif';
+  ctx.textAlign = 'center';
+  _fLines(ctx, ev.title || '', W - 120).slice(0, 3).forEach(l => { ctx.fillText(l, W/2, ty); ty += 78; });
+
+  // Gold divider
+  ty += 22;
+  ctx.strokeStyle = '#BC7A1E'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(W*0.18, ty); ctx.lineTo(W*0.82, ty); ctx.stroke();
+  ty += 52;
+
+  // Date
+  ctx.fillStyle = '#BC7A1E'; ctx.font = 'bold 36px "DM Sans", Arial, sans-serif';
+  ctx.textAlign = 'center'; ctx.fillText(ev.date || '', W/2, ty); ty += 52;
+
+  // Time
+  ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.font = '500 27px "DM Sans", Arial, sans-serif';
+  ctx.fillText(ev.time || '', W/2, ty); ty += 46;
+
+  // Location
+  ctx.fillStyle = 'rgba(255,255,255,0.72)'; ctx.font = '400 23px "DM Sans", Arial, sans-serif';
+  ty += _fDraw(ctx, ev.location || '', W/2, ty, W - 160, 32) + 44;
+
+  // Description
+  const desc = (ev.description || '').slice(0, 220);
+  if (desc) {
+    ctx.fillStyle = 'rgba(255,255,255,0.48)'; ctx.font = '400 21px "DM Sans", Arial, sans-serif';
+    _fDraw(ctx, desc, W/2, ty, W - 160, 30);
+  }
+
+  // Bottom bar
+  ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.fillRect(0, H - 54, W, 54);
+  ctx.fillStyle = '#FFFFFF'; ctx.font = 'bold 17px "DM Sans", Arial, sans-serif';
+  ctx.fillText('heritagehill.church  ·  Papillion, NE', W/2, H - 18);
+}
+
+let _flyerEvent = null;
+function openFlyerModal(id) {
+  _flyerEvent = _cachedEvents.find(e => e.id === id);
+  if (!_flyerEvent) { showToast('Event not found.', true); return; }
+  document.getElementById('flyerModalTitle').textContent = 'Flyers: ' + _flyerEvent.title;
+  document.getElementById('flyerModal').classList.add('open');
+  // Defer drawing until the modal is visible
+  requestAnimationFrame(() => {
+    drawFlyer1(document.getElementById('flyerCanvas1'), _flyerEvent);
+    drawFlyer2(document.getElementById('flyerCanvas2'), _flyerEvent);
+    drawFlyer3(document.getElementById('flyerCanvas3'), _flyerEvent);
+  });
+}
+function closeFlyerModal() { document.getElementById('flyerModal').classList.remove('open'); }
+function downloadFlyer(n) {
+  if (!_flyerEvent) return;
+  const canvas = document.getElementById('flyerCanvas' + n);
+  const a = document.createElement('a');
+  const safeName = (_flyerEvent.title || 'event').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+  a.download = `hhc_flyer_${safeName}_style${n}.png`;
+  a.href = canvas.toDataURL('image/png');
+  a.click();
 }
 
 /* DELETE */
