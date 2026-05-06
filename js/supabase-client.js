@@ -5,7 +5,7 @@
    See SUPABASE_SETUP.md for exact instructions.
    ================================================================ */
 
-const SUPABASE_URL      = 'https://supabase.com/dashboard/project/ktyplbmawlaerzohkdqy';   // e.g. https://abcxyz123.supabase.co
+const SUPABASE_URL      = 'https://ktyplbmawlaerzohkdqy.supabase.co';   // e.g. https://abcxyz123.supabase.co
 const SUPABASE_ANON_KEY = 'sb_publishable_AySvm1ZZQhujy7KzkrxQrA_SDH5nQBw';      // starts with eyJ...
 
 /* YouTube Edge Function — filled in after Step 4 in SUPABASE_SETUP.md
