@@ -148,10 +148,32 @@
     .app-detail-item p.narrative { background: var(--bg); border-radius: 8px; padding: 10px 12px; font-size: .875rem; color: var(--text-muted); margin-top: 2px; }
     .app-section-label { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--primary); margin: 18px 0 10px; padding-bottom: 6px; border-bottom: 1px solid rgba(188,122,30,.2); }
     .modal-xl { max-width: 1040px; }
-    .flyer-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
-    .flyer-col-label { font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); margin-bottom:8px; }
-    .flyer-canvas-wrap canvas { width:100%; border-radius:8px; display:block; box-shadow: 0 4px 16px rgba(0,0,0,.12); }
-    .flyer-dl-btn { width:100%; margin-top:10px; justify-content:center; }
+    /* ── Media Modal ── */
+    .media-type-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:8px; }
+    .media-type-card { border:2px solid var(--border); border-radius:var(--radius); padding:22px 16px 20px; cursor:pointer; transition:all .2s; text-align:center; background:var(--bg-card); }
+    .media-type-card:hover { border-color:var(--primary); background:rgba(188,122,30,.04); transform:translateY(-2px); }
+    .mtc-icon { font-size:2rem; margin-bottom:10px; }
+    .mtc-title { font-weight:700; font-size:.95rem; margin-bottom:4px; }
+    .mtc-dims { font-size:.73rem; color:var(--primary); font-weight:600; margin-bottom:5px; }
+    .mtc-desc { font-size:.78rem; color:var(--text-muted); line-height:1.5; }
+    .design-grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+    .design-col canvas { width:100%; border-radius:8px; display:block; box-shadow:0 4px 16px rgba(0,0,0,.12); }
+    .design-col-label { font-size:.76rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--text-muted); margin-bottom:7px; }
+    .design-col-actions { display:flex; gap:6px; margin-top:10px; }
+    .design-col-actions .btn { flex:1; justify-content:center; font-size:.76rem; padding:.3rem .6rem; }
+    .media-step { display:none; }
+    .media-step.active { display:block; }
+    .media-tab-nav { display:flex; gap:4px; margin-bottom:18px; }
+    .media-tab-btn { padding:6px 16px; border-radius:50px; font-size:.82rem; font-weight:600; cursor:pointer; border:1.5px solid var(--border); background:transparent; color:var(--text-muted); font-family:'DM Sans',sans-serif; transition:all .2s; }
+    .media-tab-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+    .saved-media-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .saved-media-item { border:1px solid var(--border); border-radius:8px; overflow:hidden; background:var(--bg-card); }
+    .saved-media-item img { width:100%; display:block; }
+    .saved-media-item-foot { padding:8px 10px; display:flex; align-items:center; gap:6px; }
+    .saved-media-item-foot .btn { flex:1; justify-content:center; }
+    .saved-media-empty { text-align:center; padding:32px 16px; color:var(--text-muted); font-size:.88rem; line-height:1.6; }
+    .canva-bar { margin-top:16px; padding:12px 16px; background:var(--bg); border-radius:8px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    .canva-bar span { font-size:.82rem; color:var(--text-muted); flex:1; }
     @media (max-width: 1200px) { .stats-row { grid-template-columns: repeat(3,1fr); } }
     @media (max-width: 900px) { .sidebar { width: 200px; } .main { margin-left: 200px; } .form-row { grid-template-columns: 1fr; } .stats-row { grid-template-columns: repeat(2,1fr); } }
     @media (max-width: 680px) { .sidebar { display: none; } .main { margin-left: 0; } }
@@ -532,47 +554,65 @@
 </div>
 
 <!-- FLYER GENERATOR MODAL -->
-<div class="modal-overlay" id="flyerModal">
+<div class="modal-overlay" id="mediaModal">
   <div class="modal modal-xl">
     <div class="modal-header">
-      <h3 id="flyerModalTitle">Generate Flyers</h3>
-      <button class="modal-close" onclick="closeFlyerModal()">✕</button>
+      <h3 id="mediaModalTitle">📣 Create Media</h3>
+      <button class="modal-close" onclick="closeMediaModal()">✕</button>
     </div>
     <div class="modal-body">
-      <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:20px;">Three branded flyer options — each is a full-resolution 800×1000 PNG ready to print or share.</p>
-      <div class="flyer-grid">
-        <div>
-          <div class="flyer-col-label">Style 1 — Heritage Dark</div>
-          <div class="flyer-canvas-wrap"><canvas id="flyerCanvas1" width="800" height="1000"></canvas></div>
-          <button class="btn btn-ghost btn-sm flyer-dl-btn" onclick="downloadFlyer(1)">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download PNG
-          </button>
-        </div>
-        <div>
-          <div class="flyer-col-label">Style 2 — Clean Light</div>
-          <div class="flyer-canvas-wrap"><canvas id="flyerCanvas2" width="800" height="1000"></canvas></div>
-          <button class="btn btn-ghost btn-sm flyer-dl-btn" onclick="downloadFlyer(2)">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download PNG
-          </button>
-        </div>
-        <div>
-          <div class="flyer-col-label">Style 3 — Bold Blue</div>
-          <div class="flyer-canvas-wrap"><canvas id="flyerCanvas3" width="800" height="1000"></canvas></div>
-          <button class="btn btn-ghost btn-sm flyer-dl-btn" onclick="downloadFlyer(3)">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download PNG
-          </button>
+
+      <!-- Step 1: Type Picker -->
+      <div class="media-step active" id="mediaStep1">
+        <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:20px;">Choose the type of media to create. All designs use Heritage Hill Church branding.</p>
+        <div class="media-type-grid">
+          <div class="media-type-card" onclick="selectMediaType('social')">
+            <div class="mtc-icon">📱</div>
+            <div class="mtc-title">Social Media</div>
+            <div class="mtc-dims">1080 × 1080</div>
+            <div class="mtc-desc">Instagram &amp; Facebook post<br>Download as JPG</div>
+          </div>
+          <div class="media-type-card" onclick="selectMediaType('propresenter')">
+            <div class="mtc-icon">📺</div>
+            <div class="mtc-title">ProPresenter</div>
+            <div class="mtc-dims">1920 × 1080 · 16:9</div>
+            <div class="mtc-desc">Church screen announcement<br>Download as JPG</div>
+          </div>
+          <div class="media-type-card" onclick="selectMediaType('print')">
+            <div class="mtc-icon">🖨️</div>
+            <div class="mtc-title">Print Flyer</div>
+            <div class="mtc-dims">8.5 × 11 · Portrait</div>
+            <div class="mtc-desc">Bulletin insert &amp; handout<br>Download as PNG</div>
+          </div>
         </div>
       </div>
+
+      <!-- Step 2: Design Gallery -->
+      <div class="media-step" id="mediaStep2">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+          <button class="btn btn-ghost btn-sm" onclick="backToMediaPicker()">← Back</button>
+          <span id="mediaTypeLabel" style="font-weight:700;font-size:.9rem;"></span>
+          <button class="btn btn-ghost btn-sm" onclick="remakeMedia()" style="margin-left:auto;">↺ Remake</button>
+        </div>
+        <div class="media-tab-nav">
+          <button class="media-tab-btn active" id="mTabGen" onclick="switchMediaTab('gen')">Generated</button>
+          <button class="media-tab-btn" id="mTabSaved" onclick="switchMediaTab('saved')">Saved Library</button>
+        </div>
+        <div id="mPanelGen">
+          <div class="design-grid-3" id="designGrid"></div>
+        </div>
+        <div id="mPanelSaved" style="display:none;">
+          <div class="saved-media-grid" id="savedMediaGrid"></div>
+        </div>
+        <div class="canva-bar">
+          <span>Want even more options? Open Canva with Heritage Hill branding already applied:</span>
+          <a id="canvaLink" href="https://www.canva.com/create/instagram-posts/" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="color:var(--secondary);text-decoration:none;">Design in Canva →</a>
+        </div>
+      </div>
+
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeFlyerModal()">Close</button>
-      <button class="btn btn-secondary" id="flyerPptxBtn" onclick="downloadFlyersPptx()">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6M9 15l3 3 3-3"/></svg>
-        ⬇ Download as PowerPoint (.pptx)
-      </button>
+      <button class="btn btn-ghost" onclick="closeMediaModal()">Close</button>
     </div>
   </div>
 </div>
@@ -650,7 +690,7 @@ async function renderEventsTable() {
       <td>${ev.published?'<span class="badge badge-green">Published</span>':'<span class="badge badge-gray">Draft</span>'}</td>
       <td><div class="td-actions">
         <button class="btn btn-ghost btn-sm" onclick="editEvent(${ev.id})">Edit</button>
-        <button class="btn btn-ghost btn-sm" onclick="openFlyerModal(${ev.id})" style="color:var(--primary);">🎨 Flyers</button>
+        <button class="btn btn-ghost btn-sm" onclick="openMediaModal(${ev.id})" style="color:var(--primary);">📣 Media</button>
         <button class="btn btn-ghost btn-sm" onclick="openGCalForEvent(${ev.id})" style="color:var(--secondary);">📅 Calendar</button>
         <button class="btn btn-danger btn-sm" onclick="deleteItem('event',${ev.id},'${ev.title.replace(/'/g,"\\'")}')">Delete</button>
       </div></td>
@@ -1376,65 +1416,261 @@ function drawFlyer3(canvas, ev) {
   ctx.fillText('heritagehill.church  ·  Papillion, NE',W/2,H-18);
 }
 
-/* ── Modal open/close/download ──────────────────────────────── */
-let _flyerEvent = null;
-function openFlyerModal(id) {
-  _flyerEvent = _cachedEvents.find(e => e.id === id);
-  if (!_flyerEvent) { showToast('Event not found.', true); return; }
-  document.getElementById('flyerModalTitle').textContent = 'Flyers: ' + _flyerEvent.title;
-  document.getElementById('flyerModal').classList.add('open');
-  requestAnimationFrame(() => {
-    drawFlyer1(document.getElementById('flyerCanvas1'), _flyerEvent);
-    drawFlyer2(document.getElementById('flyerCanvas2'), _flyerEvent);
-    drawFlyer3(document.getElementById('flyerCanvas3'), _flyerEvent);
-  });
+/* ═══════════════════════════════════════════════════════════════
+   MEDIA GENERATION  —  Social · ProPresenter · Print
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Social Media  1080 × 1080 ──────────────────────────────── */
+function drawSocial1(canvas, ev) {
+  const ctx = canvas.getContext('2d'), W = 1080, H = 1080;
+  canvas.width = W; canvas.height = H;
+  ctx.fillStyle = '#0D0F14'; ctx.fillRect(0, 0, W, H);
+  _fCrossPattern(ctx, W, H, '#BC7A1E', 0.07);
+  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(0, 0, W, 14); ctx.fillRect(0, H-14, W, 14);
+  _fCross(ctx, W/2, 220, 62, 'rgba(188,122,30,.22)', 3.5);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  const cat = (ev.category || 'Event').toUpperCase();
+  ctx.font = 'bold 28px "DM Sans",Arial,sans-serif';
+  const cpw = ctx.measureText(cat).width + 44;
+  ctx.fillStyle = '#BC7A1E'; _fRRect(ctx, W/2-cpw/2, 320, cpw, 48, 24); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.fillText(cat, W/2, 344);
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 82px "DM Sans",Arial,sans-serif';
+  const tH = _fDraw(ctx, ev.title||'Event', W/2, 398, 920, 94);
+  ctx.fillStyle = '#BC7A1E'; ctx.font = '600 40px "DM Sans",Arial,sans-serif';
+  ctx.fillText(`${ev.date||''} · ${ev.time||''}`, W/2, 398+tH+22);
+  if (ev.location) { ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = '32px "DM Sans",Arial,sans-serif'; ctx.fillText(ev.location, W/2, 398+tH+76); }
+  _fCrowd(ctx, W, H-130, 'rgba(188,122,30,.18)', 1);
+  ctx.fillStyle = 'rgba(255,255,255,.88)'; ctx.font = 'bold 34px "DM Sans",Arial,sans-serif'; ctx.textBaseline = 'bottom';
+  ctx.fillText('Heritage Hill Church', W/2, H-34);
+  ctx.fillStyle = 'rgba(255,255,255,.38)'; ctx.font = '500 22px "DM Sans",Arial,sans-serif';
+  ctx.fillText('heritagehill.church  ·  Papillion, NE', W/2, H-72);
 }
-function closeFlyerModal() { document.getElementById('flyerModal').classList.remove('open'); }
-function downloadFlyer(n) {
-  if (!_flyerEvent) return;
-  const canvas = document.getElementById('flyerCanvas' + n);
-  const a = document.createElement('a');
-  const safeName = (_flyerEvent.title || 'event').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-  a.download = `hhc_flyer_${safeName}_style${n}.png`;
-  a.href = canvas.toDataURL('image/png');
-  a.click();
+function drawSocial2(canvas, ev) {
+  const ctx = canvas.getContext('2d'), W = 1080, H = 1080;
+  canvas.width = W; canvas.height = H;
+  ctx.fillStyle = '#F9F7F2'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(0, 0, 18, H);
+  ctx.fillStyle = '#0D0F14'; ctx.fillRect(18, 0, W-18, 148);
+  ctx.fillStyle = '#fff'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  ctx.font = 'bold 46px "DM Sans",Arial,sans-serif'; ctx.fillText('Heritage Hill Church', 56, 72);
+  ctx.fillStyle = '#BC7A1E'; ctx.font = '500 24px "DM Sans",Arial,sans-serif'; ctx.fillText('heritagehill.church  ·  Papillion, NE', 56, 122);
+  ctx.strokeStyle = '#BC7A1E'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(56, 184); ctx.lineTo(W-56, 184); ctx.stroke();
+  ctx.fillStyle = '#BC7A1E'; ctx.textBaseline = 'top'; ctx.font = 'bold 26px "DM Sans",Arial,sans-serif';
+  ctx.fillText((ev.category||'Event').toUpperCase(), 56, 214);
+  ctx.fillStyle = '#0D0F14'; ctx.font = 'bold 84px "DM Sans",Arial,sans-serif';
+  const tH = _fDraw(ctx, ev.title||'Event', 56, 256, 950, 96);
+  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(56, 266+tH, 100, 6);
+  ctx.fillStyle = '#0D0F14'; ctx.font = '600 38px "DM Sans",Arial,sans-serif';
+  ctx.fillText(ev.date||'', 56, 290+tH);
+  ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.font = '500 32px "DM Sans",Arial,sans-serif';
+  ctx.fillText(ev.time||'', 56, 340+tH);
+  if (ev.location) ctx.fillText(ev.location, 56, 386+tH);
+  _fCrowd(ctx, W, H-90, '#0D0F14', 0.06);
+  ctx.fillStyle = '#0D0F14'; ctx.fillRect(0, H-108, W, 108);
+  ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = 'bold 30px "DM Sans",Arial,sans-serif'; ctx.fillText('Everyone is welcome!', W/2, H-54);
+}
+function drawSocial3(canvas, ev) {
+  const ctx = canvas.getContext('2d'), W = 1080, H = 1080;
+  canvas.width = W; canvas.height = H;
+  ctx.fillStyle = '#155CA2'; ctx.fillRect(0, 0, W, H);
+  _fRays(ctx, W/2, H*0.42, 80, 600, 18, '#ffffff', 0.05);
+  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(0, 0, W, 12);
+  _fCross(ctx, W/2, 210, 78, 'rgba(255,255,255,.14)', 4);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillStyle = 'rgba(255,255,255,.65)'; ctx.font = '600 28px "DM Sans",Arial,sans-serif';
+  ctx.fillText((ev.category||'Event').toUpperCase(), W/2, 148);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 88px "DM Sans",Arial,sans-serif';
+  const tH = _fDraw(ctx, ev.title||'Event', W/2, 330, 940, 100);
+  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(W/2-64, 344+tH, 128, 5);
+  ctx.fillStyle = '#fff'; ctx.font = '600 40px "DM Sans",Arial,sans-serif';
+  ctx.fillText(`${ev.date||''} · ${ev.time||''}`, W/2, 372+tH);
+  if (ev.location) { ctx.fillStyle = 'rgba(255,255,255,.65)'; ctx.font = '32px "DM Sans",Arial,sans-serif'; ctx.fillText(ev.location, W/2, 426+tH); }
+  _fCrowd(ctx, W, H-110, '#fff', 0.15);
+  ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fillRect(0, H-110, W, 110);
+  ctx.fillStyle = '#fff'; ctx.textBaseline = 'bottom';
+  ctx.font = 'bold 34px "DM Sans",Arial,sans-serif'; ctx.fillText('HERITAGE HILL CHURCH', W/2, H-60);
+  ctx.fillStyle = '#BC7A1E'; ctx.font = '500 24px "DM Sans",Arial,sans-serif'; ctx.fillText('heritagehill.church  ·  Papillion, NE', W/2, H-24);
 }
 
-/* ── PowerPoint export ──────────────────────────────────────── */
-function _loadPptxGen() {
-  return new Promise((resolve, reject) => {
-    if (window.PptxGenJS) { resolve(); return; }
-    const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js';
-    s.onload = resolve; s.onerror = () => reject(new Error('Could not load PptxGenJS'));
-    document.head.appendChild(s);
+/* ── ProPresenter  1920 × 1080 ─────────────────────────────── */
+function drawPro1(canvas, ev) {
+  const ctx = canvas.getContext('2d'), W = 1920, H = 1080;
+  canvas.width = W; canvas.height = H;
+  ctx.fillStyle = '#0D0F14'; ctx.fillRect(0, 0, W, H);
+  _fCrossPattern(ctx, 640, H, '#BC7A1E', 0.06);
+  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(0, 0, W, 10); ctx.fillRect(0, H-10, W, 10);
+  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(636, 80, 4, H-160);
+  ctx.textAlign = 'center';
+  _fCross(ctx, 320, 290, 70, 'rgba(188,122,30,.3)', 4);
+  ctx.fillStyle = '#fff'; ctx.textBaseline = 'top';
+  ctx.font = 'bold 46px "DM Sans",Arial,sans-serif'; ctx.fillText('Heritage Hill', 320, 400);
+  ctx.fillStyle = '#BC7A1E'; ctx.font = 'bold 46px "DM Sans",Arial,sans-serif'; ctx.fillText('Church', 320, 456);
+  ctx.fillStyle = 'rgba(255,255,255,.38)'; ctx.font = '24px "DM Sans",Arial,sans-serif'; ctx.fillText('heritagehill.church', 320, 520);
+  ctx.textAlign = 'left'; ctx.fillStyle = '#BC7A1E'; ctx.font = 'bold 26px "DM Sans",Arial,sans-serif';
+  ctx.fillText('UPCOMING — ' + (ev.category||'Event').toUpperCase(), 692, 176);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 100px "DM Sans",Arial,sans-serif';
+  const tH = _fDraw(ctx, ev.title||'Event', 692, 230, 1110, 114);
+  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(692, 252+tH, 100, 5);
+  ctx.fillStyle = '#fff'; ctx.font = '600 44px "DM Sans",Arial,sans-serif'; ctx.fillText(ev.date||'', 692, 276+tH);
+  ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.font = '500 36px "DM Sans",Arial,sans-serif';
+  ctx.fillText(`${ev.time||''}${ev.location ? '  ·  '+ev.location : ''}`, 692, 332+tH);
+}
+function drawPro2(canvas, ev) {
+  const ctx = canvas.getContext('2d'), W = 1920, H = 1080;
+  canvas.width = W; canvas.height = H;
+  ctx.fillStyle = '#F9F7F2'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(0, 0, 720, H);
+  _fLeaves(ctx, 0, 0, '#fff', 0.1);
+  _fCross(ctx, 360, H*0.42, 80, 'rgba(255,255,255,.2)', 4);
+  ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.font = 'bold 54px "DM Sans",Arial,sans-serif'; ctx.fillText('Heritage Hill', 360, 380);
+  ctx.font = '500 38px "DM Sans",Arial,sans-serif'; ctx.fillText('Church', 360, 444);
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.font = '24px "DM Sans",Arial,sans-serif'; ctx.fillText('heritagehill.church', 360, 502);
+  ctx.textAlign = 'left'; ctx.fillStyle = '#BC7A1E'; ctx.font = 'bold 26px "DM Sans",Arial,sans-serif';
+  ctx.fillText((ev.category||'Event').toUpperCase(), 790, 174);
+  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(790, 214, 90, 5);
+  ctx.fillStyle = '#0D0F14'; ctx.font = 'bold 104px "DM Sans",Arial,sans-serif';
+  const tH = _fDraw(ctx, ev.title||'Event', 790, 238, 1020, 118);
+  ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.font = '600 44px "DM Sans",Arial,sans-serif'; ctx.fillText(ev.date||'', 790, 262+tH);
+  ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.font = '500 36px "DM Sans",Arial,sans-serif'; ctx.fillText(ev.time||'', 790, 318+tH);
+  if (ev.location) ctx.fillText(ev.location, 790, 366+tH);
+}
+function drawPro3(canvas, ev) {
+  const ctx = canvas.getContext('2d'), W = 1920, H = 1080;
+  canvas.width = W; canvas.height = H;
+  ctx.fillStyle = '#155CA2'; ctx.fillRect(0, 0, W, H);
+  _fRays(ctx, W/2, H/2, 100, 1000, 20, '#ffffff', 0.05);
+  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(0, 0, W, 10); ctx.fillRect(0, H-10, W, 10);
+  _fCross(ctx, W/2, H*0.38, 110, 'rgba(255,255,255,.1)', 5);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.font = '600 26px "DM Sans",Arial,sans-serif';
+  ctx.fillText((ev.category||'Event').toUpperCase(), W/2, 186);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 110px "DM Sans",Arial,sans-serif';
+  const tH = _fDraw(ctx, ev.title||'Event', W/2, H*0.29, 1640, 126);
+  ctx.fillStyle = '#BC7A1E'; ctx.fillRect(W/2-80, H*0.29+tH+14, 160, 6);
+  ctx.fillStyle = '#fff'; ctx.font = '600 46px "DM Sans",Arial,sans-serif';
+  ctx.fillText(`${ev.date||''} · ${ev.time||''}`, W/2, H*0.29+tH+44);
+  if (ev.location) { ctx.fillStyle='rgba(255,255,255,.6)'; ctx.font='36px "DM Sans",Arial,sans-serif'; ctx.fillText(ev.location, W/2, H*0.29+tH+104); }
+  ctx.fillStyle = 'rgba(255,255,255,.65)'; ctx.font = '600 30px "DM Sans",Arial,sans-serif'; ctx.textBaseline = 'bottom';
+  ctx.fillText('HERITAGE HILL CHURCH  ·  heritagehill.church  ·  Papillion, NE', W/2, H-22);
+}
+
+/* ── Media Modal State & Controls ──────────────────────────── */
+const _MEDIA_TYPES = {
+  social:       { label:'📱 Social Media (1080 × 1080)', canvaUrl:'https://www.canva.com/create/instagram-posts/', W:1080, H:1080,  drawFns:[drawSocial1, drawSocial2, drawSocial3], styles:['Heritage Dark','Clean Cream','Bold Blue'] },
+  propresenter: { label:'📺 ProPresenter (1920 × 1080)',  canvaUrl:'https://www.canva.com/create/presentations/',  W:1920, H:1080,  drawFns:[drawPro1, drawPro2, drawPro3],          styles:['Dark Split','Clean Light','Blue Cinematic'] },
+  print:        { label:'🖨️ Print Flyer (8.5 × 11)',     canvaUrl:'https://www.canva.com/create/flyers/',          W:800,  H:1000, drawFns:[drawFlyer1, drawFlyer2, drawFlyer3],    styles:['Heritage Dark','Clean Light','Bold Blue'] }
+};
+let _mediaEvent = null, _mediaType = null;
+
+function openMediaModal(id) {
+  _mediaEvent = _cachedEvents.find(e => e.id === id);
+  if (!_mediaEvent) { showToast('Event not found.', true); return; }
+  document.getElementById('mediaModalTitle').textContent = '📣 ' + _mediaEvent.title;
+  document.getElementById('mediaStep1').classList.add('active');
+  document.getElementById('mediaStep2').classList.remove('active');
+  document.getElementById('mediaModal').classList.add('open');
+}
+function closeMediaModal() { document.getElementById('mediaModal').classList.remove('open'); }
+
+function selectMediaType(type) {
+  _mediaType = type;
+  const cfg = _MEDIA_TYPES[type];
+  document.getElementById('mediaTypeLabel').textContent = cfg.label;
+  document.getElementById('canvaLink').href = cfg.canvaUrl;
+  document.getElementById('mediaStep1').classList.remove('active');
+  document.getElementById('mediaStep2').classList.add('active');
+  switchMediaTab('gen');
+  _buildDesignGrid(type);
+}
+function backToMediaPicker() {
+  _mediaType = null;
+  document.getElementById('mediaStep2').classList.remove('active');
+  document.getElementById('mediaStep1').classList.add('active');
+}
+function remakeMedia() {
+  if (!_mediaType) return;
+  _buildDesignGrid(_mediaType);
+  showToast('✓ Designs refreshed');
+}
+function switchMediaTab(tab) {
+  document.getElementById('mPanelGen').style.display   = tab === 'gen' ? '' : 'none';
+  document.getElementById('mPanelSaved').style.display = tab === 'saved' ? '' : 'none';
+  document.getElementById('mTabGen').classList.toggle('active', tab === 'gen');
+  document.getElementById('mTabSaved').classList.toggle('active', tab === 'saved');
+  if (tab === 'saved') _loadSavedMedia();
+}
+function _buildDesignGrid(type) {
+  const cfg = _MEDIA_TYPES[type];
+  const dl = '<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+  document.getElementById('designGrid').innerHTML = cfg.styles.map((style, i) => `
+    <div class="design-col">
+      <div class="design-col-label">${style}</div>
+      <canvas id="mCanvas${i+1}" width="${cfg.W}" height="${cfg.H}"></canvas>
+      <div class="design-col-actions">
+        <button class="btn btn-ghost btn-sm" onclick="downloadMediaDesign(${i+1})">${dl} Download</button>
+        <button class="btn btn-sm" onclick="saveMediaDesign(${i+1})" style="background:rgba(188,122,30,.1);color:var(--primary);border:1.5px solid rgba(188,122,30,.25);">★ Save</button>
+      </div>
+    </div>`).join('');
+  requestAnimationFrame(() => {
+    cfg.drawFns.forEach((fn, i) => {
+      const c = document.getElementById(`mCanvas${i+1}`);
+      if (c) fn(c, _mediaEvent);
+    });
   });
 }
-async function downloadFlyersPptx() {
-  if (!_flyerEvent) return;
-  const btn = document.getElementById('flyerPptxBtn');
-  btn.disabled = true; btn.textContent = 'Building PPTX…';
-  try {
-    await _loadPptxGen();
-    const pptx = new PptxGenJS();
-    pptx.defineLayout({ name: 'FLYER', width: 8, height: 10 });
-    pptx.layout = 'FLYER';
-    const labels = ['Heritage Dark', 'Clean Light', 'Bold Blue'];
-    for (let i = 1; i <= 3; i++) {
-      const imgData = document.getElementById('flyerCanvas' + i).toDataURL('image/png');
-      const slide = pptx.addSlide();
-      slide.addImage({ data: imgData, x: 0, y: 0, w: 8, h: 10 });
-      slide.addNotes('Style ' + i + ': ' + labels[i-1] + ' — ' + (_flyerEvent.title || ''));
-    }
-    const safeName = (_flyerEvent.title || 'event').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    await pptx.writeFile({ fileName: 'hhc_flyers_' + safeName + '.pptx' });
-    showToast('✓ PowerPoint downloaded!');
-  } catch(e) {
-    showToast('PPTX error: ' + e.message, true);
-    console.error('[Flyers] PPTX:', e);
-  } finally {
-    btn.disabled = false; btn.textContent = '⬇ Download as PowerPoint (.pptx)';
-  }
+function downloadMediaDesign(n) {
+  if (!_mediaEvent || !_mediaType) return;
+  const c = document.getElementById(`mCanvas${n}`); if (!c) return;
+  const a = document.createElement('a');
+  const safe = (_mediaEvent.title||'event').replace(/[^a-z0-9]/gi,'_').toLowerCase();
+  const isJpg = _mediaType !== 'print';
+  a.download = `hhc_${_mediaType}_${safe}_v${n}.${isJpg ? 'jpg' : 'png'}`;
+  a.href = isJpg ? c.toDataURL('image/jpeg', 0.93) : c.toDataURL('image/png');
+  a.click(); showToast('✓ Downloaded!');
+}
+function saveMediaDesign(n) {
+  if (!_mediaEvent || !_mediaType) return;
+  const c = document.getElementById(`mCanvas${n}`); if (!c) return;
+  const key = `hhc_media_${_mediaEvent.id}_${_mediaType}`;
+  let saved = []; try { saved = JSON.parse(localStorage.getItem(key)||'[]'); } catch(e) {}
+  const cfg = _MEDIA_TYPES[_mediaType];
+  saved.unshift({ id:Date.now(), style:cfg.styles[n-1], type:_mediaType, dataUrl:c.toDataURL('image/jpeg',0.82), savedAt:new Date().toLocaleDateString() });
+  if (saved.length > 12) saved = saved.slice(0,12);
+  try { localStorage.setItem(key, JSON.stringify(saved)); showToast('✓ Saved to library!'); }
+  catch(e) { showToast('Storage full — clear old saves first.', true); }
+}
+function _loadSavedMedia() {
+  if (!_mediaEvent || !_mediaType) return;
+  const key = `hhc_media_${_mediaEvent.id}_${_mediaType}`;
+  let saved = []; try { saved = JSON.parse(localStorage.getItem(key)||'[]'); } catch(e) {}
+  const grid = document.getElementById('savedMediaGrid');
+  if (!saved.length) { grid.innerHTML = '<div class="saved-media-empty">No saved designs for this type yet.<br>Generate above and click ★ Save to build your library.</div>'; return; }
+  grid.innerHTML = saved.map(item => `
+    <div class="saved-media-item">
+      <img src="${item.dataUrl}" alt="${item.style}" loading="lazy">
+      <div class="saved-media-item-foot">
+        <span style="font-size:.72rem;color:var(--text-muted);flex:1;">${item.style}<br>${item.savedAt}</span>
+        <button class="btn btn-ghost btn-sm" title="Download" onclick="_dlSaved('${item.id}','${key}')">⬇</button>
+        <button class="btn btn-danger btn-sm" title="Remove" onclick="_delSaved('${item.id}','${key}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+function _dlSaved(id, key) {
+  let saved = []; try { saved = JSON.parse(localStorage.getItem(key)||'[]'); } catch(e) {}
+  const item = saved.find(s => String(s.id) === String(id)); if (!item) return;
+  const a = document.createElement('a');
+  a.download = `hhc_saved_${item.style.replace(/\s+/g,'_').toLowerCase()}.jpg`;
+  a.href = item.dataUrl; a.click();
+}
+function _delSaved(id, key) {
+  let saved = []; try { saved = JSON.parse(localStorage.getItem(key)||'[]'); } catch(e) {}
+  saved = saved.filter(s => String(s.id) !== String(id));
+  localStorage.setItem(key, JSON.stringify(saved));
+  _loadSavedMedia(); showToast('Removed from library.');
 }
 
 /* DELETE */
