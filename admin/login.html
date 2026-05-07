@@ -133,7 +133,8 @@
     <span>Admin Portal</span>
   </div>
 
-  <div class="login-card">
+  <!-- Normal sign-in card -->
+  <div class="login-card" id="loginCard">
     <h2>Welcome Back</h2>
     <p>Sign in to manage events and small groups.</p>
 
@@ -151,6 +152,28 @@
     </form>
   </div>
 
+  <!-- Set password card (shown when arriving via invite or password-reset link) -->
+  <div class="login-card" id="setPasswordCard" style="display:none;">
+    <h2 id="setPasswordTitle">Set Your Password</h2>
+    <p id="setPasswordSubtitle">Create a password for your Heritage Hill admin account.</p>
+    <div class="form-group">
+      <label for="newPassword">New Password</label>
+      <input type="password" id="newPassword" placeholder="At least 8 characters" autocomplete="new-password" />
+    </div>
+    <div class="form-group">
+      <label for="confirmPassword">Confirm Password</label>
+      <input type="password" id="confirmPassword" placeholder="Re-enter your password" autocomplete="new-password" />
+    </div>
+    <button class="btn-login" id="setPasswordBtn" onclick="handleSetPassword()">Set Password &amp; Sign In</button>
+    <div class="error-msg" id="setPasswordError"></div>
+  </div>
+
+  <!-- Expired / error card -->
+  <div class="login-card" id="expiredCard" style="display:none;">
+    <h2>Link Expired</h2>
+    <p style="margin-bottom:0;">This invite link has expired or already been used. Ask your admin to send a new invite from the Supabase dashboard.</p>
+  </div>
+
   <a href="../index.html" class="back-link">← Back to Heritage Hill Website</a>
 </div>
 
@@ -158,8 +181,42 @@
 <script src="../js/supabase-client.js"></script>
 <script src="../js/db.js"></script>
 <script>
-  // Redirect if already logged in
+  // ── Parse URL hash params (Supabase puts auth tokens in the hash) ──
+  function parseHash() {
+    const hash = window.location.hash.slice(1);
+    const params = {};
+    hash.split('&').forEach(pair => {
+      const [k, v] = pair.split('=');
+      if (k) params[decodeURIComponent(k)] = decodeURIComponent(v || '');
+    });
+    return params;
+  }
+
+  // ── On page load: decide which card to show ──
   (async () => {
+    const hash = parseHash();
+
+    // Supabase error in hash (e.g. expired token)
+    if (hash.error || hash.error_code) {
+      document.getElementById('loginCard').style.display = 'none';
+      document.getElementById('expiredCard').style.display = 'block';
+      return;
+    }
+
+    // Invite or recovery link — Supabase embeds access_token + type in hash
+    if (hash.type === 'invite' || hash.type === 'recovery') {
+      document.getElementById('loginCard').style.display = 'none';
+      if (hash.type === 'recovery') {
+        document.getElementById('setPasswordTitle').textContent = 'Reset Your Password';
+        document.getElementById('setPasswordSubtitle').textContent = 'Enter a new password for your Heritage Hill admin account.';
+        document.getElementById('setPasswordBtn').textContent = 'Set Password & Sign In';
+      }
+      document.getElementById('setPasswordCard').style.display = 'block';
+      document.getElementById('newPassword').focus();
+      return;
+    }
+
+    // Normal flow: redirect if already logged in
     const user = await SupaDB.getUser();
     if (user) {
       const redirect = new URLSearchParams(window.location.search).get('next') || 'dashboard.html';
@@ -167,6 +224,7 @@
     }
   })();
 
+  // ── Normal sign-in ──
   async function handleLogin(e) {
     e.preventDefault();
     const email = document.getElementById('emailInput').value.trim();
@@ -189,6 +247,44 @@
     } else {
       const redirect = new URLSearchParams(window.location.search).get('next') || 'dashboard.html';
       window.location.href = redirect;
+    }
+  }
+
+  // ── Set / reset password (invite & recovery flow) ──
+  async function handleSetPassword() {
+    const newPw  = document.getElementById('newPassword').value;
+    const confPw = document.getElementById('confirmPassword').value;
+    const btn    = document.getElementById('setPasswordBtn');
+    const err    = document.getElementById('setPasswordError');
+
+    err.classList.remove('show');
+
+    if (newPw.length < 8) {
+      err.textContent = 'Password must be at least 8 characters.';
+      err.classList.add('show');
+      document.getElementById('newPassword').focus();
+      return;
+    }
+    if (newPw !== confPw) {
+      err.textContent = 'Passwords do not match.';
+      err.classList.add('show');
+      document.getElementById('confirmPassword').focus();
+      return;
+    }
+
+    btn.textContent = 'Saving…';
+    btn.disabled = true;
+
+    // Supabase auto-exchanges the hash token; updateUser sets the new password
+    const { error } = await window._supabase.auth.updateUser({ password: newPw });
+    if (error) {
+      err.textContent = error.message || 'Something went wrong. The link may have expired — ask your admin for a new invite.';
+      err.classList.add('show');
+      btn.textContent = 'Set Password & Sign In';
+      btn.disabled = false;
+    } else {
+      // Password set — Supabase session is now active, go straight to dashboard
+      window.location.href = 'dashboard.html';
     }
   }
 </script>
