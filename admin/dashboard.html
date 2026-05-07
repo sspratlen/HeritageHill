@@ -205,6 +205,10 @@
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
       Leader Applications
     </a>
+    <a onclick="switchTab('subscribers')" id="sideSubscribers">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      Subscribers
+    </a>
     <div class="nav-section" style="margin-top:8px;">Media</div>
     <a onclick="switchTab('sermons')" id="sideSermons">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
@@ -239,6 +243,7 @@
       <div class="stat-card"><div class="num" id="statOpen">–</div><div class="lbl">Open Groups</div></div>
       <div class="stat-card"><div class="num" id="statSignups">–</div><div class="lbl">Sign-Up Requests</div></div>
       <div class="stat-card"><div class="num" id="statApplications">–</div><div class="lbl">Pending Applications</div></div>
+      <div class="stat-card"><div class="num" id="statSubscribers">–</div><div class="lbl">Newsletter Subscribers</div></div>
     </div>
 
     <!-- EVENTS -->
@@ -347,6 +352,42 @@
           <h3>No sermons yet</h3><p>Add your first sermon using the button above.</p>
         </div>
       </div>
+    <!-- SUBSCRIBERS -->
+    <div class="tab-panel" id="panelSubscribers">
+      <div class="action-bar">
+        <h2>Newsletter Subscribers</h2>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-ghost" onclick="exportSubscribersCSV()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+        </div>
+      </div>
+      <div class="signup-filter-bar" style="margin-bottom:16px;">
+        <label>Search</label>
+        <input id="subSearch" type="text" placeholder="Name or email…" oninput="renderSubscribersTable()"
+          style="padding:.5rem .9rem;border:1.5px solid #e4e4e4;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;min-width:240px;" />
+        <span id="subCount" style="margin-left:auto;font-size:.82rem;color:#6b6b6b;"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>#</th>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Date Subscribed</th>
+            <th>Actions</th>
+          </tr></thead>
+          <tbody id="subscribersTable"></tbody>
+        </table>
+        <div class="empty" id="subscribersEmpty" style="display:none;">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <h3>No subscribers yet</h3>
+          <p>Subscribers from the public Events page will appear here.</p>
+        </div>
+      </div>
+    </div>
+
     </div>
   </div>
 </div>
@@ -639,7 +680,7 @@
   if (!user) window.location.href = 'login.html?next=dashboard.html';
 })();
 
-const ALL_TABS = ['events','groups','signups','applications','sermons'];
+const ALL_TABS = ['events','groups','signups','applications','subscribers','sermons'];
 function switchTab(tab) {
   ALL_TABS.forEach(t => {
     const c = t[0].toUpperCase()+t.slice(1);
@@ -649,12 +690,13 @@ function switchTab(tab) {
   const c = tab[0].toUpperCase()+tab.slice(1);
   const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
   if(p) p.classList.add('active'); if(s) s.classList.add('active');
-  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',sermons:'Sermons'};
+  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',sermons:'Sermons'};
   document.getElementById('topbarTitle').textContent = titles[tab]||tab;
   if(tab==='events') renderEventsTable();
   else if(tab==='groups') renderGroupsTable();
   else if(tab==='signups') renderSignupsPanel();
   else if(tab==='applications') renderApplicationsTable();
+  else if(tab==='subscribers') renderSubscribersTable();
   else if(tab==='sermons') renderSermonsTable();
 }
 const urlTab = new URLSearchParams(window.location.search).get('tab');
@@ -662,9 +704,10 @@ if(ALL_TABS.includes(urlTab)) switchTab(urlTab); else renderEventsTable();
 updateStats();
 
 async function updateStats() {
-  const [evs, grs, sigs, apps] = await Promise.all([
+  const [evs, grs, sigs, apps, subs] = await Promise.all([
     SupaDB.adminGetAllEvents(), SupaDB.adminGetAllGroups(),
-    SupaDB.adminGetAllSignups(), SupaDB.adminGetAllApplications()
+    SupaDB.adminGetAllSignups(), SupaDB.adminGetAllApplications(),
+    SupaDB.adminGetAllSubscribers()
   ]);
   document.getElementById('statEvents').textContent=evs.filter(e=>e.published).length;
   document.getElementById('statGroups').textContent=grs.length;
@@ -672,6 +715,7 @@ async function updateStats() {
   document.getElementById('statOpen').textContent=grs.filter(g=>g.open).length;
   document.getElementById('statSignups').textContent=sigs.length;
   document.getElementById('statApplications').textContent=apps.filter(a=>a.status==='pending').length;
+  document.getElementById('statSubscribers').textContent=subs.length;
 }
 
 /* EVENTS */
@@ -1673,12 +1717,55 @@ function _delSaved(id, key) {
   _loadSavedMedia(); showToast('Removed from library.');
 }
 
+/* ── Subscribers ────────────────────────────────────────────── */
+let _cachedSubscribers = [];
+async function renderSubscribersTable() {
+  _cachedSubscribers = await SupaDB.adminGetAllSubscribers();
+  const q = (document.getElementById('subSearch')?.value || '').toLowerCase();
+  let rows = _cachedSubscribers;
+  if (q) rows = rows.filter(s =>
+    (s.fullName||'').toLowerCase().includes(q) || (s.email||'').toLowerCase().includes(q)
+  );
+  const tbody = document.getElementById('subscribersTable');
+  const empty = document.getElementById('subscribersEmpty');
+  const count = document.getElementById('subCount');
+  if (count) count.textContent = rows.length + ' of ' + _cachedSubscribers.length + ' subscriber' + (_cachedSubscribers.length !== 1 ? 's' : '');
+  if (!rows.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = rows.map((s, i) => `
+    <tr>
+      <td style="color:var(--text-muted);font-size:.82rem;">${i + 1}</td>
+      <td><strong>${s.fullName || '—'}</strong></td>
+      <td><a href="mailto:${s.email}" style="color:var(--secondary);">${s.email}</a></td>
+      <td style="font-size:.82rem;color:var(--text-muted);">${s.createdAt ? new Date(s.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—'}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-danger btn-sm" onclick="deleteItem('subscriber',${s.id},'${(s.email||'').replace(/'/g,"\\'")}')">Remove</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function exportSubscribersCSV() {
+  if (!_cachedSubscribers.length) { showToast('No subscribers to export.', true); return; }
+  const header = ['Full Name','Email','Date Subscribed'];
+  const rows = _cachedSubscribers.map(s => [
+    '"' + (s.fullName||'').replace(/"/g,'""') + '"',
+    '"' + (s.email||'').replace(/"/g,'""') + '"',
+    '"' + (s.createdAt ? new Date(s.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '') + '"'
+  ]);
+  const csv = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'hhc_subscribers_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  showToast('✓ Exported ' + _cachedSubscribers.length + ' subscribers');
+}
+
 /* DELETE */
 let _deleteType,_deleteId;
 function deleteItem(type,id,name){_deleteType=type;_deleteId=id;document.getElementById('deleteItemName').textContent=name;document.getElementById('deleteModal').classList.add('open');}
 function closeDeleteModal(){document.getElementById('deleteModal').classList.remove('open');}
 async function confirmDelete(){
-  const delFns={event:SupaDB.deleteEvent,group:SupaDB.deleteGroup,signup:SupaDB.deleteSignup,application:SupaDB.deleteApplication,sermon:SupaDB.deleteSermon};
+  const delFns={event:SupaDB.deleteEvent,group:SupaDB.deleteGroup,signup:SupaDB.deleteSignup,application:SupaDB.deleteApplication,subscriber:SupaDB.deleteSubscriber,sermon:SupaDB.deleteSermon};
   const fn=delFns[_deleteType];
   if(fn)await fn.call(SupaDB,_deleteId);
   closeDeleteModal();
@@ -1686,6 +1773,7 @@ async function confirmDelete(){
   else if(_deleteType==='group')renderGroupsTable();
   else if(_deleteType==='signup')renderSignupsPanel();
   else if(_deleteType==='application')renderApplicationsTable();
+  else if(_deleteType==='subscriber')renderSubscribersTable();
   else if(_deleteType==='sermon')renderSermonsTable();
   updateStats();showToast('Deleted successfully.');
 }

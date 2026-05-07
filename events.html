@@ -89,18 +89,60 @@
   </div>
 </section>
 
-<!-- ── CTA Banner ──────────────────────────────────────── -->
+<!-- ── Newsletter Subscribe ─────────────────────────────── -->
 <section class="section bg-soft">
   <div class="container-narrow text-center">
     <span class="section-label">Stay Connected</span>
     <h2>Never Miss an Event</h2>
-    <p style="margin:1rem auto 2rem;">Subscribe to our newsletter or follow us on social media to hear about everything coming up at Heritage Hill.</p>
-    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
-      <a href="mailto:heritagehillchurch@gmail.com?subject=Newsletter Signup" class="btn btn-primary btn-lg">Subscribe to Newsletter</a>
-      <a href="https://www.facebook.com/heritagehillchurch/" target="_blank" rel="noopener" class="btn btn-secondary btn-lg">Follow on Facebook</a>
+    <p style="margin:1rem auto 1.5rem;">Sign up for our newsletter and be the first to know about everything coming up at Heritage Hill.</p>
+
+    <div id="subFormWrap" style="max-width:480px;margin:0 auto 1.5rem;">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <input id="subName" type="text" placeholder="Full Name" autocomplete="name"
+          style="padding:.75rem 1rem;border:1.5px solid #ddd;border-radius:8px;font-size:1rem;font-family:inherit;outline:none;" />
+        <input id="subEmail" type="email" placeholder="Email Address" autocomplete="email"
+          style="padding:.75rem 1rem;border:1.5px solid #ddd;border-radius:8px;font-size:1rem;font-family:inherit;outline:none;" />
+        <button id="subBtn" onclick="submitSubscribe()" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;">
+          Subscribe to Newsletter
+        </button>
+      </div>
+      <div id="subMsg" style="margin-top:12px;font-size:.9rem;display:none;"></div>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="https://www.facebook.com" target="_blank" rel="noopener" class="btn btn-secondary">Follow on Facebook</a>
     </div>
   </div>
 </section>
+
+<script>
+async function submitSubscribe() {
+  const nameEl = document.getElementById('subName');
+  const emailEl = document.getElementById('subEmail');
+  const btn = document.getElementById('subBtn');
+  const msg = document.getElementById('subMsg');
+  const fullName = nameEl.value.trim();
+  const email = emailEl.value.trim();
+  if (!fullName) { nameEl.style.borderColor='#ef4444'; nameEl.focus(); return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { emailEl.style.borderColor='#ef4444'; emailEl.focus(); return; }
+  nameEl.style.borderColor=''; emailEl.style.borderColor='';
+  btn.disabled = true; btn.textContent = 'Subscribing…';
+  const result = await SupaDB.addSubscriber({ fullName, email });
+  if (result.ok) {
+    document.getElementById('subFormWrap').innerHTML =
+      '<div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:20px 24px;color:#166534;">' +
+      '<strong>You\'re subscribed! 🎉</strong><br>Thanks, ' + fullName.split(' ')[0] + '! We\'ll keep you in the loop on everything happening at Heritage Hill.</div>';
+  } else if (result.duplicate) {
+    msg.style.color = '#BC7A1E'; msg.style.display = '';
+    msg.textContent = 'That email is already subscribed — you\'re all set!';
+    btn.disabled = false; btn.textContent = 'Subscribe to Newsletter';
+  } else {
+    msg.style.color = '#ef4444'; msg.style.display = '';
+    msg.textContent = 'Something went wrong. Please try again.';
+    btn.disabled = false; btn.textContent = 'Subscribe to Newsletter';
+  }
+}
+</script>
 
 <!-- ── Footer ─────────────────────────────────────────────── -->
 <footer id="footer">

@@ -82,6 +82,16 @@ function applicationToDb(a) {
   };
 }
 
+function subscriberFromDb(r) {
+  return {
+    id: r.id, fullName: r.full_name, email: r.email,
+    createdAt: r.created_at,
+  };
+}
+function subscriberToDb(s) {
+  return { full_name: s.fullName, email: s.email };
+}
+
 function sermonFromDb(r) {
   return {
     id: r.id, title: r.title, speaker: r.speaker || '', series: r.series || '',
@@ -316,6 +326,36 @@ window.SupaDB = {
       const { error } = await db().from('sermons').delete().eq('id', id);
       if (error) throw error;
     } catch(e) { console.error('[SupaDB] deleteSermon:', e.message); }
+  },
+
+  /* ── PUBLIC: Subscribe to newsletter ───────────────────── */
+  async addSubscriber(sub) {
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const { error } = await db().from('subscribers').insert(subscriberToDb(sub));
+      if (error) {
+        if (error.code === '23505') return { duplicate: true };
+        throw error;
+      }
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] addSubscriber:', e.message); return { error: e.message }; }
+  },
+
+  /* ── ADMIN: Subscribers ─────────────────────────────────── */
+  async adminGetAllSubscribers() {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('subscribers').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(subscriberFromDb);
+    } catch(e) { console.error('[SupaDB] adminGetAllSubscribers:', e.message); return []; }
+  },
+  async deleteSubscriber(id) {
+    if (!db()) return;
+    try {
+      const { error } = await db().from('subscribers').delete().eq('id', id);
+      if (error) throw error;
+    } catch(e) { console.error('[SupaDB] deleteSubscriber:', e.message); }
   },
 
   /* ── YouTube (via Supabase Edge Function) ───────────────── */
