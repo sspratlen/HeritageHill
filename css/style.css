@@ -29,6 +29,7 @@
   --shadow-md:     0 4px 24px rgba(0,0,0,.12);
   --shadow-lg:     0 8px 40px rgba(0,0,0,.18);
   --nav-h:         72px;
+  --bar-h:         42px;
   --transition:    .25s ease;
 }
 
@@ -138,7 +139,7 @@ p  { font-size: 1.0625rem; color: var(--text-muted); }
 /* ── Navigation ────────────────────────────────────────── */
 #navbar {
   position: fixed;
-  top: 0; left: 0; right: 0;
+  top: var(--bar-h); left: 0; right: 0;
   z-index: 1000;
   height: var(--nav-h);
   background: rgba(255,255,255,.96);
@@ -204,7 +205,7 @@ p  { font-size: 1.0625rem; color: var(--text-muted); }
 .nav-mobile {
   display: none;
   position: fixed;
-  top: var(--nav-h);
+  top: calc(var(--nav-h) + var(--bar-h));
   left: 0; right: 0;
   background: #fff;
   border-top: 1px solid var(--border);
@@ -232,7 +233,7 @@ p  { font-size: 1.0625rem; color: var(--text-muted); }
   display: flex;
   align-items: center;
   overflow: hidden;
-  padding-top: var(--nav-h);
+  padding-top: calc(var(--nav-h) + var(--bar-h));
 }
 .hero-bg {
   position: absolute;
@@ -262,7 +263,7 @@ p  { font-size: 1.0625rem; color: var(--text-muted); }
   display: flex;
   align-items: flex-end;
   overflow: hidden;
-  padding-top: var(--nav-h);
+  padding-top: calc(var(--nav-h) + var(--bar-h));
 }
 .page-hero-bg {
   position: absolute;
@@ -448,6 +449,9 @@ p  { font-size: 1.0625rem; color: var(--text-muted); }
 
 /* ── Announcement banner ──────────────────────────────── */
 .announcement-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1001;
   background: var(--primary);
   color: #fff;
   padding: 10px 0;
