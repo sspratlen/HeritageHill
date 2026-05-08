@@ -360,6 +360,25 @@ window.SupaDB = {
     } catch(e) { console.error('[SupaDB] deleteSubscriber:', e.message); }
   },
 
+  /* ── Site Settings (banner, etc.) ──────────────────────── */
+  async getBannerSettings() {
+    if (!db()) return null;
+    try {
+      const { data, error } = await db().from('site_settings').select('value').eq('key','announcement_bar').single();
+      if (error) throw error;
+      return data ? data.value : null;
+    } catch(e) { console.error('[SupaDB] getBannerSettings:', e.message); return null; }
+  },
+  async saveBannerSettings(settings) {
+    if (!db()) return { error: 'No DB' };
+    try {
+      const { error } = await db().from('site_settings')
+        .upsert({ key: 'announcement_bar', value: settings, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+      if (error) throw error;
+      return { success: true };
+    } catch(e) { console.error('[SupaDB] saveBannerSettings:', e.message); return { error: e.message }; }
+  },
+
   /* ── YouTube (via Supabase Edge Function) ───────────────── */
   async getLatestYouTubeVideos(maxResults = 12) {
     try {

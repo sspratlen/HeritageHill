@@ -214,6 +214,11 @@
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
       Sermons
     </a>
+    <div class="nav-section" style="margin-top:8px;">Site</div>
+    <a onclick="switchTab('settings')" id="sideSettings">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </a>
   </nav>
   <div class="sidebar-footer">
     <a href="../index.html" target="_blank">
@@ -386,6 +391,62 @@
           <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
           <h3>No subscribers yet</h3>
           <p>Subscribers from the public Events page will appear here.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="tab-panel" id="panelSettings">
+      <div class="action-bar">
+        <h2>Site Settings</h2>
+      </div>
+
+      <!-- Banner Card -->
+      <div style="max-width:680px;">
+        <div style="background:var(--bg-card);border:1.5px solid var(--border);border-radius:14px;padding:28px 32px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <div>
+              <h3 style="margin:0 0 4px;font-size:1.05rem;">Announcement Banner</h3>
+              <p style="margin:0;font-size:.85rem;color:var(--text-muted);">The gold bar shown at the top of every page on the site.</p>
+            </div>
+            <!-- Enabled toggle -->
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;">
+              <span style="font-size:.85rem;color:var(--text-muted);" id="bannerToggleLabel">Enabled</span>
+              <div id="bannerToggleWrap" onclick="toggleBannerEnabled()" style="width:42px;height:24px;border-radius:12px;background:#ccc;position:relative;cursor:pointer;transition:background .2s;">
+                <div id="bannerToggleKnob" style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.25);"></div>
+              </div>
+            </label>
+          </div>
+
+          <div id="bannerFields">
+            <div class="field" style="margin-bottom:16px;">
+              <label>Banner Message</label>
+              <input type="text" id="bannerText" placeholder="e.g. 🎉  VBS 2026 is coming July 7–11!" style="width:100%;box-sizing:border-box;" />
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+              <div class="field">
+                <label>Link Text <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+                <input type="text" id="bannerLinkText" placeholder="e.g. Learn more →" />
+              </div>
+              <div class="field">
+                <label>Link URL <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+                <input type="text" id="bannerLinkUrl" placeholder="e.g. events.html" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Preview -->
+          <div style="margin-bottom:24px;">
+            <label style="display:block;margin-bottom:8px;font-size:.85rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;">Preview</label>
+            <div id="bannerPreview" style="background:var(--primary);color:#fff;padding:10px 16px;border-radius:8px;font-size:.875rem;font-weight:500;text-align:center;min-height:38px;display:flex;align-items:center;justify-content:center;">
+              <span id="bannerPreviewText" style="opacity:.5;">Banner preview will appear here</span>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;">
+            <button class="btn btn-primary" onclick="saveBannerSettings()">Save Banner</button>
+            <button class="btn btn-ghost" onclick="loadBannerSettings()">Reset</button>
+          </div>
         </div>
       </div>
     </div>
@@ -689,7 +750,7 @@
   if (!user) window.location.href = 'login.html?next=dashboard.html';
 })();
 
-const ALL_TABS = ['events','groups','signups','applications','subscribers','sermons'];
+const ALL_TABS = ['events','groups','signups','applications','subscribers','sermons','settings'];
 function switchTab(tab) {
   ALL_TABS.forEach(t => {
     const c = t[0].toUpperCase()+t.slice(1);
@@ -699,7 +760,7 @@ function switchTab(tab) {
   const c = tab[0].toUpperCase()+tab.slice(1);
   const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
   if(p) p.classList.add('active'); if(s) s.classList.add('active');
-  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',sermons:'Sermons'};
+  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',sermons:'Sermons',settings:'Settings'};
   document.getElementById('topbarTitle').textContent = titles[tab]||tab;
   if(tab==='events') renderEventsTable();
   else if(tab==='groups') renderGroupsTable();
@@ -707,6 +768,7 @@ function switchTab(tab) {
   else if(tab==='applications') renderApplicationsTable();
   else if(tab==='subscribers') renderSubscribersTable();
   else if(tab==='sermons') renderSermonsTable();
+  else if(tab==='settings') loadBannerSettings();
 }
 const urlTab = new URLSearchParams(window.location.search).get('tab');
 if(ALL_TABS.includes(urlTab)) switchTab(urlTab); else renderEventsTable();
@@ -1821,6 +1883,76 @@ function showToast(msg,isError=false){const t=document.getElementById('toast');t
 async function logout(){await SupaDB.signOut();window.location.href='login.html';}
 
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+/* ── SETTINGS: Banner ───────────────────────────────────── */
+let _bannerEnabled = true;
+
+function toggleBannerEnabled() {
+  _bannerEnabled = !_bannerEnabled;
+  const wrap = document.getElementById('bannerToggleWrap');
+  const knob = document.getElementById('bannerToggleKnob');
+  const lbl  = document.getElementById('bannerToggleLabel');
+  wrap.style.background = _bannerEnabled ? 'var(--primary)' : '#ccc';
+  knob.style.transform  = _bannerEnabled ? 'translateX(18px)' : 'translateX(0)';
+  lbl.textContent = _bannerEnabled ? 'Enabled' : 'Disabled';
+  updateBannerPreview();
+}
+
+function updateBannerPreview() {
+  const text     = document.getElementById('bannerText').value.trim();
+  const linkText = document.getElementById('bannerLinkText').value.trim();
+  const linkUrl  = document.getElementById('bannerLinkUrl').value.trim();
+  const preview  = document.getElementById('bannerPreview');
+  const span     = document.getElementById('bannerPreviewText');
+  if (!_bannerEnabled || !text) {
+    preview.style.opacity = '0.4';
+    span.innerHTML = _bannerEnabled ? 'Enter a message above to preview' : '⊘ Banner is disabled';
+    return;
+  }
+  preview.style.opacity = '1';
+  let html = text;
+  if (linkText && linkUrl) html += `&nbsp; <a href="${linkUrl}" style="color:#fff;text-decoration:underline;">${linkText}</a>`;
+  span.innerHTML = html;
+}
+
+async function loadBannerSettings() {
+  const settings = await SupaDB.getBannerSettings();
+  const s = settings || { enabled: true, text: '', link_text: '', link_url: '' };
+  _bannerEnabled = !!s.enabled;
+
+  document.getElementById('bannerText').value     = s.text     || '';
+  document.getElementById('bannerLinkText').value = s.link_text || '';
+  document.getElementById('bannerLinkUrl').value  = s.link_url  || '';
+
+  const wrap = document.getElementById('bannerToggleWrap');
+  const knob = document.getElementById('bannerToggleKnob');
+  const lbl  = document.getElementById('bannerToggleLabel');
+  wrap.style.background = _bannerEnabled ? 'var(--primary)' : '#ccc';
+  knob.style.transform  = _bannerEnabled ? 'translateX(18px)' : 'translateX(0)';
+  lbl.textContent = _bannerEnabled ? 'Enabled' : 'Disabled';
+  updateBannerPreview();
+
+  /* Wire up live preview on input */
+  ['bannerText','bannerLinkText','bannerLinkUrl'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el._previewBound) {
+      el.addEventListener('input', updateBannerPreview);
+      el._previewBound = true;
+    }
+  });
+}
+
+async function saveBannerSettings() {
+  const settings = {
+    enabled:   _bannerEnabled,
+    text:      document.getElementById('bannerText').value.trim(),
+    link_text: document.getElementById('bannerLinkText').value.trim(),
+    link_url:  document.getElementById('bannerLinkUrl').value.trim(),
+  };
+  const result = await SupaDB.saveBannerSettings(settings);
+  if (result && result.error) { showToast('Error saving banner: ' + result.error, true); return; }
+  showToast('Banner saved! Changes are live on the site. ✓');
+}
 </script>
 </body>
 </html>
