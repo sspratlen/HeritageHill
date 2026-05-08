@@ -831,6 +831,12 @@ async function saveEvent(){
   const newEv={id:id?parseInt(id):undefined,published:document.getElementById('evPublished').checked,title,date,dateSort,endDate,endDateSort,time,location:loc,category:document.getElementById('evCategory').value,description:desc,image,recurring:isRec};
   const result = await SupaDB.saveEvent(newEv);
   if(result.error){showToast('Error saving event: '+result.error,true);return;}
+  // Update in-memory cache so the table re-renders with the fresh data
+  if(result.data){
+    const idx=_cachedEvents.findIndex(e=>e.id===result.data.id);
+    if(idx>=0) _cachedEvents[idx]=result.data;
+    else _cachedEvents.unshift(result.data);
+  }
   closeEventModal();
   renderEventsTable();updateStats();
   showToast(id?'Event updated! ✓':'Event added! ✓');
