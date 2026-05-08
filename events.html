@@ -213,6 +213,16 @@ async function submitSubscribe() {
     const day   = dateParts ? dateParts[2] : '';
     const badge = (month && day) ? `<div class="date-badge"><span class="month">${month}</span><span class="day">${day}</span></div>` : '';
     const recTag = ev.recurring ? `<span class="group-tag">Recurring</span>` : '';
+    // Smart date range: "June 14 – 16" same month, "June 28 – July 2" cross-month
+    let dateDisplay = ev.date;
+    if (ev.endDate) {
+      const endParts = ev.endDate.match(/([A-Za-z]+)\s+(\d+)/);
+      if (endParts) {
+        dateDisplay = (dateParts && dateParts[1] === endParts[1])
+          ? `${ev.date} – ${endParts[2]}`
+          : `${ev.date} – ${ev.endDate}`;
+      }
+    }
     return `
     <article class="card" data-reveal>
       <div class="card-img">
@@ -223,7 +233,7 @@ async function submitSubscribe() {
         <div style="margin-bottom:.5rem;">${recTag}<span class="group-tag" style="background:rgba(21,92,162,.1);color:var(--secondary);">${ev.category}</span></div>
         <h3>${ev.title}</h3>
         <div class="card-meta">
-          <span><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${ev.date}</span>
+          <span><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${dateDisplay}</span>
           <span><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${ev.time}</span>
           <span><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${ev.location.split(',')[0]}</span>
         </div>

@@ -412,14 +412,22 @@
       </div>
       <div class="form-row">
         <div class="field">
-          <label>Date *</label>
+          <label id="evStartDateLabel">Start Date *</label>
           <input type="date" id="evDatePicker" onchange="onEvDatePicked(this.value)" style="cursor:pointer;" />
           <input type="hidden" id="evDate" /><input type="hidden" id="evDateSort" />
         </div>
-        <div class="field" id="evRecurringOverrideWrap" style="display:none;">
-          <label>Display override <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+        <div class="field" id="evEndDateWrap">
+          <label>End Date <span style="font-weight:400;color:var(--text-muted);">(optional — for multi-day events)</span></label>
+          <input type="date" id="evEndDatePicker" onchange="onEvEndDatePicked(this.value)" style="cursor:pointer;" />
+          <input type="hidden" id="evEndDate" /><input type="hidden" id="evEndDateSort" />
+          <button type="button" onclick="clearEndDate()" id="evEndDateClear" style="display:none;font-size:.75rem;color:var(--text-muted);background:none;border:none;cursor:pointer;margin-top:5px;padding:0;text-align:left;">✕ Clear end date</button>
+        </div>
+      </div>
+      <div class="form-row full" id="evRecurringOverrideWrap" style="display:none;">
+        <div class="field">
+          <label>Recurrence pattern <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
           <input type="text" id="evDateOverride" placeholder='e.g. Every Sunday · Fall 2026' />
-          <p style="font-size:.75rem;color:var(--text-muted);margin-top:4px;">Leave blank to use the picked date.</p>
+          <p style="font-size:.75rem;color:var(--text-muted);margin-top:4px;">Leave blank to auto-format from the picked date.</p>
         </div>
       </div>
       <div class="form-row">
@@ -729,7 +737,7 @@ async function renderEventsTable() {
   tbody.innerHTML=events.map(ev=>`
     <tr>
       <td><strong>${ev.title}</strong><br><span style="font-size:.8rem;color:var(--text-muted);">${(ev.description||'').slice(0,60)}…</span></td>
-      <td>${ev.date}<br><span style="font-size:.8rem;color:var(--text-muted);">${ev.time}</span></td>
+      <td>${ev.date}${ev.endDate?` – ${ev.endDate}`:''}<br><span style="font-size:.8rem;color:var(--text-muted);">${ev.time}</span></td>
       <td><span class="badge badge-blue">${ev.category}</span></td>
       <td>${ev.recurring?'<span class="badge badge-amber">Recurring</span>':'<span class="badge badge-green">One-time</span>'}</td>
       <td>${ev.published?'<span class="badge badge-green">Published</span>':'<span class="badge badge-gray">Draft</span>'}</td>
@@ -750,8 +758,22 @@ function onEvDatePicked(ymd) {
   document.getElementById('evDate').value=formatDateDisplay(ymd);
   document.getElementById('evDateSort').value=ymd;
 }
+function onEvEndDatePicked(ymd) {
+  if (!ymd) { clearEndDate(); return; }
+  document.getElementById('evEndDate').value=formatDateDisplay(ymd);
+  document.getElementById('evEndDateSort').value=ymd;
+  document.getElementById('evEndDateClear').style.display='';
+}
+function clearEndDate() {
+  document.getElementById('evEndDatePicker').value='';
+  document.getElementById('evEndDate').value='';
+  document.getElementById('evEndDateSort').value='';
+  document.getElementById('evEndDateClear').style.display='none';
+}
 function toggleRecurringOverride(checked) {
   document.getElementById('evRecurringOverrideWrap').style.display=checked?'':'none';
+  document.getElementById('evEndDateWrap').style.display=checked?'none':'';
+  if(checked) clearEndDate();
 }
 
 function openEventModal(ev) {
@@ -766,9 +788,15 @@ function openEventModal(ev) {
   document.getElementById('evDateSort').value=ev?ev.dateSort:'';
   if(hasDate){const af=formatDateDisplay(ev.dateSort);document.getElementById('evDateOverride').value=(ev.date!==af)?ev.date:'';}
   else document.getElementById('evDateOverride').value=ev?ev.date:'';
+  const hasEndDate=ev&&ev.endDateSort&&ev.endDateSort!=='';
+  document.getElementById('evEndDatePicker').value=hasEndDate?ev.endDateSort:'';
+  document.getElementById('evEndDate').value=ev?ev.endDate:'';
+  document.getElementById('evEndDateSort').value=ev?ev.endDateSort:'';
+  document.getElementById('evEndDateClear').style.display=hasEndDate?'':'none';
   const isRec=ev?ev.recurring:false;
   document.getElementById('evRecurring').checked=isRec;
   document.getElementById('evRecurringOverrideWrap').style.display=isRec?'':'none';
+  document.getElementById('evEndDateWrap').style.display=isRec?'none':'';
   document.getElementById('evTime').value=ev?ev.time:'';
   document.getElementById('evLocation').value=ev?ev.location:'';
   document.getElementById('evDescription').value=ev?ev.description:'';
@@ -797,7 +825,9 @@ async function saveEvent(){
   const desc=document.getElementById('evDescription').value.trim();
   if(!title||!date||!time||!loc||!desc){showToast('Please fill in all required fields.',true);return;}
   let image=document.getElementById('evImageFinal').value.trim()||document.getElementById('evImageUrl').value.trim()||'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80';
-  const newEv={id:id?parseInt(id):undefined,published:document.getElementById('evPublished').checked,title,date,dateSort,time,location:loc,category:document.getElementById('evCategory').value,description:desc,image,recurring:isRec};
+  const endDate=isRec?'':(document.getElementById('evEndDate').value.trim()||'');
+  const endDateSort=isRec?'':(document.getElementById('evEndDateSort').value.trim()||'');
+  const newEv={id:id?parseInt(id):undefined,published:document.getElementById('evPublished').checked,title,date,dateSort,endDate,endDateSort,time,location:loc,category:document.getElementById('evCategory').value,description:desc,image,recurring:isRec};
   const result = await SupaDB.saveEvent(newEv);
   if(result.error){showToast('Error saving event: '+result.error,true);return;}
   renderEventsTable();updateStats();

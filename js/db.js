@@ -11,6 +11,7 @@
 function eventFromDb(r) {
   return {
     id: r.id, title: r.title, date: r.date, dateSort: r.date_sort,
+    endDate: r.end_date || '', endDateSort: r.end_date_sort || '',
     time: r.time, location: r.location, category: r.category,
     description: r.description, image: r.image,
     recurring: !!r.recurring, published: r.published !== false,
@@ -19,6 +20,7 @@ function eventFromDb(r) {
 function eventToDb(ev) {
   const o = {
     title: ev.title, date: ev.date, date_sort: ev.dateSort || '2099-12-31',
+    end_date: ev.endDate || null, end_date_sort: ev.endDateSort || null,
     time: ev.time, location: ev.location, category: ev.category || 'Other',
     description: ev.description, image: ev.image,
     recurring: !!ev.recurring, published: ev.published !== false,
