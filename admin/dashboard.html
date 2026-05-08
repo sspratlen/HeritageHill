@@ -827,13 +827,13 @@ async function saveEvent(){
   let image=document.getElementById('evImageFinal').value.trim()||document.getElementById('evImageUrl').value.trim()||'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80';
   const endDate=isRec?'':(document.getElementById('evEndDate').value.trim()||'');
   const endDateSort=isRec?'':(document.getElementById('evEndDateSort').value.trim()||'');
+  if(endDateSort && dateSort && endDateSort <= dateSort){showToast('End date must be after the start date.',true);return;}
   const newEv={id:id?parseInt(id):undefined,published:document.getElementById('evPublished').checked,title,date,dateSort,endDate,endDateSort,time,location:loc,category:document.getElementById('evCategory').value,description:desc,image,recurring:isRec};
   const result = await SupaDB.saveEvent(newEv);
   if(result.error){showToast('Error saving event: '+result.error,true);return;}
+  closeEventModal();
   renderEventsTable();updateStats();
   showToast(id?'Event updated! ✓':'Event added! ✓');
-  document.getElementById('evCalBtn').style.display='inline-flex';
-  if(result.data)document.getElementById('evId').value=result.data.id;
 }
 
 let _activeEvImgTab='url';
