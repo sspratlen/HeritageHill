@@ -1080,6 +1080,7 @@ async function renderApplicationsTable(){
       <td><div class="td-actions">
         <button class="btn btn-ghost btn-sm" onclick="viewApplication(${a.id})">View</button>
         ${a.status==='pending'?`<button class="btn btn-success btn-sm" onclick="approveApplication(${a.id})">Approve</button><button class="btn btn-danger btn-sm" onclick="rejectApplication(${a.id})">Reject</button>`:''}
+        <button class="btn btn-danger btn-sm" onclick="deleteItem('application',${a.id},'${a.name} — ${a.groupName.replace(/'/g,"\\'")}')">Delete</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -1111,8 +1112,8 @@ function viewApplication(id){
     </div>`;
   const footer=document.getElementById('appDetailFooter');
   if(a.status==='pending'){
-    footer.innerHTML=`<button class="btn btn-ghost" onclick="closeAppDetailModal()">Close</button><div style="flex:1"></div><button class="btn btn-danger btn-sm" onclick="rejectApplication(${a.id});closeAppDetailModal()">Reject</button><button class="btn btn-success" onclick="approveApplication(${a.id});closeAppDetailModal()">✓ Approve & Create Draft Group</button>`;
-  }else{footer.innerHTML=`<button class="btn btn-ghost" onclick="closeAppDetailModal()">Close</button>`;}
+    footer.innerHTML=`<button class="btn btn-ghost" onclick="closeAppDetailModal()">Close</button><div style="flex:1"></div><button class="btn btn-danger btn-sm" onclick="closeAppDetailModal();deleteItem('application',${a.id},'${a.name.replace(/'/g,"\\'")} — ${a.groupName.replace(/'/g,"\\'")}')">Delete</button><button class="btn btn-danger btn-sm" onclick="rejectApplication(${a.id});closeAppDetailModal()">Reject</button><button class="btn btn-success" onclick="approveApplication(${a.id});closeAppDetailModal()">✓ Approve & Create Draft Group</button>`;
+  }else{footer.innerHTML=`<button class="btn btn-ghost" onclick="closeAppDetailModal()">Close</button><div style="flex:1"></div><button class="btn btn-danger btn-sm" onclick="closeAppDetailModal();deleteItem('application',${a.id},'${a.name.replace(/'/g,"\\'")} — ${a.groupName.replace(/'/g,"\\'")}')">Delete</button>`;}
   document.getElementById('appDetailModal').classList.add('open');
 }
 function closeAppDetailModal(){document.getElementById('appDetailModal').classList.remove('open');}
