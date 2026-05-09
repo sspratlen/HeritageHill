@@ -328,8 +328,23 @@
     filterGroups();
   });
 
-  function handleGroupContact(e) {
+  async function handleGroupContact(e) {
     e.preventDefault();
+    const name  = document.getElementById('gcName').value.trim();
+    const email = document.getElementById('gcEmail').value.trim();
+    const msg   = document.getElementById('gcMsg').value.trim();
+    const btn   = e.submitter || document.querySelector('#groupContactForm button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+
+    const result = await SupaDB.submitContactMessage({
+      name, email, message: msg, source: 'Small Groups – Have a Question'
+    });
+
+    if (btn) { btn.disabled = false; btn.textContent = 'Send Message'; }
+    if (result.error) {
+      alert('Something went wrong. Please try again or email us directly.');
+      return;
+    }
     document.getElementById('groupContactForm').style.display = 'none';
     document.getElementById('gcSuccess').style.display = 'block';
   }

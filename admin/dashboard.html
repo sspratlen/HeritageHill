@@ -209,6 +209,10 @@
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
       Subscribers
     </a>
+    <a onclick="switchTab('rsvps')" id="sideRsvps">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Event RSVPs
+    </a>
     <div class="nav-section" style="margin-top:8px;">Media</div>
     <a onclick="switchTab('sermons')" id="sideSermons">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
@@ -395,6 +399,44 @@
       </div>
     </div>
 
+    <!-- EVENT RSVPs -->
+    <div class="tab-panel" id="panelRsvps">
+      <div class="action-bar">
+        <h2>Event RSVPs</h2>
+        <button class="btn btn-ghost" onclick="exportRsvpsCsv()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+      </div>
+      <div class="signup-filter-bar" style="margin-bottom:20px;">
+        <label>Filter by Event:</label>
+        <select id="rsvpFilterEvent" onchange="renderRsvpsPanel()" style="padding:.5rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;min-width:220px;"></select>
+        <label style="margin-left:8px;">Search:</label>
+        <input id="rsvpSearch" type="text" placeholder="Name or email…" oninput="renderRsvpsPanel()"
+          style="padding:.5rem .9rem;border:1.5px solid #e4e4e4;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;min-width:200px;" />
+        <span id="rsvpCount" style="margin-left:auto;font-size:.82rem;color:#6b6b6b;"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>#</th>
+            <th>Event</th>
+            <th>Full Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Date Submitted</th>
+            <th>Actions</th>
+          </tr></thead>
+          <tbody id="rsvpsTable"></tbody>
+        </table>
+        <div class="empty" id="rsvpsEmpty" style="display:none;">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          <h3>No RSVPs yet</h3>
+          <p>RSVPs from events with sign-up enabled will appear here.</p>
+        </div>
+      </div>
+    </div>
+
     <!-- SETTINGS -->
     <div class="tab-panel" id="panelSettings">
       <div class="action-bar">
@@ -529,6 +571,10 @@
       <div class="publish-toggle-row">
         <div><div class="ptlabel">Published</div><div class="ptsub">Visible to the public on the Events page</div></div>
         <label class="toggle-switch"><input type="checkbox" id="evPublished" checked /><span class="toggle-slider"></span></label>
+      </div>
+      <div class="publish-toggle-row">
+        <div><div class="ptlabel">Enable RSVP Sign-Up</div><div class="ptsub">Show a sign-up form on the event's More Info card</div></div>
+        <label class="toggle-switch"><input type="checkbox" id="evRsvpEnabled" /><span class="toggle-slider"></span></label>
       </div>
       <div class="form-row full"><div class="field checkbox"><input type="checkbox" id="evRecurring" onchange="toggleRecurringOverride(this.checked)" /><label for="evRecurring">This is a recurring event</label></div></div>
     </div>
@@ -750,7 +796,7 @@
   if (!user) window.location.href = 'login.html?next=dashboard.html';
 })();
 
-const ALL_TABS = ['events','groups','signups','applications','subscribers','sermons','settings'];
+const ALL_TABS = ['events','groups','signups','applications','subscribers','rsvps','sermons','settings'];
 function switchTab(tab) {
   ALL_TABS.forEach(t => {
     const c = t[0].toUpperCase()+t.slice(1);
@@ -760,13 +806,14 @@ function switchTab(tab) {
   const c = tab[0].toUpperCase()+tab.slice(1);
   const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
   if(p) p.classList.add('active'); if(s) s.classList.add('active');
-  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',sermons:'Sermons',settings:'Settings'};
+  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',sermons:'Sermons',settings:'Settings'};
   document.getElementById('topbarTitle').textContent = titles[tab]||tab;
   if(tab==='events') renderEventsTable();
   else if(tab==='groups') renderGroupsTable();
   else if(tab==='signups') renderSignupsPanel();
   else if(tab==='applications') renderApplicationsTable();
   else if(tab==='subscribers') renderSubscribersTable();
+  else if(tab==='rsvps') renderRsvpsPanel();
   else if(tab==='sermons') renderSermonsTable();
   else if(tab==='settings') loadBannerSettings();
 }
@@ -842,6 +889,7 @@ function openEventModal(ev) {
   document.getElementById('eventModalTitle').textContent=ev?'Edit Event':'Add Event';
   document.getElementById('evId').value=ev?ev.id:'';
   document.getElementById('evPublished').checked=ev?ev.published!==false:true;
+  document.getElementById('evRsvpEnabled').checked=ev?!!ev.rsvpEnabled:false;
   document.getElementById('evTitle').value=ev?ev.title:'';
   document.getElementById('evCategory').value=ev?ev.category:'Worship';
   const hasDate=ev&&ev.dateSort&&ev.dateSort!=='2099-12-31';
@@ -890,7 +938,7 @@ async function saveEvent(){
   const endDate=isRec?'':(document.getElementById('evEndDate').value.trim()||'');
   const endDateSort=isRec?'':(document.getElementById('evEndDateSort').value.trim()||'');
   if(endDateSort && dateSort && endDateSort <= dateSort){showToast('End date must be after the start date.',true);return;}
-  const newEv={id:id?parseInt(id):undefined,published:document.getElementById('evPublished').checked,title,date,dateSort,endDate,endDateSort,time,location:loc,category:document.getElementById('evCategory').value,description:desc,image,recurring:isRec};
+  const newEv={id:id?parseInt(id):undefined,published:document.getElementById('evPublished').checked,rsvpEnabled:document.getElementById('evRsvpEnabled').checked,title,date,dateSort,endDate,endDateSort,time,location:loc,category:document.getElementById('evCategory').value,description:desc,image,recurring:isRec};
   const result = await SupaDB.saveEvent(newEv);
   if(result.error){showToast('Error saving event: '+result.error,true);return;}
   // Update in-memory cache so the table re-renders with the fresh data
@@ -1883,6 +1931,62 @@ function showToast(msg,isError=false){const t=document.getElementById('toast');t
 async function logout(){await SupaDB.signOut();window.location.href='login.html';}
 
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+/* ── EVENT RSVPs ────────────────────────────────────────── */
+let _cachedRsvps = [];
+async function renderRsvpsPanel() {
+  _cachedRsvps = await SupaDB.adminGetAllRsvps();
+  const filterSel = document.getElementById('rsvpFilterEvent');
+  const q = (document.getElementById('rsvpSearch').value||'').toLowerCase();
+  const filterEvent = filterSel ? filterSel.value : '';
+
+  // Populate event filter dropdown
+  if (filterSel) {
+    const events = [...new Set(_cachedRsvps.map(r => r.eventTitle))].sort();
+    const current = filterSel.value;
+    filterSel.innerHTML = '<option value="">All Events</option>' + events.map(t=>`<option value="${t}"${t===current?' selected':''}>${t}</option>`).join('');
+  }
+
+  let rsvps = [..._cachedRsvps];
+  if (filterEvent) rsvps = rsvps.filter(r => r.eventTitle === filterEvent);
+  if (q) rsvps = rsvps.filter(r => r.fullName.toLowerCase().includes(q) || r.email.toLowerCase().includes(q));
+
+  document.getElementById('rsvpCount').textContent = `${rsvps.length} record${rsvps.length!==1?'s':''}`;
+  const tbody = document.getElementById('rsvpsTable');
+  const empty = document.getElementById('rsvpsEmpty');
+
+  if (!rsvps.length) { tbody.innerHTML=''; empty.style.display=''; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = rsvps.map((r,i) => `
+    <tr>
+      <td style="color:var(--text-muted);font-size:.82rem;">${i+1}</td>
+      <td><strong>${r.eventTitle}</strong></td>
+      <td>${r.fullName}</td>
+      <td><a href="mailto:${r.email}" style="color:var(--primary);">${r.email}</a></td>
+      <td>${r.phone || '<span style="color:var(--text-muted);">—</span>'}</td>
+      <td style="font-size:.82rem;color:var(--text-muted);">${r.date ? new Date(r.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteRsvp(${r.id},'${r.fullName.replace(/'/g,"\\'")}')">Delete</button></td>
+    </tr>`).join('');
+}
+
+async function deleteRsvp(id, name) {
+  if (!confirm(`Remove RSVP from ${name}?`)) return;
+  await SupaDB.deleteEventRsvp(id);
+  _cachedRsvps = _cachedRsvps.filter(r => r.id !== id);
+  renderRsvpsPanel();
+  showToast('RSVP removed.');
+}
+
+function exportRsvpsCsv() {
+  if (!_cachedRsvps.length) { showToast('No RSVPs to export.',true); return; }
+  const rows = [['Event','Full Name','Email','Phone','Date Submitted']];
+  _cachedRsvps.forEach(r => rows.push([r.eventTitle, r.fullName, r.email, r.phone||'', r.date ? new Date(r.date).toLocaleDateString() : '']));
+  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'event-rsvps.csv';
+  a.click();
+}
 
 /* ── SETTINGS: Banner ───────────────────────────────────── */
 let _bannerEnabled = true;

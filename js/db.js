@@ -6,6 +6,9 @@
    the camelCase shape the existing page code expects.
    ================================================================ */
 
+/* ── Edge Function URLs ─────────────────────────────────────── */
+const CONTACT_FUNCTION_URL = SUPABASE_URL + '/functions/v1/send-contact-email';
+
 /* ── Column-name mappers (snake_case DB ↔ camelCase JS) ────── */
 
 function eventFromDb(r) {
@@ -15,6 +18,7 @@ function eventFromDb(r) {
     time: r.time, location: r.location, category: r.category,
     description: r.description, image: r.image,
     recurring: !!r.recurring, published: r.published !== false,
+    rsvpEnabled: !!r.rsvp_enabled,
   };
 }
 function eventToDb(ev) {
@@ -24,9 +28,24 @@ function eventToDb(ev) {
     time: ev.time, location: ev.location, category: ev.category || 'Other',
     description: ev.description, image: ev.image,
     recurring: !!ev.recurring, published: ev.published !== false,
+    rsvp_enabled: !!ev.rsvpEnabled,
   };
   if (ev.id) o.id = ev.id;
   return o;
+}
+
+function rsvpFromDb(r) {
+  return {
+    id: r.id, eventId: r.event_id, eventTitle: r.event_title,
+    fullName: r.full_name, email: r.email, phone: r.phone || '',
+    date: r.created_at,
+  };
+}
+function rsvpToDb(r) {
+  return {
+    event_id: r.eventId, event_title: r.eventTitle,
+    full_name: r.fullName, email: r.email, phone: r.phone || '',
+  };
 }
 
 function groupFromDb(r) {
@@ -358,6 +377,50 @@ window.SupaDB = {
       const { error } = await db().from('subscribers').delete().eq('id', id);
       if (error) throw error;
     } catch(e) { console.error('[SupaDB] deleteSubscriber:', e.message); }
+  },
+
+  /* ── PUBLIC: Contact Form ───────────────────────────────── */
+  async submitContactMessage({ name, email, phone, message, source }) {
+    try {
+      const res = await fetch(CONTACT_FUNCTION_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ name, email, phone: phone || '', message, source }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return { success: true };
+    } catch(e) { console.error('[SupaDB] submitContactMessage:', e.message); return { error: e.message }; }
+  },
+
+  /* ── PUBLIC: Submit Event RSVP ─────────────────────────── */
+  async submitEventRsvp(rsvp) {
+    if (!db()) return { error: 'No DB' };
+    try {
+      const { error } = await db().from('event_rsvps').insert(rsvpToDb(rsvp));
+      if (error) throw error;
+      return { success: true };
+    } catch(e) { console.error('[SupaDB] submitEventRsvp:', e.message); return { error: e.message }; }
+  },
+
+  /* ── ADMIN: Event RSVPs ─────────────────────────────────── */
+  async adminGetAllRsvps() {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('event_rsvps').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(rsvpFromDb);
+    } catch(e) { console.error('[SupaDB] adminGetAllRsvps:', e.message); return []; }
+  },
+  async deleteEventRsvp(id) {
+    if (!db()) return;
+    try {
+      const { error } = await db().from('event_rsvps').delete().eq('id', id);
+      if (error) throw error;
+    } catch(e) { console.error('[SupaDB] deleteEventRsvp:', e.message); }
   },
 
   /* ── Site Settings (banner, etc.) ──────────────────────── */
