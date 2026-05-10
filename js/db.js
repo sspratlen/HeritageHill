@@ -105,12 +105,15 @@ function applicationToDb(a) {
 
 function subscriberFromDb(r) {
   return {
-    id: r.id, fullName: r.full_name, email: r.email,
+    id: r.id,
+    firstName: r.first_name || '',
+    lastName: r.last_name || '',
+    email: r.email,
     createdAt: r.created_at,
   };
 }
 function subscriberToDb(s) {
-  return { full_name: s.fullName, email: s.email };
+  return { first_name: s.firstName, last_name: s.lastName, email: s.email };
 }
 
 function sermonFromDb(r) {

@@ -124,8 +124,12 @@
 
     <div id="subFormWrap" style="max-width:480px;margin:0 auto 1.5rem;">
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <input id="subName" type="text" placeholder="Full Name" autocomplete="name"
-          style="padding:.75rem 1rem;border:1.5px solid #ddd;border-radius:8px;font-size:1rem;font-family:inherit;outline:none;" />
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <input id="subFirstName" type="text" placeholder="First Name" autocomplete="given-name"
+            style="padding:.75rem 1rem;border:1.5px solid #ddd;border-radius:8px;font-size:1rem;font-family:inherit;outline:none;" />
+          <input id="subLastName" type="text" placeholder="Last Name" autocomplete="family-name"
+            style="padding:.75rem 1rem;border:1.5px solid #ddd;border-radius:8px;font-size:1rem;font-family:inherit;outline:none;" />
+        </div>
         <input id="subEmail" type="email" placeholder="Email Address" autocomplete="email"
           style="padding:.75rem 1rem;border:1.5px solid #ddd;border-radius:8px;font-size:1rem;font-family:inherit;outline:none;" />
         <button id="subBtn" onclick="submitSubscribe()" class="btn btn-primary btn-lg" style="width:100%;justify-content:center;">
@@ -143,21 +147,24 @@
 
 <script>
 async function submitSubscribe() {
-  const nameEl = document.getElementById('subName');
+  const firstEl = document.getElementById('subFirstName');
+  const lastEl  = document.getElementById('subLastName');
   const emailEl = document.getElementById('subEmail');
   const btn = document.getElementById('subBtn');
   const msg = document.getElementById('subMsg');
-  const fullName = nameEl.value.trim();
+  const firstName = firstEl.value.trim();
+  const lastName  = lastEl.value.trim();
   const email = emailEl.value.trim();
-  if (!fullName) { nameEl.style.borderColor='#ef4444'; nameEl.focus(); return; }
+  if (!firstName) { firstEl.style.borderColor='#ef4444'; firstEl.focus(); return; }
+  if (!lastName)  { lastEl.style.borderColor='#ef4444';  lastEl.focus();  return; }
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { emailEl.style.borderColor='#ef4444'; emailEl.focus(); return; }
-  nameEl.style.borderColor=''; emailEl.style.borderColor='';
+  firstEl.style.borderColor=''; lastEl.style.borderColor=''; emailEl.style.borderColor='';
   btn.disabled = true; btn.textContent = 'Subscribing…';
-  const result = await SupaDB.addSubscriber({ fullName, email });
+  const result = await SupaDB.addSubscriber({ firstName, lastName, email });
   if (result.ok) {
     document.getElementById('subFormWrap').innerHTML =
       '<div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:20px 24px;color:#166534;">' +
-      '<strong>You\'re subscribed! 🎉</strong><br>Thanks, ' + fullName.split(' ')[0] + '! We\'ll keep you in the loop on everything happening at Heritage Hill.</div>';
+      '<strong>You\'re subscribed! 🎉</strong><br>Thanks, ' + firstName + '! We\'ll keep you in the loop on everything happening at Heritage Hill.</div>';
   } else if (result.duplicate) {
     msg.style.color = '#BC7A1E'; msg.style.display = '';
     msg.textContent = 'That email is already subscribed — you\'re all set!';

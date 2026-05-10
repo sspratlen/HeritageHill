@@ -384,7 +384,8 @@
         <table>
           <thead><tr>
             <th>#</th>
-            <th>Full Name</th>
+            <th>First Name</th>
+            <th>Last Name</th>
             <th>Email</th>
             <th>Date Subscribed</th>
             <th>Actions</th>
@@ -1872,7 +1873,7 @@ async function renderSubscribersTable() {
   const q = (document.getElementById('subSearch')?.value || '').toLowerCase();
   let rows = _cachedSubscribers;
   if (q) rows = rows.filter(s =>
-    (s.fullName||'').toLowerCase().includes(q) || (s.email||'').toLowerCase().includes(q)
+    (s.firstName||'').toLowerCase().includes(q) || (s.lastName||'').toLowerCase().includes(q) || (s.email||'').toLowerCase().includes(q)
   );
   const tbody = document.getElementById('subscribersTable');
   const empty = document.getElementById('subscribersEmpty');
@@ -1883,7 +1884,8 @@ async function renderSubscribersTable() {
   tbody.innerHTML = rows.map((s, i) => `
     <tr>
       <td style="color:var(--text-muted);font-size:.82rem;">${i + 1}</td>
-      <td><strong>${s.fullName || '—'}</strong></td>
+      <td><strong>${s.firstName || '—'}</strong></td>
+      <td>${s.lastName || '—'}</td>
       <td><a href="mailto:${s.email}" style="color:var(--secondary);">${s.email}</a></td>
       <td style="font-size:.82rem;color:var(--text-muted);">${s.createdAt ? new Date(s.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—'}</td>
       <td><div class="td-actions">
@@ -1894,10 +1896,11 @@ async function renderSubscribersTable() {
 
 function exportSubscribersCSV() {
   if (!_cachedSubscribers.length) { showToast('No subscribers to export.', true); return; }
-  const header = ['Full Name','Email','Date Subscribed'];
+  const header = ['Email Address','First Name','Last Name','Date Subscribed'];
   const rows = _cachedSubscribers.map(s => [
-    '"' + (s.fullName||'').replace(/"/g,'""') + '"',
     '"' + (s.email||'').replace(/"/g,'""') + '"',
+    '"' + (s.firstName||'').replace(/"/g,'""') + '"',
+    '"' + (s.lastName||'').replace(/"/g,'""') + '"',
     '"' + (s.createdAt ? new Date(s.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '') + '"'
   ]);
   const csv = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
