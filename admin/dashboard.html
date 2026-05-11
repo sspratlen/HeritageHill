@@ -213,6 +213,10 @@
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
       Event RSVPs
     </a>
+    <a onclick="switchTab('prayer')" id="sidePrayer">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+      Prayer Requests
+    </a>
     <div class="nav-section" style="margin-top:8px;">Media</div>
     <a onclick="switchTab('sermons')" id="sideSermons">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
@@ -442,6 +446,43 @@
           <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
           <h3>No RSVPs yet</h3>
           <p>RSVPs from events with sign-up enabled will appear here.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRAYER REQUESTS -->
+    <div class="tab-panel" id="panelPrayer">
+      <div class="action-bar">
+        <h2>Prayer Requests</h2>
+        <span id="prayerCount" style="font-size:.85rem;color:var(--text-muted);"></span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+        <input type="text" id="prayerSearch" placeholder="Search requests…" oninput="filterPrayerRequests()"
+          style="flex:1;min-width:200px;padding:.55rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;" />
+        <select id="prayerFilter" onchange="filterPrayerRequests()"
+          style="padding:.55rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;background:#fff;">
+          <option value="">All Requests</option>
+          <option value="unprayed">Not Yet Prayed</option>
+          <option value="prayed">Prayed</option>
+          <option value="private">Private</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Date</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Request</th>
+            <th>Flags</th>
+            <th>Actions</th>
+          </tr></thead>
+          <tbody id="prayerTable"></tbody>
+        </table>
+        <div class="empty" id="prayerEmpty" style="display:none;">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+          <h3>No prayer requests yet</h3>
+          <p>Requests submitted on the public site will appear here.</p>
         </div>
       </div>
     </div>
@@ -979,24 +1020,24 @@
       <!-- Add Member Form -->
       <div id="addMemberForm" style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px;">
         <h4 style="font-size:.95rem;font-weight:700;margin-bottom:16px;">Add a Member</h4>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-          <div>
-            <label class="form-label">Name <span style="color:#ef4444;">*</span></label>
-            <input id="rmName" type="text" class="form-input" placeholder="Full name" />
+        <div class="form-row" style="margin-bottom:12px;">
+          <div class="field">
+            <label>Name <span style="color:#ef4444;">*</span></label>
+            <input id="rmName" type="text" placeholder="Full name" />
           </div>
-          <div>
-            <label class="form-label">Email <span style="color:#ef4444;">*</span></label>
-            <input id="rmEmail" type="email" class="form-input" placeholder="email@example.com" />
+          <div class="field">
+            <label>Email <span style="color:#ef4444;">*</span></label>
+            <input id="rmEmail" type="email" placeholder="email@example.com" />
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-          <div>
-            <label class="form-label">Phone <span style="font-size:.75rem;color:var(--text-muted);font-weight:400;">(optional)</span></label>
-            <input id="rmPhone" type="tel" class="form-input" placeholder="(402) 555-0100" />
+        <div class="form-row" style="margin-bottom:12px;">
+          <div class="field">
+            <label>Phone <span style="font-size:.75rem;color:var(--text-muted);font-weight:400;">(optional)</span></label>
+            <input id="rmPhone" type="tel" placeholder="(402) 555-0100" />
           </div>
-          <div>
-            <label class="form-label">Note <span style="font-size:.75rem;color:var(--text-muted);font-weight:400;">(optional)</span></label>
-            <input id="rmNote" type="text" class="form-input" placeholder="Admin note…" />
+          <div class="field">
+            <label>Note <span style="font-size:.75rem;color:var(--text-muted);font-weight:400;">(optional)</span></label>
+            <input id="rmNote" type="text" placeholder="Admin note…" />
           </div>
         </div>
         <div id="rmError" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;font-size:.875rem;color:#b91c1c;margin-bottom:12px;"></div>
@@ -1141,25 +1182,39 @@
       <button class="modal-close" onclick="closeAddSubscriberModal()">✕</button>
     </div>
     <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div>
-          <label class="form-label">First Name</label>
-          <input id="addSubFirst" type="text" class="form-input" placeholder="First name" />
+      <div class="form-row">
+        <div class="field">
+          <label>First Name</label>
+          <input id="addSubFirst" type="text" placeholder="First name" />
         </div>
-        <div>
-          <label class="form-label">Last Name</label>
-          <input id="addSubLast" type="text" class="form-input" placeholder="Last name" />
+        <div class="field">
+          <label>Last Name</label>
+          <input id="addSubLast" type="text" placeholder="Last name" />
         </div>
       </div>
-      <div>
-        <label class="form-label">Email Address <span style="color:#ef4444;">*</span></label>
-        <input id="addSubEmail" type="email" class="form-input" placeholder="email@example.com" />
+      <div class="field">
+        <label>Email Address <span style="color:#ef4444;">*</span></label>
+        <input id="addSubEmail" type="email" placeholder="email@example.com" />
       </div>
       <div id="addSubError" style="display:none;color:#ef4444;font-size:.875rem;"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeAddSubscriberModal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveNewSubscriber()">Add Subscriber</button>
+    </div>
+  </div>
+</div>
+
+<!-- Prayer Request view modal -->
+<div class="modal-overlay" id="prayerViewModal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <h3>Prayer Request</h3>
+      <button class="modal-close" onclick="closePrayerView()">✕</button>
+    </div>
+    <div class="modal-body" id="prayerViewBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closePrayerView()">Close</button>
     </div>
   </div>
 </div>
@@ -1186,7 +1241,7 @@
   if (!user) window.location.href = 'login.html?next=dashboard.html';
 })();
 
-const ALL_TABS = ['events','groups','signups','applications','subscribers','rsvps','sermons','email','settings'];
+const ALL_TABS = ['events','groups','signups','applications','subscribers','rsvps','prayer','sermons','email','settings'];
 function switchTab(tab) {
   ALL_TABS.forEach(t => {
     const c = t[0].toUpperCase()+t.slice(1);
@@ -1196,7 +1251,7 @@ function switchTab(tab) {
   const c = tab[0].toUpperCase()+tab.slice(1);
   const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
   if(p) p.classList.add('active'); if(s) s.classList.add('active');
-  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',sermons:'Sermons',email:'Email',settings:'Settings'};
+  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',sermons:'Sermons',email:'Email',settings:'Settings'};
   document.getElementById('topbarTitle').textContent = titles[tab]||tab;
   if(tab==='events') renderEventsTable();
   else if(tab==='groups') renderGroupsTable();
@@ -1204,6 +1259,7 @@ function switchTab(tab) {
   else if(tab==='applications') renderApplicationsTable();
   else if(tab==='subscribers') renderSubscribersTable();
   else if(tab==='rsvps') renderRsvpsPanel();
+  else if(tab==='prayer') renderPrayerTable();
   else if(tab==='sermons') renderSermonsTable();
   else if(tab==='email')    { loadCampaignHistory(); }
   else if(tab==='settings') loadBannerSettings();
@@ -3202,6 +3258,97 @@ function updateBannerPreview() {
   let html = text;
   if (linkText && linkUrl) html += `&nbsp; <a href="${linkUrl}" style="color:#fff;text-decoration:underline;">${linkText}</a>`;
   span.innerHTML = html;
+}
+
+/* ── Prayer Requests ─────────────────────────────────────── */
+let _allPrayerRequests = [];
+
+async function renderPrayerTable() {
+  _allPrayerRequests = await SupaDB.adminGetAllPrayerRequests();
+  filterPrayerRequests();
+}
+
+function filterPrayerRequests() {
+  const q      = (document.getElementById('prayerSearch')?.value || '').toLowerCase();
+  const filter = document.getElementById('prayerFilter')?.value || '';
+  let rows = [..._allPrayerRequests];
+  if (q) rows = rows.filter(r =>
+    (r.name||'').toLowerCase().includes(q) ||
+    (r.email||'').toLowerCase().includes(q) ||
+    (r.request||'').toLowerCase().includes(q)
+  );
+  if (filter === 'unprayed') rows = rows.filter(r => !r.prayed);
+  if (filter === 'prayed')   rows = rows.filter(r => r.prayed);
+  if (filter === 'private')  rows = rows.filter(r => r.private);
+
+  document.getElementById('prayerCount').textContent = `${rows.length} request${rows.length!==1?'s':''}`;
+  const tbody = document.getElementById('prayerTable');
+  const empty = document.getElementById('prayerEmpty');
+
+  if (!rows.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = rows.map(r => {
+    const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}) : '—';
+    const snippet = r.request.length > 120 ? r.request.slice(0, 120) + '…' : r.request;
+    const prayedBtn = r.prayed
+      ? `<button class="btn btn-ghost btn-sm" onclick="togglePrayed('${r.id}', false)" title="Mark as not prayed">✓ Prayed</button>`
+      : `<button class="btn btn-secondary btn-sm" onclick="togglePrayed('${r.id}', true)" title="Mark as prayed">🙏 Pray</button>`;
+    return `<tr>
+      <td style="white-space:nowrap;font-size:.82rem;color:var(--text-muted);">${date}</td>
+      <td style="font-weight:600;">${r.name || '<span style="color:var(--text-muted);font-weight:400;">Anonymous</span>'}</td>
+      <td style="font-size:.85rem;">${r.email ? `<a href="mailto:${r.email}" style="color:var(--secondary);">${r.email}</a>` : '—'}</td>
+      <td style="max-width:340px;font-size:.88rem;line-height:1.5;">${snippet}</td>
+      <td style="white-space:nowrap;">
+        ${r.private ? '<span style="font-size:.75rem;background:rgba(21,92,162,.1);color:var(--secondary);border-radius:50px;padding:2px 8px;font-weight:600;">Private</span>' : ''}
+        ${r.prayed  ? '<span style="font-size:.75rem;background:rgba(22,163,74,.1);color:#16a34a;border-radius:50px;padding:2px 8px;font-weight:600;margin-left:4px;">Prayed</span>' : ''}
+      </td>
+      <td class="td-actions">
+        ${prayedBtn}
+        <button class="btn btn-ghost btn-sm" onclick="viewPrayerRequest('${r.id}')">View</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePrayerReq('${r.id}')">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function togglePrayed(id, prayed) {
+  await SupaDB.updatePrayerRequest(id, { prayed });
+  const req = _allPrayerRequests.find(r => r.id === id);
+  if (req) req.prayed = prayed;
+  filterPrayerRequests();
+}
+
+function viewPrayerRequest(id) {
+  const r = _allPrayerRequests.find(r => r.id === id);
+  if (!r) return;
+  const date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) : '';
+  document.getElementById('prayerViewBody').innerHTML = `
+    <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
+      ${r.private ? '<span style="font-size:.8rem;background:rgba(21,92,162,.1);color:var(--secondary);border-radius:50px;padding:3px 10px;font-weight:600;">Private</span>' : ''}
+      ${r.prayed  ? '<span style="font-size:.8rem;background:rgba(22,163,74,.1);color:#16a34a;border-radius:50px;padding:3px 10px;font-weight:600;">Prayed</span>' : '<span style="font-size:.8rem;background:#fef3c7;color:#92400e;border-radius:50px;padding:3px 10px;font-weight:600;">Not Yet Prayed</span>'}
+    </div>
+    <div style="margin-bottom:12px;"><span style="font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);">From</span><p style="margin:4px 0 0;font-weight:600;">${r.name || 'Anonymous'}</p>${r.email ? `<p style="margin:2px 0 0;font-size:.875rem;"><a href="mailto:${r.email}" style="color:var(--secondary);">${r.email}</a></p>` : ''}</div>
+    <div style="margin-bottom:12px;"><span style="font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);">Date</span><p style="margin:4px 0 0;font-size:.9rem;">${date}</p></div>
+    <div><span style="font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);">Request</span><p style="margin:8px 0 0;line-height:1.75;font-size:.95rem;white-space:pre-wrap;">${r.request}</p></div>
+    <div style="margin-top:24px;display:flex;gap:10px;">
+      ${!r.prayed ? `<button class="btn btn-secondary" onclick="togglePrayed('${r.id}',true);closePrayerView()">🙏 Mark as Prayed</button>` : `<button class="btn btn-ghost" onclick="togglePrayed('${r.id}',false);closePrayerView()">Unmark Prayed</button>`}
+      ${r.email ? `<a href="mailto:${r.email}?subject=Your Prayer Request" class="btn btn-ghost">Reply by Email</a>` : ''}
+    </div>
+  `;
+  document.getElementById('prayerViewModal').classList.add('open');
+}
+
+function closePrayerView() {
+  document.getElementById('prayerViewModal').classList.remove('open');
+}
+
+async function deletePrayerReq(id) {
+  if (!confirm('Delete this prayer request? This cannot be undone.')) return;
+  await SupaDB.deletePrayerRequest(id);
+  _allPrayerRequests = _allPrayerRequests.filter(r => r.id !== id);
+  filterPrayerRequests();
+  showToast('Prayer request deleted.');
 }
 
 async function loadBannerSettings() {

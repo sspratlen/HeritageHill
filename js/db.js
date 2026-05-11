@@ -7,7 +7,8 @@
    ================================================================ */
 
 /* ── Edge Function URLs ─────────────────────────────────────── */
-const CONTACT_FUNCTION_URL = SUPABASE_URL + '/functions/v1/send-contact-email';
+const CONTACT_FUNCTION_URL   = SUPABASE_URL + '/functions/v1/send-contact-email';
+const MAILCHIMP_FUNCTION_URL = SUPABASE_URL + '/functions/v1/mailchimp';
 
 /* ── Column-name mappers (snake_case DB ↔ camelCase JS) ────── */
 
@@ -103,6 +104,20 @@ function applicationToDb(a) {
   };
 }
 
+function prayerRequestFromDb(r) {
+  return {
+    id: r.id, name: r.name || '', email: r.email || '',
+    request: r.request, private: !!r.private,
+    prayed: !!r.prayed, createdAt: r.created_at,
+  };
+}
+function prayerRequestToDb(p) {
+  return {
+    name: p.name || '', email: p.email || '',
+    request: p.request, private: !!p.private,
+  };
+}
+
 function subscriberFromDb(r) {
   return {
     id: r.id,
@@ -168,6 +183,22 @@ window.SupaDB = {
       if (error) throw error;
       return (data || []).map(eventFromDb);
     } catch(e) { console.error('[SupaDB] getPublishedEvents:', e.message); return []; }
+  },
+
+  async getPublishedEventsByRange(startISO, endISO, includeRecurring = true) {
+    if (!db()) return [];
+    try {
+      // Fetch all published events, filter in JS to avoid boolean type mismatches
+      const { data, error } = await db().from('events').select('*')
+        .eq('published', true).order('date_sort');
+      if (error) throw error;
+      const all = (data || []).map(eventFromDb);
+      return all.filter(ev => {
+        const inRange = ev.dateSort >= startISO && ev.dateSort <= endISO;
+        const isRecurring = !!ev.recurring;
+        return inRange || (includeRecurring && isRecurring);
+      });
+    } catch(e) { console.error('[SupaDB] getPublishedEventsByRange:', e.message); return []; }
   },
 
   /* ── PUBLIC: Groups ─────────────────────────────────────── */
@@ -299,6 +330,15 @@ window.SupaDB = {
       if (error) throw error;
     } catch(e) { console.error('[SupaDB] deleteSignup:', e.message); }
   },
+  async adminGetSignupsByGroup(groupId) {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('signups').select('*')
+        .eq('group_id', groupId).order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(signupFromDb);
+    } catch(e) { console.error('[SupaDB] adminGetSignupsByGroup:', e.message); return []; }
+  },
 
   /* ── ADMIN: Applications ────────────────────────────────── */
   async adminGetAllApplications() {
@@ -361,8 +401,26 @@ window.SupaDB = {
         if (error.code === '23505') return { duplicate: true };
         throw error;
       }
+      // Sync to Mailchimp audience (fire-and-forget — don't block UI)
+      fetch(MAILCHIMP_FUNCTION_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
+        body: JSON.stringify({ action: 'add_subscriber', email: sub.email, firstName: sub.firstName || '', lastName: sub.lastName || '' }),
+      }).catch(e => console.warn('[SupaDB] Mailchimp sync failed (non-critical):', e.message));
       return { ok: true };
     } catch(e) { console.error('[SupaDB] addSubscriber:', e.message); return { error: e.message }; }
+  },
+
+  /* ── MAILCHIMP: Admin operations ────────────────────────── */
+  async mailchimp(action, payload = {}) {
+    try {
+      const res = await fetch(MAILCHIMP_FUNCTION_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
+        body: JSON.stringify({ action, ...payload }),
+      });
+      return await res.json();
+    } catch(e) { console.error('[SupaDB] mailchimp:', e.message); return { error: e.message }; }
   },
 
   /* ── ADMIN: Subscribers ─────────────────────────────────── */
@@ -397,6 +455,40 @@ window.SupaDB = {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return { success: true };
     } catch(e) { console.error('[SupaDB] submitContactMessage:', e.message); return { error: e.message }; }
+  },
+
+  /* ── PUBLIC: Prayer Requests ───────────────────────────── */
+  async submitPrayerRequest(req) {
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const { error } = await db().from('prayer_requests').insert(prayerRequestToDb(req));
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] submitPrayerRequest:', e.message); return { error: e.message }; }
+  },
+
+  /* ── ADMIN: Prayer Requests ─────────────────────────────── */
+  async adminGetAllPrayerRequests() {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('prayer_requests').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(prayerRequestFromDb);
+    } catch(e) { console.error('[SupaDB] adminGetAllPrayerRequests:', e.message); return []; }
+  },
+  async updatePrayerRequest(id, updates) {
+    if (!db()) return;
+    try {
+      const { error } = await db().from('prayer_requests').update(updates).eq('id', id);
+      if (error) throw error;
+    } catch(e) { console.error('[SupaDB] updatePrayerRequest:', e.message); }
+  },
+  async deletePrayerRequest(id) {
+    if (!db()) return;
+    try {
+      const { error } = await db().from('prayer_requests').delete().eq('id', id);
+      if (error) throw error;
+    } catch(e) { console.error('[SupaDB] deletePrayerRequest:', e.message); }
   },
 
   /* ── PUBLIC: Submit Event RSVP ─────────────────────────── */
