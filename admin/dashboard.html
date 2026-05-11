@@ -218,6 +218,10 @@
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
       Sermons
     </a>
+    <a onclick="switchTab('email')" id="sideEmail">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      Email
+    </a>
     <div class="nav-section" style="margin-top:8px;">Site</div>
     <a onclick="switchTab('settings')" id="sideSettings">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
@@ -372,6 +376,10 @@
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Export CSV
           </button>
+          <button class="btn btn-primary" onclick="openAddSubscriberModal()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add Subscriber
+          </button>
         </div>
       </div>
       <div class="signup-filter-bar" style="margin-bottom:16px;">
@@ -435,6 +443,100 @@
           <h3>No RSVPs yet</h3>
           <p>RSVPs from events with sign-up enabled will appear here.</p>
         </div>
+      </div>
+    </div>
+
+    <!-- EMAIL -->
+    <div class="tab-panel" id="panelEmail">
+      <div class="action-bar">
+        <h2>Email</h2>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:start;">
+
+        <!-- ── Compose & Send ── -->
+        <div style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:28px;">
+          <h3 style="font-size:1rem; font-weight:700; margin-bottom:20px;">Send a Campaign</h3>
+
+          <div style="display:flex; flex-direction:column; gap:16px;">
+
+            <div>
+              <label class="form-label">Event Date Range <span style="color:#ef4444;">*</span></label>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div>
+                  <label style="font-size:.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">From</label>
+                  <input id="mcDateFrom" type="date" class="form-input" />
+                </div>
+                <div>
+                  <label style="font-size:.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Through</label>
+                  <input id="mcDateTo" type="date" class="form-input" />
+                </div>
+              </div>
+              <label style="display:flex; align-items:center; gap:8px; margin-top:10px; cursor:pointer; font-size:.875rem; color:var(--text-muted);">
+                <input id="mcIncludeRecurring" type="checkbox" checked style="width:15px; height:15px; cursor:pointer;" />
+                Include recurring events
+              </label>
+            </div>
+
+            <div>
+              <label class="form-label">Subject Line <span style="color:#ef4444;">*</span></label>
+              <input id="mcSubject" type="text" class="form-input" placeholder="e.g. What's happening at Heritage Hill this May" />
+            </div>
+
+            <div>
+              <label class="form-label">Preview Text
+                <span style="font-size:.75rem; color:var(--text-muted); font-weight:400; margin-left:6px;">shown after subject in inbox</span>
+              </label>
+              <input id="mcPreviewText" type="text" class="form-input" placeholder="e.g. Events, announcements, and more inside →" />
+            </div>
+
+            <div>
+              <label class="form-label">From Name</label>
+              <input id="mcFromName" type="text" class="form-input" value="Heritage Hill Church" />
+            </div>
+
+            <div>
+              <label class="form-label">Reply-To Email</label>
+              <input id="mcReplyTo" type="email" class="form-input" value="heritagehillchurch@heritagehill.church" />
+            </div>
+
+            <div>
+              <label class="form-label">Website URL
+                <span style="font-size:.75rem; color:var(--text-muted); font-weight:400; margin-left:6px;">used for all email links</span>
+              </label>
+              <input id="mcSiteUrl" type="url" class="form-input" value="https://heritagehill.church" />
+            </div>
+
+            <div id="mcSendError" style="display:none; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:10px 14px; font-size:.875rem; color:#b91c1c;"></div>
+
+            <div style="display:flex; gap:10px; align-items:center;">
+              <button id="mcSendBtn" class="btn btn-primary" onclick="sendMailchimpCampaign()" style="flex:1;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                Send Campaign
+              </button>
+              <span id="mcSendStatus" style="font-size:.82rem; color:var(--text-muted);"></span>
+            </div>
+
+            <p style="font-size:.78rem; color:var(--text-muted); line-height:1.5; border-top:1px solid var(--border); padding-top:12px; margin:0;">
+              Pulls published events in the selected date range, builds the email automatically, and sends to your full Mailchimp audience.
+            </p>
+          </div>
+        </div>
+
+        <!-- ── Sent Campaign History ── -->
+        <div>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+            <h3 style="font-size:1rem; font-weight:700;">Sent Campaigns</h3>
+            <button class="btn btn-ghost btn-sm" onclick="loadCampaignHistory()">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+              Refresh
+            </button>
+          </div>
+          <div id="mcCampaignList">
+            <div style="text-align:center; padding:40px 20px; color:var(--text-muted); font-size:.9rem;">Loading campaigns…</div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -775,6 +877,37 @@
   </div>
 </div>
 
+<!-- Add Subscriber modal -->
+<div class="modal-overlay" id="addSubscriberModal">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-header">
+      <h3>Add Subscriber</h3>
+      <button class="modal-close" onclick="closeAddSubscriberModal()">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label class="form-label">First Name</label>
+          <input id="addSubFirst" type="text" class="form-input" placeholder="First name" />
+        </div>
+        <div>
+          <label class="form-label">Last Name</label>
+          <input id="addSubLast" type="text" class="form-input" placeholder="Last name" />
+        </div>
+      </div>
+      <div>
+        <label class="form-label">Email Address <span style="color:#ef4444;">*</span></label>
+        <input id="addSubEmail" type="email" class="form-input" placeholder="email@example.com" />
+      </div>
+      <div id="addSubError" style="display:none;color:#ef4444;font-size:.875rem;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeAddSubscriberModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewSubscriber()">Add Subscriber</button>
+    </div>
+  </div>
+</div>
+
 <!-- Delete confirm modal -->
 <div class="modal-overlay" id="deleteModal">
   <div class="modal" style="max-width:400px;">
@@ -797,7 +930,7 @@
   if (!user) window.location.href = 'login.html?next=dashboard.html';
 })();
 
-const ALL_TABS = ['events','groups','signups','applications','subscribers','rsvps','sermons','settings'];
+const ALL_TABS = ['events','groups','signups','applications','subscribers','rsvps','sermons','email','settings'];
 function switchTab(tab) {
   ALL_TABS.forEach(t => {
     const c = t[0].toUpperCase()+t.slice(1);
@@ -807,7 +940,7 @@ function switchTab(tab) {
   const c = tab[0].toUpperCase()+tab.slice(1);
   const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
   if(p) p.classList.add('active'); if(s) s.classList.add('active');
-  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',sermons:'Sermons',settings:'Settings'};
+  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',sermons:'Sermons',email:'Email',settings:'Settings'};
   document.getElementById('topbarTitle').textContent = titles[tab]||tab;
   if(tab==='events') renderEventsTable();
   else if(tab==='groups') renderGroupsTable();
@@ -816,6 +949,7 @@ function switchTab(tab) {
   else if(tab==='subscribers') renderSubscribersTable();
   else if(tab==='rsvps') renderRsvpsPanel();
   else if(tab==='sermons') renderSermonsTable();
+  else if(tab==='email')    { loadCampaignHistory(); }
   else if(tab==='settings') loadBannerSettings();
 }
 const urlTab = new URLSearchParams(window.location.search).get('tab');
@@ -1306,6 +1440,33 @@ async function saveSermon(){
 
 /* YOUTUBE SYNC */
 const _ytSyncIcon = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.36-3.36L23 10M1 14l5.13 4.36A9 9 0 0020.49 15"/></svg>';
+async function fetchYouTubeFeed(feedUrl) {
+  // Try multiple CORS proxies in order
+  const attempts = [
+    async () => {
+      const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(feedUrl)}`, { signal: AbortSignal.timeout(8000) });
+      if (!r.ok) throw new Error(r.status);
+      return r.text();
+    },
+    async () => {
+      const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(feedUrl)}`, { signal: AbortSignal.timeout(8000) });
+      if (!r.ok) throw new Error(r.status);
+      const j = await r.json();
+      if (!j.contents) throw new Error('empty');
+      return j.contents;
+    },
+    async () => {
+      const r = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(feedUrl)}`, { signal: AbortSignal.timeout(8000) });
+      if (!r.ok) throw new Error(r.status);
+      return r.text();
+    },
+  ];
+  for (const attempt of attempts) {
+    try { const text = await attempt(); if (text) return text; } catch(e) { /* try next */ }
+  }
+  throw new Error('Could not reach YouTube feed. All proxies failed — try again in a moment.');
+}
+
 async function syncFromYouTube() {
   const btn = document.getElementById('ytSyncBtn');
   btn.disabled = true;
@@ -1313,9 +1474,7 @@ async function syncFromYouTube() {
   try {
     const channelId = 'UCiHVvsAETn_BFpydmL6CocQ';
     const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
-    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(feedUrl)}`);
-    if (!res.ok) throw new Error('Could not reach YouTube feed.');
-    const { contents } = await res.json();
+    const contents = await fetchYouTubeFeed(feedUrl);
     if (!contents) throw new Error('Empty response from YouTube.');
 
     const xml = new DOMParser().parseFromString(contents, 'application/xml');
@@ -1909,6 +2068,306 @@ function exportSubscribersCSV() {
   a.download = 'hhc_subscribers_' + new Date().toISOString().slice(0,10) + '.csv';
   a.click();
   showToast('✓ Exported ' + _cachedSubscribers.length + ' subscribers');
+}
+
+/* ── MAILCHIMP EMAIL ────────────────────────────────────────── */
+
+function buildNewsletterHtml(events, startISO, endISO, siteUrl) {
+  const GOLD = '#BC7A1E';
+  const DARK = '#0D0F14';
+  const SITE = (siteUrl || 'https://heritagehill.church').replace(/\/$/, '');
+  const LOGO = 'https://sspratlen.github.io/HeritageHill/assets/logos/logo-left-full-white.png';
+
+  function fmtDate(iso, opts) {
+    const d = new Date(iso + 'T12:00:00');
+    return d.toLocaleDateString('en-US', opts);
+  }
+  function fmtLong(dateSort)  { return fmtDate(dateSort, { weekday:'long',  month:'long',  day:'numeric' }); }
+  function fmtShort(dateSort) { return fmtDate(dateSort, { weekday:'short', month:'short', day:'numeric' }); }
+
+  const startFmt = fmtDate(startISO, { month:'long', day:'numeric' });
+  const endFmt   = fmtDate(endISO,   { month:'long', day:'numeric', year:'numeric' });
+  const issueLbl = fmtDate(startISO, { month:'long', year:'numeric' });
+
+  function chip(icon, text, gold) {
+    const bg  = gold ? `rgba(188,122,30,0.1)` : `#F7F7F5`;
+    const col = gold ? GOLD : `#1C1C1E`;
+    return `<td style="padding-right:8px;"><span style="font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:${col};background-color:${bg};padding:4px 12px;border-radius:50px;white-space:nowrap;display:inline-block;">${icon} ${text}</span></td>`;
+  }
+
+  function eventDateLabel(ev, long) {
+    if (ev.recurring) return ev.date || 'Recurring';
+    return long ? fmtLong(ev.dateSort) : fmtShort(ev.dateSort);
+  }
+
+  function featuredHtml(ev) {
+    const img = ev.image ? `<img src="${ev.image}" alt="${escHtml(ev.title)}" width="600" style="width:100%;max-width:600px;height:240px;object-fit:cover;display:block;" />` : '';
+    const chips = [
+      chip('📅', eventDateLabel(ev, true), true),
+      ev.time     ? chip('🕐', ev.time, false)     : '',
+      ev.location ? chip('📍', ev.location, false) : '',
+    ].join('');
+    const desc = ev.description ? `<p style="font-family:Arial,sans-serif;font-size:15px;line-height:1.65;color:#6B6B6B;margin:0 0 24px;">${escHtml(ev.description)}</p>` : '';
+    return `${img}
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"><tr><td style="padding:32px 40px 28px;">
+      <p style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${GOLD};margin:0 0 10px;">Featured Event</p>
+      <h2 style="font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:700;line-height:1.2;color:#1C1C1E;margin:0 0 14px;">${escHtml(ev.title)}</h2>
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:18px;"><tr>${chips}</tr></table>
+      ${desc}
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr>
+        <td style="border-radius:10px;background-color:${GOLD};">
+          <a href="${SITE}/events.html" style="font-family:Arial,sans-serif;font-size:15px;font-weight:700;color:#fff;text-decoration:none;padding:14px 28px;display:inline-block;border-radius:10px;">Learn More &amp; RSVP →</a>
+        </td>
+      </tr></table>
+    </td></tr></table>`;
+  }
+
+  function secondaryHtml(ev) {
+    const img = ev.image ? `<img src="${ev.image}" alt="${escHtml(ev.title)}" style="width:100%;height:130px;object-fit:cover;border-radius:10px;display:block;margin-bottom:12px;" />` : '';
+    const shortDesc = ev.description
+      ? `<p style="font-family:Arial,sans-serif;font-size:13px;line-height:1.55;color:#6B6B6B;margin:0 0 10px;">${escHtml(ev.description.length > 100 ? ev.description.slice(0,100) + '…' : ev.description)}</p>`
+      : '';
+    return `<td class="event-grid-cell" valign="top" width="31%" style="padding-right:14px;">
+      ${img}
+      <p style="font-family:Arial,sans-serif;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:${GOLD};margin:0 0 5px;">${eventDateLabel(ev, false)}</p>
+      <h4 style="font-family:Georgia,'Times New Roman',serif;font-size:15px;font-weight:700;line-height:1.3;color:#1C1C1E;margin:0 0 7px;">${escHtml(ev.title)}</h4>
+      ${shortDesc}
+      <a href="${SITE}/events.html" style="font-family:Arial,sans-serif;font-size:13px;font-weight:700;color:${GOLD};text-decoration:none;">Details →</a>
+    </td>`;
+  }
+
+  function escHtml(str) {
+    return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  const featured  = events[0];
+  const secondary = events.slice(1, 4);
+
+  const secondarySection = secondary.length ? `
+  <tr><td style="background-color:#ffffff;padding:0 40px;"><div style="height:1px;background-color:#E4E4E4;"></div></td></tr>
+  <tr><td style="background-color:#ffffff;padding:32px 40px 36px;">
+    <p style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${GOLD};margin:0 0 20px;">Also Coming Up</p>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"><tr>
+      ${secondary.map(secondaryHtml).join('')}
+    </tr></table>
+  </td></tr>` : '';
+
+  const featuredSection = featured ? `<tr><td style="background-color:#ffffff;padding:0;">${featuredHtml(featured)}</td></tr>` :
+    `<tr><td style="background-color:#ffffff;padding:40px;text-align:center;"><p style="font-family:Arial,sans-serif;font-size:16px;color:#6B6B6B;">No events scheduled for this period. Check back soon!</p></td></tr>`;
+
+  return `<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Heritage Hill Church — Event Newsletter</title>
+<style>
+body,table,td,a{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;}
+table,td{mso-table-lspace:0pt;mso-table-rspace:0pt;}
+img{-ms-interpolation-mode:bicubic;border:0;display:block;outline:none;text-decoration:none;}
+body{margin:0!important;padding:0!important;width:100%!important;}
+@media only screen and (max-width:620px){
+  .email-container{width:100%!important;}
+  .event-grid-cell{display:block!important;width:100%!important;padding-bottom:20px!important;}
+  .hero-title{font-size:26px!important;}
+  .mp{padding:24px 20px!important;}
+}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#F0EDE8;word-break:break-word;">
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">Upcoming events at Heritage Hill Church — come join us!&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#F0EDE8;">
+<tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" class="email-container" cellspacing="0" cellpadding="0" border="0" width="600" style="margin:0 auto;max-width:600px;">
+
+  <tr><td style="background-color:${DARK};border-radius:16px 16px 0 0;padding:28px 40px;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"><tr>
+      <td><img src="${LOGO}" alt="Heritage Hill Church" width="200" style="max-width:200px;height:auto;display:block;" /></td>
+      <td align="right"><span style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);">EVENT NEWSLETTER</span></td>
+    </tr></table>
+  </td></tr>
+
+  <tr><td style="background-color:${GOLD};padding:40px 40px 36px;" class="mp">
+    <p style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.7);margin:0 0 10px;">${issueLbl} · ${startFmt} – ${endFmt}</p>
+    <h1 class="hero-title" style="font-family:Georgia,'Times New Roman',serif;font-size:32px;font-weight:700;line-height:1.2;color:#fff;margin:0 0 16px;">What's Coming Up at Heritage Hill</h1>
+    <p style="font-family:Arial,sans-serif;font-size:16px;line-height:1.6;color:rgba(255,255,255,0.88);margin:0;">There's always something happening here — from Sunday worship to community events and everything in between. Here's what we have coming up that we don't want you to miss.</p>
+  </td></tr>
+
+  ${featuredSection}
+  ${secondarySection}
+
+  <tr><td style="background-color:#F7F7F5;padding:36px 40px;text-align:center;" class="mp">
+    <h3 style="font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:700;color:#1C1C1E;margin:0 0 10px;">There's always a place for you here.</h3>
+    <p style="font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#6B6B6B;margin:0 0 22px;">See the full list of upcoming events on our website — new things are added all the time.</p>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto;"><tr>
+      <td style="border-radius:10px;border:2px solid ${GOLD};">
+        <a href="${SITE}/events.html" style="font-family:Arial,sans-serif;font-size:15px;font-weight:700;color:${GOLD};text-decoration:none;padding:13px 28px;display:inline-block;border-radius:8px;">View All Events →</a>
+      </td>
+    </tr></table>
+  </td></tr>
+
+  <tr><td style="background-color:${DARK};padding:28px 40px;" class="mp">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"><tr>
+      <td width="50%" style="vertical-align:middle;padding-right:20px;">
+        <p style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin:0 0 4px;">Join Us Every Sunday</p>
+        <p style="font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:700;color:#fff;margin:0;">10:30 AM</p>
+      </td>
+      <td width="50%" style="vertical-align:middle;border-left:1px solid rgba(255,255,255,0.1);padding-left:20px;">
+        <p style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin:0 0 4px;">We're Located At</p>
+        <p style="font-family:Arial,sans-serif;font-size:13px;color:rgba(255,255,255,0.75);margin:0;line-height:1.5;">6909 Cornhusker Rd<br>Papillion, NE 68133</p>
+      </td>
+    </tr></table>
+  </td></tr>
+
+  <tr><td style="background-color:${DARK};border-top:1px solid rgba(255,255,255,0.08);border-radius:0 0 16px 16px;padding:24px 40px 32px;text-align:center;" class="mp">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto 20px;"><tr>
+      <td style="padding:0 8px;"><a href="https://www.facebook.com" style="font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:rgba(255,255,255,0.5);text-decoration:none;letter-spacing:0.05em;">FACEBOOK</a></td>
+      <td style="padding:0 8px;color:rgba(255,255,255,0.2);font-family:Arial,sans-serif;font-size:12px;">|</td>
+      <td style="padding:0 8px;"><a href="https://www.instagram.com" style="font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:rgba(255,255,255,0.5);text-decoration:none;letter-spacing:0.05em;">INSTAGRAM</a></td>
+      <td style="padding:0 8px;color:rgba(255,255,255,0.2);font-family:Arial,sans-serif;font-size:12px;">|</td>
+      <td style="padding:0 8px;"><a href="${SITE}" style="font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:rgba(255,255,255,0.5);text-decoration:none;letter-spacing:0.05em;">WEBSITE</a></td>
+    </tr></table>
+    <p style="font-family:Arial,sans-serif;font-size:11px;line-height:1.6;color:rgba(255,255,255,0.3);margin:0;">
+      Heritage Hill Church · 6909 Cornhusker Rd, Papillion, NE 68133<br>
+      You're receiving this because you subscribed at heritagehill.church.<br>
+      <a href="*|UNSUB|*" style="color:rgba(255,255,255,0.45);text-decoration:underline;">Unsubscribe</a>
+      &nbsp;·&nbsp;
+      <a href="*|UPDATE_PROFILE|*" style="color:rgba(255,255,255,0.45);text-decoration:underline;">Update preferences</a>
+    </p>
+  </td></tr>
+
+</table></td></tr></table>
+</body></html>`;
+}
+
+async function sendMailchimpCampaign() {
+  const startDate        = document.getElementById('mcDateFrom').value;
+  const endDate          = document.getElementById('mcDateTo').value;
+  const includeRecurring = document.getElementById('mcIncludeRecurring').checked;
+  const subject          = document.getElementById('mcSubject').value.trim();
+  const previewText      = document.getElementById('mcPreviewText').value.trim();
+  const fromName         = document.getElementById('mcFromName').value.trim();
+  const replyTo          = document.getElementById('mcReplyTo').value.trim();
+  const siteUrl          = document.getElementById('mcSiteUrl').value.trim();
+  const errEl            = document.getElementById('mcSendError');
+  const btn              = document.getElementById('mcSendBtn');
+  const sendIcon         = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+
+  errEl.style.display = 'none';
+  if (!startDate || !endDate) { errEl.textContent = 'Please select a date range.'; errEl.style.display = ''; return; }
+  if (startDate > endDate)    { errEl.textContent = 'Start date must be before end date.'; errEl.style.display = ''; return; }
+  if (!subject)               { errEl.textContent = 'Subject line is required.'; errEl.style.display = ''; return; }
+
+  btn.disabled = true; btn.textContent = 'Loading events…';
+
+  const events = await SupaDB.getPublishedEventsByRange(startDate, endDate, includeRecurring);
+
+  if (!events.length) {
+    btn.disabled = false; btn.innerHTML = `${sendIcon} Send Campaign`;
+    errEl.textContent = 'No published events found in that date range. Add events first or widen the range.';
+    errEl.style.display = '';
+    return;
+  }
+
+  if (!confirm(`Found ${events.length} event(s) in range.\n\nSend "${subject}" to your entire Mailchimp audience now?`)) {
+    btn.disabled = false; btn.innerHTML = `${sendIcon} Send Campaign`;
+    return;
+  }
+
+  btn.textContent = 'Building email…';
+  const htmlContent = buildNewsletterHtml(events, startDate, endDate, siteUrl);
+
+  btn.textContent = 'Sending…';
+  const res = await SupaDB.mailchimp('send_campaign', { htmlContent, subject, previewText, fromName, replyTo });
+  btn.disabled = false; btn.innerHTML = `${sendIcon} Send Campaign`;
+
+  if (res.error) { errEl.textContent = res.error; errEl.style.display = ''; return; }
+
+  showToast('✓ Campaign sent successfully!');
+  document.getElementById('mcSubject').value = '';
+  document.getElementById('mcPreviewText').value = '';
+  setTimeout(loadCampaignHistory, 3000);
+}
+
+async function loadCampaignHistory() {
+  const container = document.getElementById('mcCampaignList');
+  container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:.9rem;">Loading…</div>';
+  const res = await SupaDB.mailchimp('get_campaigns');
+  if (res.error || !res.campaigns) {
+    container.innerHTML = '<div style="text-align:center;padding:30px;color:#ef4444;font-size:.9rem;">Could not load campaigns.</div>';
+    return;
+  }
+  if (!res.campaigns.length) {
+    container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text-muted);font-size:.9rem;">No campaigns sent yet.</div>';
+    return;
+  }
+  container.innerHTML = res.campaigns.map(c => {
+    const sent = c.sendTime ? new Date(c.sendTime).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}) : '—';
+    const opens  = c.opens  ? (c.opens  * 100).toFixed(1) + '%' : '—';
+    const clicks = c.clicks ? (c.clicks * 100).toFixed(1) + '%' : '—';
+    return `
+      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+          <div style="flex:1;min-width:0;">
+            <p style="font-weight:600;font-size:.9rem;color:var(--text);margin:0 0 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.subject || '(no subject)'}</p>
+            <p style="font-size:.78rem;color:var(--text-muted);margin:0;">${sent} · ${c.recipients || 0} recipients</p>
+          </div>
+          ${c.archiveUrl ? `<a href="${c.archiveUrl}" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="flex-shrink:0;font-size:.75rem;">View</a>` : ''}
+        </div>
+        <div style="display:flex;gap:20px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+          <div style="text-align:center;">
+            <p style="font-size:1rem;font-weight:700;color:var(--primary);margin:0;">${opens}</p>
+            <p style="font-size:.72rem;color:var(--text-muted);margin:0;">Open Rate</p>
+          </div>
+          <div style="text-align:center;">
+            <p style="font-size:1rem;font-weight:700;color:var(--secondary);margin:0;">${clicks}</p>
+            <p style="font-size:.72rem;color:var(--text-muted);margin:0;">Click Rate</p>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ADD SUBSCRIBER */
+function openAddSubscriberModal() {
+  document.getElementById('addSubFirst').value = '';
+  document.getElementById('addSubLast').value = '';
+  document.getElementById('addSubEmail').value = '';
+  document.getElementById('addSubError').style.display = 'none';
+  document.getElementById('addSubscriberModal').classList.add('open');
+  setTimeout(() => document.getElementById('addSubFirst').focus(), 100);
+}
+function closeAddSubscriberModal() {
+  document.getElementById('addSubscriberModal').classList.remove('open');
+}
+async function saveNewSubscriber() {
+  const firstName = document.getElementById('addSubFirst').value.trim();
+  const lastName  = document.getElementById('addSubLast').value.trim();
+  const email     = document.getElementById('addSubEmail').value.trim();
+  const errEl     = document.getElementById('addSubError');
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errEl.textContent = 'A valid email address is required.';
+    errEl.style.display = '';
+    document.getElementById('addSubEmail').focus();
+    return;
+  }
+  errEl.style.display = 'none';
+  const btn = document.querySelector('#addSubscriberModal .btn-primary');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const result = await SupaDB.addSubscriber({ firstName, lastName, email });
+  btn.disabled = false; btn.textContent = 'Add Subscriber';
+  if (result.duplicate) {
+    errEl.textContent = 'That email is already subscribed.';
+    errEl.style.display = '';
+    return;
+  }
+  if (result.error) {
+    errEl.textContent = 'Something went wrong. Please try again.';
+    errEl.style.display = '';
+    return;
+  }
+  closeAddSubscriberModal();
+  await renderSubscribersTable();
+  showToast('✓ Subscriber added');
 }
 
 /* DELETE */
