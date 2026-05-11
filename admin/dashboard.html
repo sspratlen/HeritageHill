@@ -3295,7 +3295,7 @@ async function togglePastorSettings() {
   _pastorSettingsOpen = !_pastorSettingsOpen;
   document.getElementById('pastorSettingsBody').style.display = _pastorSettingsOpen ? '' : 'none';
   document.getElementById('pastorChevron').style.transform = _pastorSettingsOpen ? 'rotate(180deg)' : '';
-  if (_pastorSettingsOpen && !_pastorEmails.length) {
+  if (_pastorSettingsOpen) {
     _pastorEmails = await SupaDB.getPastorEmails();
     renderPastorEmailList();
   }
