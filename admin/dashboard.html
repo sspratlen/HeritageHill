@@ -218,7 +218,7 @@
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
       Sermons
     </a>
-    <a onclick="switchTab('email')" id="sideEmail">
+    <a onclick="switchTab('email')" id="sideNewsletter">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
       Email
     </a>
@@ -456,71 +456,276 @@
 
         <!-- ── Compose & Send ── -->
         <div style="background:#fff; border:1px solid var(--border); border-radius:var(--radius-lg); padding:28px;">
-          <h3 style="font-size:1rem; font-weight:700; margin-bottom:20px;">Send a Campaign</h3>
 
-          <div style="display:flex; flex-direction:column; gap:16px;">
+          <!-- Purpose selector -->
+          <div class="field" style="margin-bottom:24px;">
+            <label style="font-size:.8rem;">Email Type</label>
+            <select id="mcPurposeSelect" onchange="switchNewsletterPurpose(this.value)"
+              style="font-family:'DM Sans',sans-serif; font-size:.9rem; font-weight:600; color:var(--text); background:#fff; border:1.5px solid var(--border); border-radius:10px; padding:10px 14px; cursor:pointer; width:100%; appearance:none; background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%236B6B6B' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E\"); background-repeat:no-repeat; background-position:right 12px center;">
+              <option value="prayer">Prayer Request</option>
+              <option value="events">Event Newsletter</option>
+              <option value="announcements">Announcements</option>
+            </select>
+          </div>
 
-            <div>
-              <label class="form-label">Event Date Range <span style="color:#ef4444;">*</span></label>
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <div>
-                  <label style="font-size:.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">From</label>
-                  <input id="mcDateFrom" type="date" class="form-input" />
-                </div>
-                <div>
-                  <label style="font-size:.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Through</label>
-                  <input id="mcDateTo" type="date" class="form-input" />
+          <!-- ── OPENING CARD (all modes, label changes per type) ── -->
+          <div id="mcOpeningCard" style="border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:14px;">
+            <div style="margin-bottom:12px;">
+              <p id="mcOpeningLabel" style="font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:#155CA2; margin:0 0 2px;">Opening</p>
+              <p id="mcOpeningHint" style="font-size:.75rem; color:var(--text-muted); margin:0;">Becomes the email's title and intro — also sent as the inbox subject and preview text</p>
+            </div>
+            <div class="form-row full">
+              <div class="field" style="margin-bottom:10px;">
+                <label id="mcSubjectLabel">Title *</label>
+                <input id="mcSubject" type="text" placeholder="e.g. This Week's Prayer Requests — Heritage Hill" />
+              </div>
+            </div>
+            <div class="form-row full">
+              <div class="field">
+                <label id="mcPreviewLabel">Intro <span style="font-weight:400; color:var(--text-muted);">(also shown after subject in inbox)</span></label>
+                <input id="mcPreviewText" type="text" placeholder="e.g. Josh has graduated — let's pray for clarity for his future." />
+              </div>
+            </div>
+          </div>
+
+          <!-- ── PRAYER REQUEST FIELDS ── -->
+          <div id="mcPrayerFields">
+
+            <!-- Scripture -->
+            <div style="border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:14px;">
+              <p style="font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:#155CA2; margin:0 0 12px;">Scripture Verse</p>
+              <div class="field" style="margin-bottom:10px;">
+                <label>Verse Text</label>
+                <textarea id="prayScripture" rows="2" style="resize:vertical; font-family:'DM Sans',sans-serif; font-size:.875rem; line-height:1.5;">"Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God."</textarea>
+              </div>
+              <div class="field">
+                <label>Reference</label>
+                <input id="prayScriptureRef" type="text" value="— Philippians 4:6" />
+              </div>
+            </div>
+
+            <!-- Prayer Requests -->
+            <div style="border:1.5px solid #155CA2; border-radius:10px; padding:16px; margin-bottom:10px;">
+              <p style="font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:#155CA2; margin:0 0 14px;">Prayer Requests</p>
+
+              <div style="margin-bottom:12px;">
+                <div class="form-row">
+                  <div class="field"><label>Name / Category</label><input id="pray1Name" type="text" placeholder="e.g. The Smith Family" /></div>
+                  <div class="field"><label>Request</label><input id="pray1Body" type="text" placeholder="Brief description…" /></div>
                 </div>
               </div>
-              <label style="display:flex; align-items:center; gap:8px; margin-top:10px; cursor:pointer; font-size:.875rem; color:var(--text-muted);">
-                <input id="mcIncludeRecurring" type="checkbox" checked style="width:15px; height:15px; cursor:pointer;" />
-                Include recurring events
-              </label>
+              <div style="margin-bottom:12px;">
+                <div class="form-row">
+                  <div class="field"><label>Name / Category</label><input id="pray2Name" type="text" placeholder="e.g. Health &amp; Healing" /></div>
+                  <div class="field"><label>Request</label><input id="pray2Body" type="text" placeholder="Brief description…" /></div>
+                </div>
+              </div>
+              <div style="margin-bottom:12px;">
+                <div class="form-row">
+                  <div class="field"><label>Name / Category</label><input id="pray3Name" type="text" placeholder="Optional" /></div>
+                  <div class="field"><label>Request</label><input id="pray3Body" type="text" placeholder="Brief description…" /></div>
+                </div>
+              </div>
+              <div style="margin-bottom:12px;">
+                <div class="form-row">
+                  <div class="field"><label>Name / Category</label><input id="pray4Name" type="text" placeholder="Optional" /></div>
+                  <div class="field"><label>Request</label><input id="pray4Body" type="text" placeholder="Brief description…" /></div>
+                </div>
+              </div>
+              <div>
+                <div class="form-row">
+                  <div class="field"><label>Name / Category</label><input id="pray5Name" type="text" placeholder="Optional" /></div>
+                  <div class="field"><label>Request</label><input id="pray5Body" type="text" placeholder="Brief description…" /></div>
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label class="form-label">Subject Line <span style="color:#ef4444;">*</span></label>
-              <input id="mcSubject" type="text" class="form-input" placeholder="e.g. What's happening at Heritage Hill this May" />
+            <!-- Praise Reports -->
+            <div style="border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:14px;">
+              <p style="font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:#155CA2; margin:0 0 12px;">Praise Reports <span style="font-weight:400; text-transform:none; letter-spacing:0;">(optional)</span></p>
+              <div class="field" style="margin-bottom:10px;">
+                <label>Section Heading</label>
+                <input id="prayPraiseHeading" type="text" value="Answered Prayers &amp; Good News" />
+              </div>
+              <div class="field">
+                <label>Body</label>
+                <textarea id="prayPraiseBody" rows="2" style="resize:vertical; font-family:'DM Sans',sans-serif; font-size:.875rem; line-height:1.5;" placeholder="Share praise reports here, or leave blank to omit this section."></textarea>
+              </div>
             </div>
 
-            <div>
-              <label class="form-label">Preview Text
-                <span style="font-size:.75rem; color:var(--text-muted); font-weight:400; margin-left:6px;">shown after subject in inbox</span>
-              </label>
-              <input id="mcPreviewText" type="text" class="form-input" placeholder="e.g. Events, announcements, and more inside →" />
+          </div><!-- /mcPrayerFields -->
+
+          <!-- ── EVENT NEWSLETTER FIELDS ── -->
+          <div id="mcEventFields" style="display:none;">
+            <div class="form-row">
+              <div class="field">
+                <label>Events From *</label>
+                <input id="mcDateFrom" type="date" style="cursor:pointer;" />
+              </div>
+              <div class="field">
+                <label>Events Through *</label>
+                <input id="mcDateTo" type="date" style="cursor:pointer;" />
+              </div>
             </div>
-
-            <div>
-              <label class="form-label">From Name</label>
-              <input id="mcFromName" type="text" class="form-input" value="Heritage Hill Church" />
+            <div class="form-row full" style="margin-bottom:16px;">
+              <div class="field checkbox">
+                <input id="mcIncludeRecurring" type="checkbox" checked />
+                <label for="mcIncludeRecurring">Include recurring events</label>
+              </div>
             </div>
-
-            <div>
-              <label class="form-label">Reply-To Email</label>
-              <input id="mcReplyTo" type="email" class="form-input" value="heritagehillchurch@heritagehill.church" />
-            </div>
-
-            <div>
-              <label class="form-label">Website URL
-                <span style="font-size:.75rem; color:var(--text-muted); font-weight:400; margin-left:6px;">used for all email links</span>
-              </label>
-              <input id="mcSiteUrl" type="url" class="form-input" value="https://heritagehill.church" />
-            </div>
-
-            <div id="mcSendError" style="display:none; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:10px 14px; font-size:.875rem; color:#b91c1c;"></div>
-
-            <div style="display:flex; gap:10px; align-items:center;">
-              <button id="mcSendBtn" class="btn btn-primary" onclick="sendMailchimpCampaign()" style="flex:1;">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                Send Campaign
-              </button>
-              <span id="mcSendStatus" style="font-size:.82rem; color:var(--text-muted);"></span>
-            </div>
-
-            <p style="font-size:.78rem; color:var(--text-muted); line-height:1.5; border-top:1px solid var(--border); padding-top:12px; margin:0;">
-              Pulls published events in the selected date range, builds the email automatically, and sends to your full Mailchimp audience.
-            </p>
           </div>
+
+          <!-- ── ANNOUNCEMENTS FIELDS ── -->
+          <div id="mcAnnouncementFields" style="display:none;">
+
+            <!-- Hero -->
+            <div style="border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:14px;">
+              <p style="font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--primary); margin:0 0 12px;">Hero</p>
+              <div class="field" style="margin-bottom:10px;">
+                <label>Heading</label>
+                <input id="annHeroHeading" type="text" value="Stay Connected" />
+              </div>
+              <div class="field">
+                <label>Intro</label>
+                <textarea id="annHeroIntro" rows="2" style="resize:vertical; font-family:'DM Sans',sans-serif; font-size:.875rem; line-height:1.5;">Here's what's happening at Heritage Hill — news, announcements, and updates from your church community.</textarea>
+              </div>
+            </div>
+
+            <!-- Announcement 1 — Featured -->
+            <div style="border:1.5px solid var(--primary); border-radius:10px; padding:16px; margin-bottom:10px;">
+              <p style="font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--primary); margin:0 0 12px;">Announcement 1 — Featured</p>
+              <div class="form-row">
+                <div class="field">
+                  <label>Label <span style="font-weight:400; color:var(--text-muted);">e.g. NEW</span></label>
+                  <input id="ann1Label" type="text" placeholder="NEW" />
+                </div>
+                <div class="field">
+                  <label>Title *</label>
+                  <input id="ann1Title" type="text" placeholder="Announcement headline" />
+                </div>
+              </div>
+              <div class="field" style="margin-bottom:10px;">
+                <label>Body</label>
+                <textarea id="ann1Body" rows="3" style="resize:vertical; font-family:'DM Sans',sans-serif; font-size:.875rem; line-height:1.5;" placeholder="Write the details here…"></textarea>
+              </div>
+              <div class="form-row">
+                <div class="field">
+                  <label>Button Label</label>
+                  <input id="ann1BtnLabel" type="text" placeholder="Learn More →" />
+                </div>
+                <div class="field">
+                  <label>Button URL</label>
+                  <input id="ann1BtnUrl" type="url" placeholder="https://…" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Announcements 2–4 -->
+            <div id="annMoreSlots">
+              <div style="border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:10px;">
+                <p style="font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--text-muted); margin:0 0 12px;">Announcement 2 <span style="font-weight:400; text-transform:none; letter-spacing:0;">(optional)</span></p>
+                <div class="form-row">
+                  <div class="field">
+                    <label>Label</label>
+                    <input id="ann2Label" type="text" placeholder="UPCOMING" />
+                  </div>
+                  <div class="field">
+                    <label>Title</label>
+                    <input id="ann2Title" type="text" placeholder="Headline" />
+                  </div>
+                </div>
+                <div class="field" style="margin-bottom:10px;">
+                  <label>Body</label>
+                  <textarea id="ann2Body" rows="2" style="resize:vertical; font-family:'DM Sans',sans-serif; font-size:.875rem; line-height:1.5;" placeholder="Details…"></textarea>
+                </div>
+                <div class="field">
+                  <label>Read More URL <span style="font-weight:400; color:var(--text-muted);">(optional)</span></label>
+                  <input id="ann2Url" type="url" placeholder="https://…" />
+                </div>
+              </div>
+
+              <div style="border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:10px;">
+                <p style="font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--text-muted); margin:0 0 12px;">Announcement 3 <span style="font-weight:400; text-transform:none; letter-spacing:0;">(optional)</span></p>
+                <div class="form-row">
+                  <div class="field">
+                    <label>Label</label>
+                    <input id="ann3Label" type="text" placeholder="REMINDER" />
+                  </div>
+                  <div class="field">
+                    <label>Title</label>
+                    <input id="ann3Title" type="text" placeholder="Headline" />
+                  </div>
+                </div>
+                <div class="field" style="margin-bottom:10px;">
+                  <label>Body</label>
+                  <textarea id="ann3Body" rows="2" style="resize:vertical; font-family:'DM Sans',sans-serif; font-size:.875rem; line-height:1.5;" placeholder="Details…"></textarea>
+                </div>
+                <div class="field">
+                  <label>Read More URL <span style="font-weight:400; color:var(--text-muted);">(optional)</span></label>
+                  <input id="ann3Url" type="url" placeholder="https://…" />
+                </div>
+              </div>
+
+              <div style="border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:14px;">
+                <p style="font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--text-muted); margin:0 0 12px;">Announcement 4 <span style="font-weight:400; text-transform:none; letter-spacing:0;">(optional)</span></p>
+                <div class="form-row">
+                  <div class="field">
+                    <label>Label</label>
+                    <input id="ann4Label" type="text" placeholder="INFO" />
+                  </div>
+                  <div class="field">
+                    <label>Title</label>
+                    <input id="ann4Title" type="text" placeholder="Headline" />
+                  </div>
+                </div>
+                <div class="field" style="margin-bottom:10px;">
+                  <label>Body</label>
+                  <textarea id="ann4Body" rows="2" style="resize:vertical; font-family:'DM Sans',sans-serif; font-size:.875rem; line-height:1.5;" placeholder="Details…"></textarea>
+                </div>
+                <div class="field">
+                  <label>Read More URL <span style="font-weight:400; color:var(--text-muted);">(optional)</span></label>
+                  <input id="ann4Url" type="url" placeholder="https://…" />
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /mcAnnouncementFields -->
+
+          <!-- ── COMMON FIELDS (both purposes) ── -->
+          <div class="form-row">
+            <div class="field">
+              <label>From Name</label>
+              <input id="mcFromName" type="text" value="Heritage Hill Church" />
+            </div>
+            <div class="field">
+              <label>Reply-To Email</label>
+              <input id="mcReplyTo" type="email" value="heritagehillchurch@heritagehill.church" />
+            </div>
+          </div>
+
+          <div class="form-row full">
+            <div class="field">
+              <label>Website URL <span style="font-weight:400; color:var(--text-muted);">(used for all links)</span></label>
+              <input id="mcSiteUrl" type="url" value="https://heritagehill.church" />
+            </div>
+          </div>
+
+          <div id="mcSendError" style="display:none; background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:10px 14px; font-size:.875rem; color:#b91c1c; margin-bottom:16px;"></div>
+
+          <div style="display:flex; gap:10px; align-items:center;">
+            <button id="mcPreviewBtn" class="btn btn-ghost" onclick="previewNewsletter()" style="flex:1;">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              Preview
+            </button>
+            <button id="mcSendBtn" class="btn btn-primary" onclick="sendMailchimpCampaign()" style="flex:1;">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Send Campaign
+            </button>
+          </div>
+
+          <p id="mcHint" style="font-size:.78rem; color:var(--text-muted); line-height:1.5; border-top:1px solid var(--border); padding-top:12px; margin:16px 0 0;">
+            Pulls published events in the date range, builds the email, and sends to your full Mailchimp audience.
+          </p>
         </div>
 
         <!-- ── Sent Campaign History ── -->
@@ -759,6 +964,57 @@
       <div class="form-row full" style="margin-top:4px;"><div class="field checkbox"><input type="checkbox" id="grOpen" checked /><label for="grOpen">Group is open / accepting new members</label></div></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeGroupModal()">Cancel</button><button class="btn btn-primary" onclick="saveGroup()">Save Group</button></div>
+  </div>
+</div>
+
+<!-- GROUP ROSTER MODAL -->
+<div class="modal-overlay" id="groupRosterModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 id="rosterModalTitle">Group Members</h3>
+      <button class="modal-close" onclick="closeGroupRoster()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Add Member Form -->
+      <div id="addMemberForm" style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px;">
+        <h4 style="font-size:.95rem;font-weight:700;margin-bottom:16px;">Add a Member</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div>
+            <label class="form-label">Name <span style="color:#ef4444;">*</span></label>
+            <input id="rmName" type="text" class="form-input" placeholder="Full name" />
+          </div>
+          <div>
+            <label class="form-label">Email <span style="color:#ef4444;">*</span></label>
+            <input id="rmEmail" type="email" class="form-input" placeholder="email@example.com" />
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div>
+            <label class="form-label">Phone <span style="font-size:.75rem;color:var(--text-muted);font-weight:400;">(optional)</span></label>
+            <input id="rmPhone" type="tel" class="form-input" placeholder="(402) 555-0100" />
+          </div>
+          <div>
+            <label class="form-label">Note <span style="font-size:.75rem;color:var(--text-muted);font-weight:400;">(optional)</span></label>
+            <input id="rmNote" type="text" class="form-input" placeholder="Admin note…" />
+          </div>
+        </div>
+        <div id="rmError" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 14px;font-size:.875rem;color:#b91c1c;margin-bottom:12px;"></div>
+        <button class="btn btn-primary btn-sm" onclick="saveGroupMember()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add to Group
+        </button>
+      </div>
+
+      <!-- Member List -->
+      <div id="rosterList">
+        <div style="text-align:center;padding:30px;color:var(--text-muted);font-size:.9rem;">Loading…</div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeGroupRoster()">Close</button>
+    </div>
   </div>
 </div>
 
@@ -1153,6 +1409,7 @@ async function renderGroupsTable(){
       <td>${g.published?'<span class="badge badge-green">Published</span>':'<span class="badge badge-gray">Draft</span>'}</td>
       <td>${g.open?'<span class="badge badge-amber">Open</span>':'<span class="badge badge-red">Full</span>'}</td>
       <td><div class="td-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openGroupRoster(${g.id})">Members</button>
         <button class="btn btn-ghost btn-sm" onclick="editGroup(${g.id})">Edit</button>
         <button class="btn btn-danger btn-sm" onclick="deleteItem('group',${g.id},'${g.name.replace(/'/g,"\\'")}')">Delete</button>
       </div></td>
@@ -1183,6 +1440,96 @@ function openGroupModal(g){
 }
 function closeGroupModal(){document.getElementById('groupModal').classList.remove('open');}
 function editGroup(id){const g=_cachedGroups.find(g=>g.id===id);if(g)openGroupModal(g);}
+
+/* ── GROUP ROSTER ─────────────────────────────────────────── */
+let _rosterGroupId = null;
+
+async function openGroupRoster(groupId) {
+  _rosterGroupId = groupId;
+  const group = _cachedGroups.find(g => g.id === groupId);
+  document.getElementById('rosterModalTitle').textContent = group ? `Members — ${group.name}` : 'Group Members';
+  document.getElementById('rmName').value = '';
+  document.getElementById('rmEmail').value = '';
+  document.getElementById('rmPhone').value = '';
+  document.getElementById('rmNote').value = '';
+  document.getElementById('rmError').style.display = 'none';
+  document.getElementById('groupRosterModal').classList.add('open');
+  await renderGroupRoster();
+}
+
+function closeGroupRoster() {
+  document.getElementById('groupRosterModal').classList.remove('open');
+  _rosterGroupId = null;
+}
+
+async function renderGroupRoster() {
+  const container = document.getElementById('rosterList');
+  container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:.9rem;">Loading…</div>';
+  const members = await SupaDB.adminGetSignupsByGroup(_rosterGroupId);
+  if (!members.length) {
+    container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:.9rem;">No members yet — add the first one above.</div>';
+    return;
+  }
+  container.innerHTML = `
+    <h4 style="font-size:.95rem;font-weight:700;margin-bottom:12px;">Current Members (${members.length})</h4>
+    <div class="table-wrap" style="margin:0;">
+      <table>
+        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Note</th><th>Added</th><th></th></tr></thead>
+        <tbody>
+          ${members.map(m => `
+            <tr>
+              <td><strong>${m.name}</strong></td>
+              <td><a href="mailto:${m.email}" style="color:var(--primary);">${m.email}</a></td>
+              <td>${m.phone || '—'}</td>
+              <td style="font-size:.82rem;color:var(--text-muted);">${m.message || '—'}</td>
+              <td style="font-size:.82rem;color:var(--text-muted);">${new Date(m.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
+              <td><button class="btn btn-danger btn-sm" onclick="removeGroupMember(${m.id})">Remove</button></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+async function saveGroupMember() {
+  const name  = document.getElementById('rmName').value.trim();
+  const email = document.getElementById('rmEmail').value.trim();
+  const phone = document.getElementById('rmPhone').value.trim();
+  const note  = document.getElementById('rmNote').value.trim();
+  const errEl = document.getElementById('rmError');
+  errEl.style.display = 'none';
+
+  if (!name) { errEl.textContent = 'Name is required.'; errEl.style.display = ''; return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errEl.textContent = 'A valid email is required.'; errEl.style.display = ''; return;
+  }
+
+  const group = _cachedGroups.find(g => g.id === _rosterGroupId);
+  if (!group) return;
+
+  const result = await SupaDB.submitSignup({
+    groupId:     group.id,
+    groupName:   group.name,
+    leaderName:  group.leader,
+    leaderEmail: group.leaderEmail || '',
+    name, email, phone, message: note,
+  });
+
+  if (result?.error) { errEl.textContent = result.error; errEl.style.display = ''; return; }
+
+  document.getElementById('rmName').value = '';
+  document.getElementById('rmEmail').value = '';
+  document.getElementById('rmPhone').value = '';
+  document.getElementById('rmNote').value = '';
+  showToast(`✓ ${name} added to ${group.name}`);
+  await renderGroupRoster();
+}
+
+async function removeGroupMember(signupId) {
+  if (!confirm('Remove this member from the group?')) return;
+  await SupaDB.deleteSignup(signupId);
+  showToast('Member removed.');
+  await renderGroupRoster();
+}
 async function saveGroup(){
   const id=document.getElementById('grId').value;
   const name=document.getElementById('grName').value.trim();
@@ -2239,45 +2586,421 @@ body{margin:0!important;padding:0!important;width:100%!important;}
 </body></html>`;
 }
 
-async function sendMailchimpCampaign() {
-  const startDate        = document.getElementById('mcDateFrom').value;
-  const endDate          = document.getElementById('mcDateTo').value;
-  const includeRecurring = document.getElementById('mcIncludeRecurring').checked;
-  const subject          = document.getElementById('mcSubject').value.trim();
-  const previewText      = document.getElementById('mcPreviewText').value.trim();
-  const fromName         = document.getElementById('mcFromName').value.trim();
-  const replyTo          = document.getElementById('mcReplyTo').value.trim();
-  const siteUrl          = document.getElementById('mcSiteUrl').value.trim();
-  const errEl            = document.getElementById('mcSendError');
-  const btn              = document.getElementById('mcSendBtn');
-  const sendIcon         = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+/* ── ANNOUNCEMENTS EMAIL ────────────────────────────────────── */
+
+function buildAnnouncementsHtml(data, siteUrl) {
+  const GOLD = '#BC7A1E';
+  const DARK = '#0D0F14';
+  const SITE = (siteUrl || 'https://heritagehill.church').replace(/\/$/, '');
+  const LOGO = 'https://sspratlen.github.io/HeritageHill/assets/logos/logo-left-full-white.png';
+
+  function esc(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  const issueLabel = data.issueLbl || new Date().toLocaleDateString('en-US', { month:'long', year:'numeric' });
+
+  const anns = (data.announcements || []).filter(a => a.title);
+
+  const featuredAnn = anns[0];
+  const secondaryAnns = anns.slice(1, 4);
+
+  function featuredHtml(a) {
+    const btn = a.btnLabel && a.btnUrl
+      ? `<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-top:20px;"><tr><td style="border-radius:10px;background-color:${GOLD};"><a href="${esc(a.btnUrl)}" style="font-family:Arial,sans-serif;font-size:15px;font-weight:700;color:#fff;text-decoration:none;padding:14px 28px;display:inline-block;border-radius:10px;">${esc(a.btnLabel)}</a></td></tr></table>`
+      : '';
+    return `
+  <tr><td style="background-color:#ffffff;padding:32px 40px 28px;">
+    ${a.label ? `<p style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${GOLD};margin:0 0 10px;">${esc(a.label)}</p>` : ''}
+    <h2 style="font-family:Georgia,'Times New Roman',serif;font-size:26px;font-weight:700;line-height:1.2;color:#1C1C1E;margin:0 0 16px;">${esc(a.title)}</h2>
+    ${a.body ? `<p style="font-family:Arial,sans-serif;font-size:15px;line-height:1.65;color:#6B6B6B;margin:0;">${esc(a.body).replace(/\n/g,'<br>')}</p>` : ''}
+    ${btn}
+  </td></tr>`;
+  }
+
+  function secondaryHtml(a) {
+    return `
+  <tr><td style="background-color:#ffffff;padding:0 40px;"><div style="height:1px;background-color:#E4E4E4;"></div></td></tr>
+  <tr><td style="background-color:#ffffff;padding:24px 40px 28px;">
+    ${a.label ? `<p style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${GOLD};margin:0 0 8px;">${esc(a.label)}</p>` : ''}
+    <h3 style="font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:700;line-height:1.3;color:#1C1C1E;margin:0 0 10px;">${esc(a.title)}</h3>
+    ${a.body ? `<p style="font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#6B6B6B;margin:0 0 12px;">${esc(a.body).replace(/\n/g,'<br>')}</p>` : ''}
+    ${a.url ? `<a href="${esc(a.url)}" style="font-family:Arial,sans-serif;font-size:13px;font-weight:700;color:${GOLD};text-decoration:none;">Read more →</a>` : ''}
+  </td></tr>`;
+  }
+
+  const contentRows = featuredAnn
+    ? featuredHtml(featuredAnn) + secondaryAnns.map(secondaryHtml).join('')
+    : `<tr><td style="background-color:#ffffff;padding:40px;text-align:center;"><p style="font-family:Arial,sans-serif;font-size:16px;color:#6B6B6B;">No announcements yet.</p></td></tr>`;
+
+  return `<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Heritage Hill Church — Announcements</title>
+<style>
+body,table,td,a{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;}
+table,td{mso-table-lspace:0pt;mso-table-rspace:0pt;}
+img{-ms-interpolation-mode:bicubic;border:0;display:block;outline:none;text-decoration:none;}
+body{margin:0!important;padding:0!important;width:100%!important;}
+@media only screen and (max-width:620px){.email-container{width:100%!important;}.mp{padding:24px 20px!important;}}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#F0EDE8;word-break:break-word;">
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">Announcements from Heritage Hill Church&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#F0EDE8;">
+<tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" class="email-container" cellspacing="0" cellpadding="0" border="0" width="600" style="margin:0 auto;max-width:600px;">
+
+  <!-- Header -->
+  <tr><td style="background-color:${DARK};border-radius:16px 16px 0 0;padding:28px 40px;" class="mp">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"><tr>
+      <td><img src="${LOGO}" alt="Heritage Hill Church" width="200" style="max-width:200px;height:auto;display:block;" /></td>
+      <td align="right"><span style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);">ANNOUNCEMENTS</span></td>
+    </tr></table>
+  </td></tr>
+
+  <!-- Hero -->
+  <tr><td style="background-color:${GOLD};padding:40px 40px 36px;" class="mp">
+    <p style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.7);margin:0 0 10px;">${esc(issueLabel)}</p>
+    <h1 style="font-family:Georgia,'Times New Roman',serif;font-size:32px;font-weight:700;line-height:1.2;color:#fff;margin:0 0 16px;">${esc(data.heroHeading || 'Stay Connected')}</h1>
+    <p style="font-family:Arial,sans-serif;font-size:16px;line-height:1.6;color:rgba(255,255,255,0.88);margin:0;">${esc(data.heroIntro || 'Here\'s what\'s happening at Heritage Hill.').replace(/\n/g,'<br>')}</p>
+  </td></tr>
+
+  <!-- Announcements -->
+  ${contentRows}
+
+  <!-- CTA Banner -->
+  <tr><td style="background-color:#F7F7F5;padding:36px 40px;text-align:center;" class="mp">
+    <h3 style="font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:700;color:#1C1C1E;margin:0 0 10px;">You're always welcome here.</h3>
+    <p style="font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#6B6B6B;margin:0 0 22px;">Stay connected with your Heritage Hill family — we'd love to see you.</p>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto;"><tr>
+      <td style="border-radius:10px;border:2px solid ${GOLD};">
+        <a href="${SITE}" style="font-family:Arial,sans-serif;font-size:15px;font-weight:700;color:${GOLD};text-decoration:none;padding:13px 28px;display:inline-block;border-radius:8px;">Visit Our Website →</a>
+      </td>
+    </tr></table>
+  </td></tr>
+
+  <!-- Service times -->
+  <tr><td style="background-color:${DARK};padding:28px 40px;" class="mp">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"><tr>
+      <td width="50%" style="vertical-align:middle;padding-right:20px;">
+        <p style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin:0 0 4px;">Join Us Every Sunday</p>
+        <p style="font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:700;color:#fff;margin:0;">10:30 AM</p>
+      </td>
+      <td width="50%" style="vertical-align:middle;border-left:1px solid rgba(255,255,255,0.1);padding-left:20px;">
+        <p style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin:0 0 4px;">We're Located At</p>
+        <p style="font-family:Arial,sans-serif;font-size:13px;color:rgba(255,255,255,0.75);margin:0;line-height:1.5;">6909 Cornhusker Rd<br>Papillion, NE 68133</p>
+      </td>
+    </tr></table>
+  </td></tr>
+
+  <!-- Footer -->
+  <tr><td style="background-color:${DARK};border-top:1px solid rgba(255,255,255,0.08);border-radius:0 0 16px 16px;padding:24px 40px 32px;text-align:center;" class="mp">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto 20px;"><tr>
+      <td style="padding:0 8px;"><a href="https://www.facebook.com" style="font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:rgba(255,255,255,0.5);text-decoration:none;letter-spacing:0.05em;">FACEBOOK</a></td>
+      <td style="padding:0 8px;color:rgba(255,255,255,0.2);font-family:Arial,sans-serif;font-size:12px;">|</td>
+      <td style="padding:0 8px;"><a href="https://www.instagram.com" style="font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:rgba(255,255,255,0.5);text-decoration:none;letter-spacing:0.05em;">INSTAGRAM</a></td>
+      <td style="padding:0 8px;color:rgba(255,255,255,0.2);font-family:Arial,sans-serif;font-size:12px;">|</td>
+      <td style="padding:0 8px;"><a href="${SITE}" style="font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:rgba(255,255,255,0.5);text-decoration:none;letter-spacing:0.05em;">WEBSITE</a></td>
+    </tr></table>
+    <p style="font-family:Arial,sans-serif;font-size:11px;line-height:1.6;color:rgba(255,255,255,0.3);margin:0;">
+      Heritage Hill Church · 6909 Cornhusker Rd, Papillion, NE 68133<br>
+      You're receiving this because you subscribed at heritagehill.church.<br>
+      <a href="*|UNSUB|*" style="color:rgba(255,255,255,0.45);text-decoration:underline;">Unsubscribe</a>
+      &nbsp;·&nbsp;
+      <a href="*|UPDATE_PROFILE|*" style="color:rgba(255,255,255,0.45);text-decoration:underline;">Update preferences</a>
+    </p>
+  </td></tr>
+
+</table></td></tr></table>
+</body></html>`;
+}
+
+/* ── PURPOSE SWITCHER ───────────────────────────────────────── */
+
+let _mcPurpose = 'prayer';
+
+function switchNewsletterPurpose(type) {
+  _mcPurpose = type;
+
+  // Show/hide field sections
+  document.getElementById('mcPrayerFields').style.display        = type === 'prayer'         ? '' : 'none';
+  document.getElementById('mcEventFields').style.display         = type === 'events'         ? '' : 'none';
+  document.getElementById('mcAnnouncementFields').style.display  = type === 'announcements'  ? '' : 'none';
+
+  // Sync select value (in case called programmatically)
+  const sel = document.getElementById('mcPurposeSelect');
+  if (sel.value !== type) sel.value = type;
+
+  // Update hint + subject placeholder
+  const hints = {
+    prayer:        'Builds a prayer request email from the fields above and sends to your full Mailchimp audience.',
+    events:        'Pulls published events in the date range, builds the email, and sends to your full Mailchimp audience.',
+    announcements: 'Builds a custom announcements email from the content above and sends to your full Mailchimp audience.',
+  };
+  document.getElementById('mcHint').textContent = hints[type];
+
+  // Relabel the Opening card based on purpose
+  if (type === 'prayer') {
+    document.getElementById('mcOpeningLabel').textContent   = 'Opening';
+    document.getElementById('mcOpeningLabel').style.color   = '#155CA2';
+    document.getElementById('mcOpeningHint').textContent    = 'Becomes the email\'s title and intro — also sent as the inbox subject and preview text';
+    document.getElementById('mcSubjectLabel').textContent   = 'Title *';
+    document.getElementById('mcPreviewLabel').innerHTML     = 'Intro <span style="font-weight:400; color:var(--text-muted);">(also shown after subject in inbox)</span>';
+    document.getElementById('mcSubject').placeholder        = 'e.g. This Week\'s Prayer Requests — Heritage Hill';
+    document.getElementById('mcPreviewText').placeholder    = 'e.g. Josh has graduated — let\'s pray for clarity for his future.';
+  } else {
+    document.getElementById('mcOpeningLabel').textContent   = 'Campaign';
+    document.getElementById('mcOpeningLabel').style.color   = 'var(--text-muted)';
+    document.getElementById('mcOpeningHint').textContent    = 'What recipients see in their inbox before opening the email';
+    document.getElementById('mcSubjectLabel').textContent   = 'Subject Line *';
+    document.getElementById('mcPreviewLabel').innerHTML     = 'Preview Text <span style="font-weight:400; color:var(--text-muted);">(shown after subject in inbox)</span>';
+    document.getElementById('mcSubject').placeholder        = type === 'events'
+      ? 'e.g. What\'s happening at Heritage Hill this May'
+      : 'e.g. News & Announcements from Heritage Hill';
+    document.getElementById('mcPreviewText').placeholder    = 'e.g. Events, announcements, and more inside →';
+  }
+}
+
+/* ── PRAYER REQUEST EMAIL ───────────────────────────────────── */
+
+function buildPrayerHtml(data, siteUrl) {
+  const GOLD = '#BC7A1E';
+  const BLUE = '#155CA2';
+  const DARK = '#0D0F14';
+  const SITE = (siteUrl || 'https://heritagehill.church').replace(/\/$/, '');
+  const LOGO = 'https://sspratlen.github.io/HeritageHill/assets/logos/logo-left-full-white.png';
+
+  function esc(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  const requests = (data.requests || []).filter(r => r.name || r.body);
+
+  function requestRow(r) {
+    return `
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom:18px;">
+    <tr>
+      <td width="4" style="background-color:${GOLD}; border-radius:4px;">&nbsp;</td>
+      <td style="padding-left:16px;">
+        ${r.name ? `<p style="font-family:Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${GOLD};margin:0 0 4px;">${esc(r.name)}</p>` : ''}
+        <p style="font-family:Arial,sans-serif;font-size:14px;line-height:1.65;color:#4A4A4A;margin:0;">${esc(r.body).replace(/\n/g,'<br>')}</p>
+      </td>
+    </tr>
+  </table>`;
+  }
+
+  const praiseSection = data.praiseBody ? `
+  <tr><td style="background-color:#ffffff;padding:0 40px;"><div style="height:1px;background-color:#E4E4E4;"></div></td></tr>
+  <tr><td style="background-color:#ffffff;padding:28px 40px 36px;" class="mp">
+    <p style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${BLUE};margin:0 0 10px;">Praise Reports</p>
+    <h3 style="font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:700;line-height:1.3;color:#1C1C1E;margin:0 0 12px;">${esc(data.praiseHeading || 'Answered Prayers &amp; Good News')}</h3>
+    <p style="font-family:Arial,sans-serif;font-size:14px;line-height:1.7;color:#4A4A4A;margin:0;">${esc(data.praiseBody).replace(/\n/g,'<br>')}</p>
+  </td></tr>` : '';
+
+  const issueLbl = new Date().toLocaleDateString('en-US', { month:'long', year:'numeric' });
+
+  return `<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Heritage Hill Church — Prayer Requests</title>
+<style>
+body,table,td,a{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;}
+table,td{mso-table-lspace:0pt;mso-table-rspace:0pt;}
+img{-ms-interpolation-mode:bicubic;border:0;display:block;outline:none;text-decoration:none;}
+body{margin:0!important;padding:0!important;width:100%!important;}
+@media only screen and (max-width:620px){.email-container{width:100%!important;}.mp{padding:24px 20px!important;}}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#F0EDE8;word-break:break-word;">
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">This week's prayer requests from your Heritage Hill family.&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#F0EDE8;">
+<tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" class="email-container" cellspacing="0" cellpadding="0" border="0" width="600" style="margin:0 auto;max-width:600px;">
+
+  <!-- Header -->
+  <tr><td style="background-color:${DARK};border-radius:16px 16px 0 0;padding:28px 40px;" class="mp">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"><tr>
+      <td><img src="${LOGO}" alt="Heritage Hill Church" width="200" style="max-width:200px;height:auto;display:block;" /></td>
+      <td align="right"><span style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);">PRAYER REQUESTS</span></td>
+    </tr></table>
+  </td></tr>
+
+  <!-- Hero -->
+  <tr><td style="background-color:${BLUE};padding:40px 40px 36px;" class="mp">
+    <p style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.65);margin:0 0 10px;">${esc(issueLbl)} · Prayer List</p>
+    <h1 style="font-family:Georgia,'Times New Roman',serif;font-size:32px;font-weight:700;line-height:1.2;color:#fff;margin:0 0 16px;">${esc(data.heroHeading || 'Standing Together in Prayer')}</h1>
+    <p style="font-family:Arial,sans-serif;font-size:16px;line-height:1.6;color:rgba(255,255,255,0.88);margin:0 0 24px;">${esc(data.heroIntro || 'Below are this week\'s prayer requests from our Heritage Hill family.').replace(/\n/g,'<br>')}</p>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"><tr>
+      <td style="border-left:3px solid rgba(255,255,255,0.4);padding:10px 0 10px 16px;">
+        <p style="font-family:Georgia,'Times New Roman',serif;font-size:15px;font-style:italic;line-height:1.6;color:rgba(255,255,255,0.9);margin:0 0 6px;">${esc(data.scripture || '"Do not be anxious about anything, but in every situation, by prayer and petition, with thanksgiving, present your requests to God."')}</p>
+        <p style="font-family:Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:0.06em;color:rgba(255,255,255,0.55);margin:0;">${esc(data.scriptureRef || '— Philippians 4:6')}</p>
+      </td>
+    </tr></table>
+  </td></tr>
+
+  <!-- Requests -->
+  <tr><td style="background-color:#ffffff;padding:36px 40px 18px;" class="mp">
+    <p style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${BLUE};margin:0 0 22px;">Current Requests</p>
+    ${requests.map(requestRow).join('')}
+  </td></tr>
+
+  ${praiseSection}
+
+  <!-- Submit CTA -->
+  <tr><td style="background-color:#F0EDE8;padding:36px 40px;text-align:center;" class="mp">
+    <p style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${GOLD};margin:0 0 10px;">Have a Request?</p>
+    <h3 style="font-family:Georgia,'Times New Roman',serif;font-size:22px;font-weight:700;color:#1C1C1E;margin:0 0 10px;">We'd be honored to pray with you.</h3>
+    <p style="font-family:Arial,sans-serif;font-size:14px;line-height:1.6;color:#6B6B6B;margin:0 0 22px;">Submit a prayer request online or speak with one of our pastors on Sunday. All requests are held in confidence unless you choose to share.</p>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto;"><tr>
+      <td style="border-radius:10px;background-color:${BLUE};">
+        <a href="${SITE}/contact.html" style="font-family:Arial,sans-serif;font-size:15px;font-weight:700;color:#fff;text-decoration:none;padding:14px 28px;display:inline-block;border-radius:10px;">Submit a Prayer Request →</a>
+      </td>
+    </tr></table>
+  </td></tr>
+
+  <!-- Service times -->
+  <tr><td style="background-color:${DARK};padding:28px 40px;" class="mp">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"><tr>
+      <td width="50%" style="vertical-align:middle;padding-right:20px;">
+        <p style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin:0 0 4px;">Join Us Every Sunday</p>
+        <p style="font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:700;color:#fff;margin:0;">10:30 AM</p>
+      </td>
+      <td width="50%" style="vertical-align:middle;border-left:1px solid rgba(255,255,255,0.1);padding-left:20px;">
+        <p style="font-family:Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin:0 0 4px;">We're Located At</p>
+        <p style="font-family:Arial,sans-serif;font-size:13px;color:rgba(255,255,255,0.75);margin:0;line-height:1.5;">6909 Cornhusker Rd<br>Papillion, NE 68133</p>
+      </td>
+    </tr></table>
+  </td></tr>
+
+  <!-- Footer -->
+  <tr><td style="background-color:${DARK};border-top:1px solid rgba(255,255,255,0.08);border-radius:0 0 16px 16px;padding:24px 40px 32px;text-align:center;" class="mp">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto 20px;"><tr>
+      <td style="padding:0 8px;"><a href="https://www.facebook.com" style="font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:rgba(255,255,255,0.5);text-decoration:none;letter-spacing:0.05em;">FACEBOOK</a></td>
+      <td style="padding:0 8px;color:rgba(255,255,255,0.2);font-family:Arial,sans-serif;font-size:12px;">|</td>
+      <td style="padding:0 8px;"><a href="https://www.instagram.com" style="font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:rgba(255,255,255,0.5);text-decoration:none;letter-spacing:0.05em;">INSTAGRAM</a></td>
+      <td style="padding:0 8px;color:rgba(255,255,255,0.2);font-family:Arial,sans-serif;font-size:12px;">|</td>
+      <td style="padding:0 8px;"><a href="${SITE}" style="font-family:Arial,sans-serif;font-size:12px;font-weight:700;color:rgba(255,255,255,0.5);text-decoration:none;letter-spacing:0.05em;">WEBSITE</a></td>
+    </tr></table>
+    <p style="font-family:Arial,sans-serif;font-size:11px;line-height:1.6;color:rgba(255,255,255,0.3);margin:0;">
+      Heritage Hill Church · 6909 Cornhusker Rd, Papillion, NE 68133<br>
+      You're receiving this because you subscribed at heritagehill.church.<br>
+      <a href="*|UNSUB|*" style="color:rgba(255,255,255,0.45);text-decoration:underline;">Unsubscribe</a>
+      &nbsp;·&nbsp;
+      <a href="*|UPDATE_PROFILE|*" style="color:rgba(255,255,255,0.45);text-decoration:underline;">Update preferences</a>
+    </p>
+  </td></tr>
+
+</table></td></tr></table>
+</body></html>`;
+}
+
+/* ── SHARED BUILD HELPER ────────────────────────────────────── */
+
+async function buildCampaignHtml() {
+  const siteUrl = document.getElementById('mcSiteUrl').value.trim();
+
+  if (_mcPurpose === 'events') {
+    const startDate        = document.getElementById('mcDateFrom').value;
+    const endDate          = document.getElementById('mcDateTo').value;
+    const includeRecurring = document.getElementById('mcIncludeRecurring').checked;
+    if (!startDate || !endDate) return { error: 'Select a date range.', html: null };
+    if (startDate > endDate)   return { error: 'Start date must be before end date.', html: null };
+    const events = await SupaDB.getPublishedEventsByRange(startDate, endDate, includeRecurring);
+    if (!events.length) return { error: 'No published events found in that date range.', html: null, events: [] };
+    return { html: buildNewsletterHtml(events, startDate, endDate, siteUrl), events };
+  }
+
+  if (_mcPurpose === 'prayer') {
+    const requests = [1,2,3,4,5].map(n => ({
+      name: document.getElementById(`pray${n}Name`).value.trim(),
+      body: document.getElementById(`pray${n}Body`).value.trim(),
+    })).filter(r => r.name || r.body);
+    if (!requests.length) return { error: 'Add at least one prayer request.', html: null };
+    const prayData = {
+      heroHeading:   document.getElementById('mcSubject').value.trim(),
+      heroIntro:     document.getElementById('mcPreviewText').value.trim(),
+      scripture:     document.getElementById('prayScripture').value.trim(),
+      scriptureRef:  document.getElementById('prayScriptureRef').value.trim(),
+      praiseHeading: document.getElementById('prayPraiseHeading').value.trim(),
+      praiseBody:    document.getElementById('prayPraiseBody').value.trim(),
+      requests,
+    };
+    return { html: buildPrayerHtml(prayData, siteUrl), events: null };
+  }
+
+  // announcements
+  const annData = {
+    heroHeading: document.getElementById('annHeroHeading').value.trim(),
+    heroIntro:   document.getElementById('annHeroIntro').value.trim(),
+    announcements: [1,2,3,4].map(n => ({
+      label:    document.getElementById(`ann${n}Label`).value.trim(),
+      title:    document.getElementById(`ann${n}Title`).value.trim(),
+      body:     document.getElementById(`ann${n}Body`).value.trim(),
+      btnLabel: n === 1 ? document.getElementById('ann1BtnLabel').value.trim() : '',
+      btnUrl:   n === 1 ? document.getElementById('ann1BtnUrl').value.trim()   : '',
+      url:      n > 1  ? document.getElementById(`ann${n}Url`).value.trim()   : '',
+    })),
+  };
+  if (!annData.announcements[0].title) return { error: 'Announcement 1 title is required.', html: null };
+  return { html: buildAnnouncementsHtml(annData, siteUrl), events: null };
+}
+
+/* ── PREVIEW ────────────────────────────────────────────────── */
+
+async function previewNewsletter() {
+  const errEl = document.getElementById('mcSendError');
+  const btn   = document.getElementById('mcPreviewBtn');
+  const previewIcon = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
 
   errEl.style.display = 'none';
-  if (!startDate || !endDate) { errEl.textContent = 'Please select a date range.'; errEl.style.display = ''; return; }
-  if (startDate > endDate)    { errEl.textContent = 'Start date must be before end date.'; errEl.style.display = ''; return; }
-  if (!subject)               { errEl.textContent = 'Subject line is required.'; errEl.style.display = ''; return; }
+  btn.disabled = true; btn.textContent = 'Building…';
 
-  btn.disabled = true; btn.textContent = 'Loading events…';
+  const result = await buildCampaignHtml();
 
-  const events = await SupaDB.getPublishedEventsByRange(startDate, endDate, includeRecurring);
+  btn.disabled = false;
+  btn.innerHTML = `${previewIcon} Preview`;
 
-  if (!events.length) {
+  if (result.error) { errEl.textContent = result.error; errEl.style.display = ''; return; }
+
+  const blob = new Blob([result.html], { type: 'text/html' });
+  window.open(URL.createObjectURL(blob), '_blank');
+}
+
+/* ── SEND CAMPAIGN ──────────────────────────────────────────── */
+
+async function sendMailchimpCampaign() {
+  const subject     = document.getElementById('mcSubject').value.trim();
+  const previewText = document.getElementById('mcPreviewText').value.trim();
+  const fromName    = document.getElementById('mcFromName').value.trim();
+  const replyTo     = document.getElementById('mcReplyTo').value.trim();
+  const errEl       = document.getElementById('mcSendError');
+  const btn         = document.getElementById('mcSendBtn');
+  const sendIcon    = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+
+  errEl.style.display = 'none';
+  if (!subject) { errEl.textContent = 'Subject line is required.'; errEl.style.display = ''; return; }
+
+  btn.disabled = true; btn.textContent = _mcPurpose === 'events' ? 'Loading events…' : 'Building email…';
+
+  const result = await buildCampaignHtml();
+
+  if (result.error) {
     btn.disabled = false; btn.innerHTML = `${sendIcon} Send Campaign`;
-    errEl.textContent = 'No published events found in that date range. Add events first or widen the range.';
-    errEl.style.display = '';
-    return;
+    errEl.textContent = result.error; errEl.style.display = ''; return;
   }
 
-  if (!confirm(`Found ${events.length} event(s) in range.\n\nSend "${subject}" to your entire Mailchimp audience now?`)) {
-    btn.disabled = false; btn.innerHTML = `${sendIcon} Send Campaign`;
-    return;
+  const confirmMsg = _mcPurpose === 'events'
+    ? `Found ${result.events.length} event(s).\n\nSend "${subject}" to your entire Mailchimp audience now?`
+    : `Send "${subject}" to your entire Mailchimp audience now?`;
+  if (!confirm(confirmMsg)) {
+    btn.disabled = false; btn.innerHTML = `${sendIcon} Send Campaign`; return;
   }
-
-  btn.textContent = 'Building email…';
-  const htmlContent = buildNewsletterHtml(events, startDate, endDate, siteUrl);
 
   btn.textContent = 'Sending…';
-  const res = await SupaDB.mailchimp('send_campaign', { htmlContent, subject, previewText, fromName, replyTo });
+  const res = await SupaDB.mailchimp('send_campaign', { htmlContent: result.html, subject, previewText, fromName, replyTo });
   btn.disabled = false; btn.innerHTML = `${sendIcon} Send Campaign`;
 
   if (res.error) { errEl.textContent = res.error; errEl.style.display = ''; return; }
