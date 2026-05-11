@@ -10,6 +10,26 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
+  <style>
+    /* ── Event Detail Modal (mirrors events.html) ── */
+    .ev-modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:3000;display:none;align-items:center;justify-content:center;padding:20px; }
+    .ev-modal-overlay.open { display:flex; }
+    .ev-modal { background:#fff;border-radius:16px;max-width:640px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.22); }
+    .ev-modal-img-wrap { position:relative; }
+    .ev-modal-img { width:100%;height:220px;object-fit:cover;border-radius:16px 16px 0 0; }
+    .ev-modal-close { position:absolute;top:14px;right:16px;background:rgba(0,0,0,.45);color:#fff;border:none;border-radius:50%;width:32px;height:32px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10; }
+    .ev-modal-body { padding:28px 32px 32px; }
+    .ev-modal-body h2 { font-size:1.5rem;margin:0 0 12px; }
+    .ev-modal-meta { display:flex;flex-direction:column;gap:7px;margin-bottom:18px;font-size:.9rem;color:#555; }
+    .ev-modal-meta span { display:flex;align-items:center;gap:7px; }
+    .ev-modal-desc { font-size:.95rem;line-height:1.7;color:#333;margin-bottom:24px; }
+    .ev-rsvp-section { border-top:1.5px solid #eee;padding-top:22px; }
+    .ev-rsvp-field { margin-bottom:14px; }
+    .ev-rsvp-field label { display:block;font-size:.85rem;font-weight:600;margin-bottom:5px; }
+    .ev-rsvp-field input { width:100%;border:1.5px solid #e4e4e4;border-radius:8px;padding:9px 12px;font-size:.9rem;font-family:inherit;box-sizing:border-box; }
+    .ev-rsvp-success { text-align:center;padding:16px 0; }
+    .ev-rsvp-success .checkmark { font-size:2.5rem;display:block;margin-bottom:8px; }
+  </style>
 </head>
 <body>
 
@@ -260,16 +280,25 @@
   document.getElementById('footerYear').textContent = new Date().getFullYear();
 
   /* Home — load 3 upcoming events */
+  let _homeEvents = [];
+  let _homeRsvpEventId = null, _homeRsvpEventTitle = null;
+
   async function loadHomeEvents() {
     const grid = document.getElementById('homeEventGrid');
     if (!grid) return;
     const events = await SupaDB.getPublishedEvents();
-    const sorted = [...events].sort((a, b) => a.dateSort.localeCompare(b.dateSort)).slice(0, 3);
-    if (!sorted.length) { grid.innerHTML = '<p class="text-muted">No events scheduled. Check back soon!</p>'; return; }
-    grid.innerHTML = sorted.map(ev => {
+    _homeEvents = [...events].sort((a, b) => a.dateSort.localeCompare(b.dateSort)).slice(0, 3);
+    if (!_homeEvents.length) { grid.innerHTML = '<p class="text-muted">No events scheduled. Check back soon!</p>'; return; }
+    grid.innerHTML = _homeEvents.map(ev => {
       const dateParts = ev.date.match(/(\w+)\s+(\d+)/);
       const month = dateParts ? dateParts[1].slice(0,3).toUpperCase() : '';
       const day   = dateParts ? dateParts[2] : '';
+      let dateDisplay = ev.date;
+      if (ev.endDate) {
+        const dp = ev.date.match(/([A-Za-z]+)\s+(\d+)/);
+        const ep = ev.endDate.match(/([A-Za-z]+)\s+(\d+)/);
+        if (dp && ep) dateDisplay = dp[1]===ep[1] ? `${ev.date} – ${ep[2]}` : `${ev.date} – ${ev.endDate}`;
+      }
       return `
       <article class="card" data-reveal>
         <div class="card-img">
@@ -277,16 +306,93 @@
           ${month ? `<div class="date-badge"><span class="month">${month}</span><span class="day">${day}</span></div>` : ''}
         </div>
         <div class="card-body">
-          <div class="card-meta">
-            <span><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${ev.time}</span>
-            <span><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${ev.location.split(',')[0]}</span>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+            ${ev.recurring ? '<span class="group-tag" style="background:rgba(188,122,30,.1);color:var(--primary);">Recurring</span>' : ''}
+            ${ev.category ? `<span class="group-tag" style="background:rgba(21,92,162,.1);color:var(--secondary);">${ev.category}</span>` : ''}
           </div>
-          <h3>${ev.title}</h3>
-          <p>${ev.description.slice(0,90)}${ev.description.length > 90 ? '…' : ''}</p>
-          <a href="events.html" class="btn btn-primary btn-sm" style="margin-top:8px;">Learn More</a>
+          <h3 style="margin-bottom:10px;">${ev.title}</h3>
+          <div class="card-meta" style="margin-bottom:10px;">
+            <span><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${dateDisplay}</span>
+            ${ev.time ? `<span><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${ev.time}</span>` : ''}
+            ${ev.location ? `<span><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${ev.location.split(',')[0]}</span>` : ''}
+          </div>
+          <p>${ev.description.slice(0,100)}${ev.description.length > 100 ? '…' : ''}</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
+            <button class="btn btn-ghost btn-sm" onclick="openHomeEventDetail(${ev.id})">More Info</button>
+            ${ev.rsvpEnabled ? `<button class="btn btn-primary btn-sm" onclick="openHomeEventDetail(${ev.id}, true)">RSVP</button>` : ''}
+          </div>
         </div>
       </article>`;
     }).join('');
+  }
+
+  function openHomeEventDetail(eventId, scrollToRsvp=false) {
+    const ev = _homeEvents.find(e => e.id === eventId);
+    if (!ev) return;
+    _homeRsvpEventId    = ev.id;
+    _homeRsvpEventTitle = ev.title;
+
+    document.getElementById('homeEvDetailImg').src = ev.image || '';
+    document.getElementById('homeEvDetailImg').alt = ev.title;
+
+    const recTag = ev.recurring ? '<span class="group-tag">Recurring</span>' : '';
+    document.getElementById('homeEvDetailTags').innerHTML = recTag + `<span class="group-tag" style="background:rgba(21,92,162,.1);color:var(--secondary);">${ev.category || ''}</span>`;
+
+    document.getElementById('homeEvDetailTitle').textContent = ev.title;
+
+    let dateDisplay = ev.date;
+    if (ev.endDate) {
+      const dp = ev.date.match(/([A-Za-z]+)\s+(\d+)/);
+      const ep = ev.endDate.match(/([A-Za-z]+)\s+(\d+)/);
+      if (dp && ep) dateDisplay = dp[1]===ep[1] ? `${ev.date} – ${ep[2]}` : `${ev.date} – ${ev.endDate}`;
+    }
+    document.getElementById('homeEvDetailMeta').innerHTML = `
+      <span><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${dateDisplay}</span>
+      <span><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${ev.time}</span>
+      <span><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${ev.location}</span>`;
+
+    document.getElementById('homeEvDetailDesc').textContent = ev.description;
+
+    const rsvpSection = document.getElementById('homeEvRsvpSection');
+    if (ev.rsvpEnabled) {
+      rsvpSection.style.display = '';
+      document.getElementById('homeEvRsvpForm').style.display = '';
+      document.getElementById('homeEvRsvpSuccess').style.display = 'none';
+      document.getElementById('homeRsvpName').value = '';
+      document.getElementById('homeRsvpEmail').value = '';
+      document.getElementById('homeRsvpPhone').value = '';
+      document.getElementById('homeRsvpError').style.display = 'none';
+    } else {
+      rsvpSection.style.display = 'none';
+    }
+
+    document.getElementById('homeEvDetailModal').classList.add('open');
+    if (scrollToRsvp && ev.rsvpEnabled) {
+      setTimeout(() => { document.getElementById('homeEvRsvpSection').scrollIntoView({ behavior:'smooth', block:'start' }); }, 100);
+    }
+  }
+
+  function closeHomeEventDetail(e) {
+    if (e && e.target !== document.getElementById('homeEvDetailModal')) return;
+    document.getElementById('homeEvDetailModal').classList.remove('open');
+  }
+
+  async function submitHomeRsvp() {
+    const name  = document.getElementById('homeRsvpName').value.trim();
+    const email = document.getElementById('homeRsvpEmail').value.trim();
+    const phone = document.getElementById('homeRsvpPhone').value.trim();
+    const errEl = document.getElementById('homeRsvpError');
+    errEl.style.display = 'none';
+    if (!name)  { errEl.textContent = 'Please enter your full name.'; errEl.style.display=''; return; }
+    if (!email) { errEl.textContent = 'Please enter your email address.'; errEl.style.display=''; return; }
+    if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) { errEl.textContent = 'Please enter a valid email.'; errEl.style.display=''; return; }
+    const btn = document.getElementById('homeRsvpSubmitBtn');
+    btn.disabled = true; btn.textContent = 'Submitting…';
+    const result = await SupaDB.submitEventRsvp({ eventId: _homeRsvpEventId, eventTitle: _homeRsvpEventTitle, fullName: name, email, phone });
+    btn.disabled = false; btn.textContent = 'Submit RSVP';
+    if (result.error) { errEl.textContent = 'Something went wrong. Please try again.'; errEl.style.display=''; return; }
+    document.getElementById('homeEvRsvpForm').style.display = 'none';
+    document.getElementById('homeEvRsvpSuccess').style.display = '';
   }
 
   /* Home — load 4 groups */
@@ -312,5 +418,38 @@
   loadHomeGroups();
 </script>
 <script src="js/banner.js"></script>
+
+<!-- ── Home Event Detail Modal ───────────────────────────── -->
+<div class="ev-modal-overlay" id="homeEvDetailModal" onclick="closeHomeEventDetail(event)">
+  <div class="ev-modal">
+    <div class="ev-modal-img-wrap">
+      <img class="ev-modal-img" id="homeEvDetailImg" src="" alt="" />
+      <button class="ev-modal-close" onclick="closeHomeEventDetail()">✕</button>
+    </div>
+    <div class="ev-modal-body">
+      <div id="homeEvDetailTags" style="margin-bottom:10px;"></div>
+      <h2 id="homeEvDetailTitle"></h2>
+      <div class="ev-modal-meta" id="homeEvDetailMeta"></div>
+      <p class="ev-modal-desc" id="homeEvDetailDesc"></p>
+
+      <div class="ev-rsvp-section" id="homeEvRsvpSection" style="display:none;">
+        <div id="homeEvRsvpForm">
+          <h3>RSVP for this Event</h3>
+          <div class="ev-rsvp-field"><label>Full Name *</label><input type="text" id="homeRsvpName" placeholder="Your full name" /></div>
+          <div class="ev-rsvp-field"><label>Email *</label><input type="email" id="homeRsvpEmail" placeholder="your@email.com" /></div>
+          <div class="ev-rsvp-field"><label>Phone <span style="font-weight:400;color:#999;">(optional)</span></label><input type="tel" id="homeRsvpPhone" placeholder="(402) 555-0100" /></div>
+          <button class="btn btn-primary" id="homeRsvpSubmitBtn" onclick="submitHomeRsvp()" style="width:100%;justify-content:center;margin-top:4px;">Submit RSVP</button>
+          <p id="homeRsvpError" style="color:#dc2626;font-size:.83rem;margin-top:8px;display:none;"></p>
+        </div>
+        <div class="ev-rsvp-success" id="homeEvRsvpSuccess" style="display:none;">
+          <span class="checkmark">✅</span>
+          <strong style="font-size:1.05rem;">You're signed up!</strong>
+          <p style="color:#555;font-size:.9rem;margin-top:6px;">We'll see you there. Keep an eye on your email for any updates.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
