@@ -7,8 +7,9 @@
    ================================================================ */
 
 /* ── Edge Function URLs ─────────────────────────────────────── */
-const CONTACT_FUNCTION_URL   = SUPABASE_URL + '/functions/v1/send-contact-email';
-const MAILCHIMP_FUNCTION_URL = SUPABASE_URL + '/functions/v1/mailchimp';
+const CONTACT_FUNCTION_URL    = SUPABASE_URL + '/functions/v1/send-contact-email';
+const MAILCHIMP_FUNCTION_URL  = SUPABASE_URL + '/functions/v1/mailchimp';
+const PRAYER_NOTIFY_URL       = SUPABASE_URL + '/functions/v1/notify-pastors';
 
 /* ── Column-name mappers (snake_case DB ↔ camelCase JS) ────── */
 
@@ -463,8 +464,33 @@ window.SupaDB = {
     try {
       const { error } = await db().from('prayer_requests').insert(prayerRequestToDb(req));
       if (error) throw error;
+      // Fire-and-forget pastor notification (non-blocking)
+      fetch(PRAYER_NOTIFY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
+        body: JSON.stringify({ name: req.name || '', email: req.email || '', request: req.request, private: !!req.private }),
+      }).catch(e => console.warn('[SupaDB] Pastor notify failed (non-critical):', e.message));
       return { ok: true };
     } catch(e) { console.error('[SupaDB] submitPrayerRequest:', e.message); return { error: e.message }; }
+  },
+
+  /* ── ADMIN: Pastor Email Settings ──────────────────────── */
+  async getPastorEmails() {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('site_settings').select('value').eq('key', 'pastor_emails').single();
+      if (error) return [];
+      return Array.isArray(data?.value) ? data.value : [];
+    } catch(e) { console.error('[SupaDB] getPastorEmails:', e.message); return []; }
+  },
+  async savePastorEmails(emails) {
+    if (!db()) return { error: 'No DB' };
+    try {
+      const { error } = await db().from('site_settings')
+        .upsert({ key: 'pastor_emails', value: emails, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] savePastorEmails:', e.message); return { error: e.message }; }
   },
 
   /* ── ADMIN: Prayer Requests ─────────────────────────────── */

@@ -456,6 +456,33 @@
         <h2>Prayer Requests</h2>
         <span id="prayerCount" style="font-size:.85rem;color:var(--text-muted);"></span>
       </div>
+
+      <!-- Pastor Notification Settings -->
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:20px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none;" onclick="togglePastorSettings()">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <svg width="15" height="15" fill="none" stroke="var(--secondary)" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <span style="font-size:.9rem;font-weight:700;">Pastor Notifications</span>
+            <span id="pastorEmailBadge" style="font-size:.75rem;color:var(--text-muted);"></span>
+          </div>
+          <svg id="pastorChevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="transition:transform .2s;"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div id="pastorSettingsBody" style="display:none;margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
+          <p style="font-size:.875rem;color:var(--text-muted);margin-bottom:12px;">These addresses receive an email the moment a prayer request is submitted.</p>
+          <div id="pastorEmailList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;"></div>
+          <div style="display:flex;gap:8px;">
+            <input id="newPastorEmail" type="email" placeholder="pastor@heritagehill.church"
+              style="flex:1;padding:.55rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;"
+              onkeydown="if(event.key==='Enter')addPastorEmail()" />
+            <button class="btn btn-secondary btn-sm" onclick="addPastorEmail()">+ Add</button>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px;align-items:center;">
+            <button class="btn btn-primary btn-sm" onclick="savePastorEmailSettings()">Save Emails</button>
+            <span id="pastorSaveMsg" style="font-size:.82rem;display:none;"></span>
+          </div>
+        </div>
+      </div>
+
       <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
         <input type="text" id="prayerSearch" placeholder="Search requests…" oninput="filterPrayerRequests()"
           style="flex:1;min-width:200px;padding:.55rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;" />
@@ -3260,12 +3287,94 @@ function updateBannerPreview() {
   span.innerHTML = html;
 }
 
+/* ── Pastor Email Settings ───────────────────────────────── */
+let _pastorEmails = [];
+let _pastorSettingsOpen = false;
+
+async function togglePastorSettings() {
+  _pastorSettingsOpen = !_pastorSettingsOpen;
+  document.getElementById('pastorSettingsBody').style.display = _pastorSettingsOpen ? '' : 'none';
+  document.getElementById('pastorChevron').style.transform = _pastorSettingsOpen ? 'rotate(180deg)' : '';
+  if (_pastorSettingsOpen && !_pastorEmails.length) {
+    _pastorEmails = await SupaDB.getPastorEmails();
+    renderPastorEmailList();
+  }
+}
+
+function renderPastorEmailList() {
+  const list = document.getElementById('pastorEmailList');
+  const badge = document.getElementById('pastorEmailBadge');
+  badge.textContent = _pastorEmails.length ? `(${_pastorEmails.length} configured)` : '(none configured)';
+  if (!_pastorEmails.length) {
+    list.innerHTML = '<p style="font-size:.82rem;color:var(--text-muted);font-style:italic;">No pastor emails added yet.</p>';
+    return;
+  }
+  list.innerHTML = _pastorEmails.map((email, i) => `
+    <div style="display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:8px 12px;">
+      <svg width="13" height="13" fill="none" stroke="var(--text-muted)" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      <span style="flex:1;font-size:.875rem;">${email}</span>
+      <button class="btn btn-ghost btn-sm" style="padding:.2rem .5rem;font-size:.75rem;" onclick="removePastorEmail(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function addPastorEmail() {
+  const input = document.getElementById('newPastorEmail');
+  const email = input.value.trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    input.style.borderColor = 'var(--danger)';
+    input.focus();
+    setTimeout(() => input.style.borderColor = '', 1500);
+    return;
+  }
+  if (_pastorEmails.includes(email)) {
+    showToast('That email is already in the list.');
+    input.value = '';
+    return;
+  }
+  _pastorEmails.push(email);
+  input.value = '';
+  renderPastorEmailList();
+}
+
+function removePastorEmail(index) {
+  _pastorEmails.splice(index, 1);
+  renderPastorEmailList();
+}
+
+async function savePastorEmailSettings() {
+  const btn = document.querySelector('[onclick="savePastorEmailSettings()"]');
+  const msg = document.getElementById('pastorSaveMsg');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  const result = await SupaDB.savePastorEmails(_pastorEmails);
+  btn.disabled = false;
+  btn.textContent = 'Save Emails';
+  if (result.ok) {
+    msg.textContent = '✓ Saved';
+    msg.style.color = 'var(--success)';
+    msg.style.display = '';
+    setTimeout(() => msg.style.display = 'none', 3000);
+    showToast('Pastor notification emails saved.');
+  } else {
+    msg.textContent = 'Error saving — try again.';
+    msg.style.color = 'var(--danger)';
+    msg.style.display = '';
+  }
+}
+
 /* ── Prayer Requests ─────────────────────────────────────── */
 let _allPrayerRequests = [];
 
 async function renderPrayerTable() {
   _allPrayerRequests = await SupaDB.adminGetAllPrayerRequests();
   filterPrayerRequests();
+  // Update badge even when settings panel is closed
+  SupaDB.getPastorEmails().then(emails => {
+    _pastorEmails = emails;
+    const badge = document.getElementById('pastorEmailBadge');
+    if (badge) badge.textContent = emails.length ? `(${emails.length} configured)` : '(none configured)';
+  });
 }
 
 function filterPrayerRequests() {
@@ -3306,6 +3415,7 @@ function filterPrayerRequests() {
       <td class="td-actions">
         ${prayedBtn}
         <button class="btn btn-ghost btn-sm" onclick="viewPrayerRequest('${r.id}')">View</button>
+        ${!r.private ? `<button class="btn btn-ghost btn-sm" style="color:var(--secondary);border-color:var(--secondary);" onclick="loadIntoPrayerEmail('${r.id}')" title="Load into Email Campaign">✉ Email</button>` : ''}
         <button class="btn btn-danger btn-sm" onclick="deletePrayerReq('${r.id}')">Delete</button>
       </td>
     </tr>`;
@@ -3331,9 +3441,10 @@ function viewPrayerRequest(id) {
     <div style="margin-bottom:12px;"><span style="font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);">From</span><p style="margin:4px 0 0;font-weight:600;">${r.name || 'Anonymous'}</p>${r.email ? `<p style="margin:2px 0 0;font-size:.875rem;"><a href="mailto:${r.email}" style="color:var(--secondary);">${r.email}</a></p>` : ''}</div>
     <div style="margin-bottom:12px;"><span style="font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);">Date</span><p style="margin:4px 0 0;font-size:.9rem;">${date}</p></div>
     <div><span style="font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);">Request</span><p style="margin:8px 0 0;line-height:1.75;font-size:.95rem;white-space:pre-wrap;">${r.request}</p></div>
-    <div style="margin-top:24px;display:flex;gap:10px;">
+    <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;">
       ${!r.prayed ? `<button class="btn btn-secondary" onclick="togglePrayed('${r.id}',true);closePrayerView()">🙏 Mark as Prayed</button>` : `<button class="btn btn-ghost" onclick="togglePrayed('${r.id}',false);closePrayerView()">Unmark Prayed</button>`}
       ${r.email ? `<a href="mailto:${r.email}?subject=Your Prayer Request" class="btn btn-ghost">Reply by Email</a>` : ''}
+      ${!r.private ? `<button class="btn btn-ghost" style="color:var(--secondary);border-color:var(--secondary);" onclick="loadIntoPrayerEmail('${r.id}');closePrayerView()">✉ Add to Email Campaign</button>` : ''}
     </div>
   `;
   document.getElementById('prayerViewModal').classList.add('open');
@@ -3349,6 +3460,37 @@ async function deletePrayerReq(id) {
   _allPrayerRequests = _allPrayerRequests.filter(r => r.id !== id);
   filterPrayerRequests();
   showToast('Prayer request deleted.');
+}
+
+function loadIntoPrayerEmail(id) {
+  const req = _allPrayerRequests.find(r => r.id === id);
+  if (!req) return;
+
+  // Switch to the Email tab and set purpose to Prayer
+  switchTab('email');
+  const sel = document.getElementById('mcPurposeSelect');
+  if (sel) { sel.value = 'prayer'; switchNewsletterPurpose('prayer'); }
+
+  // Find the next empty prayer slot (1–5) and fill it
+  let filled = false;
+  for (let i = 1; i <= 5; i++) {
+    const nameEl = document.getElementById(`pray${i}Name`);
+    const bodyEl = document.getElementById(`pray${i}Body`);
+    if (nameEl && bodyEl && !nameEl.value.trim() && !bodyEl.value.trim()) {
+      nameEl.value = req.name || 'Anonymous';
+      bodyEl.value = req.request;
+      // Scroll the slot into view with a small delay so the tab switch renders first
+      setTimeout(() => nameEl.scrollIntoView({ behavior: 'smooth', block: 'center' }), 150);
+      filled = true;
+      break;
+    }
+  }
+
+  if (filled) {
+    showToast(`✓ Prayer request from ${req.name || 'Anonymous'} added to email campaign.`);
+  } else {
+    showToast('All 5 prayer request slots are full. Clear one to add more.', 'warn');
+  }
 }
 
 async function loadBannerSettings() {
