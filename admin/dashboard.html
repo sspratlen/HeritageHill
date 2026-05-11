@@ -3471,6 +3471,17 @@ function loadIntoPrayerEmail(id) {
   const sel = document.getElementById('mcPurposeSelect');
   if (sel) { sel.value = 'prayer'; switchNewsletterPurpose('prayer'); }
 
+  // Pre-fill the Opening fields
+  const displayName = (req.name || '').trim();
+  const subjectEl = document.getElementById('mcSubject');
+  const previewEl = document.getElementById('mcPreviewText');
+  if (subjectEl && !subjectEl.value.trim()) {
+    subjectEl.value = displayName ? `Prayer for ${displayName}` : 'Prayer for Our Congregation';
+  }
+  if (previewEl && !previewEl.value.trim()) {
+    previewEl.value = 'We are one body, and when one suffers, we all carry it together. It is both a privilege and a sacred duty to bring these requests before the Lord.';
+  }
+
   // Find the next empty prayer slot (1–5) and fill it
   let filled = false;
   for (let i = 1; i <= 5; i++) {
