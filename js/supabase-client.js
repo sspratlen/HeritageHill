@@ -3,7 +3,6 @@
    ================================================================
    ACTION REQUIRED: Replace the two placeholder values below.
    See SUPABASE_SETUP.md for exact instructions.
-   Added so I can repush
    ================================================================ */
 
 const SUPABASE_URL      = 'https://ktyplbmawlaerzohkdqy.supabase.co';
