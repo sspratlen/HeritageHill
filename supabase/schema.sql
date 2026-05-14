@@ -28,12 +28,11 @@ create table if not exists events (
 
 alter table events enable row level security;
 
--- Public: read published events
+drop policy if exists "Public can view published events" on events;
+drop policy if exists "Admin full access to events" on events;
 create policy "Public can view published events"
   on events for select
   using (published = true);
-
--- Admin: full access
 create policy "Admin full access to events"
   on events for all
   using (auth.role() = 'authenticated');
@@ -61,12 +60,11 @@ create table if not exists groups (
 
 alter table groups enable row level security;
 
--- Public: read published groups
+drop policy if exists "Public can view published groups" on groups;
+drop policy if exists "Admin full access to groups" on groups;
 create policy "Public can view published groups"
   on groups for select
   using (published = true);
-
--- Admin: full access
 create policy "Admin full access to groups"
   on groups for all
   using (auth.role() = 'authenticated');
@@ -91,12 +89,11 @@ create table if not exists signups (
 
 alter table signups enable row level security;
 
--- Public: insert only (no select — protects personal info)
+drop policy if exists "Public can submit signups" on signups;
+drop policy if exists "Admin full access to signups" on signups;
 create policy "Public can submit signups"
   on signups for insert
   with check (true);
-
--- Admin: full access
 create policy "Admin full access to signups"
   on signups for all
   using (auth.role() = 'authenticated');
@@ -126,12 +123,11 @@ create table if not exists applications (
 
 alter table applications enable row level security;
 
--- Public: insert only
+drop policy if exists "Public can submit applications" on applications;
+drop policy if exists "Admin full access to applications" on applications;
 create policy "Public can submit applications"
   on applications for insert
   with check (true);
-
--- Admin: full access
 create policy "Admin full access to applications"
   on applications for all
   using (auth.role() = 'authenticated');
@@ -155,12 +151,11 @@ create table if not exists sermons (
 
 alter table sermons enable row level security;
 
--- Public: read published sermons
+drop policy if exists "Public can view published sermons" on sermons;
+drop policy if exists "Admin full access to sermons" on sermons;
 create policy "Public can view published sermons"
   on sermons for select
   using (published = true);
-
--- Admin: full access
 create policy "Admin full access to sermons"
   on sermons for all
   using (auth.role() = 'authenticated');
@@ -185,12 +180,11 @@ alter table subscribers add column if not exists status text   not null default 
 
 alter table subscribers enable row level security;
 
--- Public: insert only (signup form)
+drop policy if exists "Public can subscribe" on subscribers;
+drop policy if exists "Admin full access to subscribers" on subscribers;
 create policy "Public can subscribe"
   on subscribers for insert
   with check (true);
-
--- Admin: full access
 create policy "Admin full access to subscribers"
   on subscribers for all
   using (auth.role() = 'authenticated');
@@ -211,10 +205,11 @@ create table if not exists prayer_requests (
 
 alter table prayer_requests enable row level security;
 
+drop policy if exists "Public can submit prayer requests" on prayer_requests;
+drop policy if exists "Admin full access to prayer requests" on prayer_requests;
 create policy "Public can submit prayer requests"
   on prayer_requests for insert
   with check (true);
-
 create policy "Admin full access to prayer requests"
   on prayer_requests for all
   using (auth.role() = 'authenticated');
@@ -235,10 +230,11 @@ create table if not exists contact_messages (
 
 alter table contact_messages enable row level security;
 
+drop policy if exists "Public can submit contact messages" on contact_messages;
+drop policy if exists "Admin full access to contact messages" on contact_messages;
 create policy "Public can submit contact messages"
   on contact_messages for insert
   with check (true);
-
 create policy "Admin full access to contact messages"
   on contact_messages for all
   using (auth.role() = 'authenticated');
@@ -259,10 +255,11 @@ create table if not exists event_rsvps (
 
 alter table event_rsvps enable row level security;
 
+drop policy if exists "Public can submit RSVPs" on event_rsvps;
+drop policy if exists "Admin full access to event RSVPs" on event_rsvps;
 create policy "Public can submit RSVPs"
   on event_rsvps for insert
   with check (true);
-
 create policy "Admin full access to event RSVPs"
   on event_rsvps for all
   using (auth.role() = 'authenticated');
@@ -279,10 +276,11 @@ create table if not exists site_settings (
 
 alter table site_settings enable row level security;
 
+drop policy if exists "Public can read site settings" on site_settings;
+drop policy if exists "Admin full access to site settings" on site_settings;
 create policy "Public can read site settings"
   on site_settings for select
   using (true);
-
 create policy "Admin full access to site settings"
   on site_settings for all
   using (auth.role() = 'authenticated');
