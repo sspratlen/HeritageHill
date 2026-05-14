@@ -133,15 +133,15 @@ serve(async (req: Request) => {
 
       while (true) {
         const data = await mc(
-          `/lists/${MAILCHIMP_LIST_ID}/members?count=${count}&offset=${offset}&fields=members.email_address,members.merge_fields,members.status,members.tags`
+          `/lists/${MAILCHIMP_LIST_ID}/members?count=${count}&offset=${offset}`
         );
-        const batch = data.members ?? [];
+        const batch = (data.members ?? []) as Record<string, unknown>[];
         allMembers = allMembers.concat(batch);
         if (batch.length < count) break;
         offset += count;
       }
 
-      const members = allMembers.map((m: Record<string, unknown>) => {
+      const members = (allMembers as Record<string, unknown>[]).map((m) => {
         const merge = (m.merge_fields as Record<string, unknown>) ?? {};
         const tags = ((m.tags as Array<{ name: string }>) ?? []).map(t => t.name);
         return {

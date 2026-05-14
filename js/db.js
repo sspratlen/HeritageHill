@@ -452,6 +452,12 @@ window.SupaDB = {
   async upsertSubscribersFromMailchimp(members) {
     if (!db()) return { error: 'Not configured' };
     try {
+      // Delete all existing subscribers then insert fresh from Mailchimp (Mailchimp is source of truth)
+      const { error: delError } = await db().from('subscribers').delete().neq('id', 0);
+      if (delError) throw delError;
+
+      if (!members.length) return { ok: true, count: 0 };
+
       const rows = members.map(m => subscriberToDb({
         firstName: m.firstName || '',
         lastName: m.lastName || '',
@@ -459,8 +465,7 @@ window.SupaDB = {
         tags: m.tags || [],
         status: m.status || 'subscribed',
       }));
-      const { error } = await db().from('subscribers')
-        .upsert(rows, { onConflict: 'email' });
+      const { error } = await db().from('subscribers').insert(rows);
       if (error) throw error;
       return { ok: true, count: rows.length };
     } catch(e) { console.error('[SupaDB] upsertSubscribersFromMailchimp:', e.message); return { error: e.message }; }
