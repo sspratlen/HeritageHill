@@ -380,6 +380,10 @@
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Export CSV
           </button>
+          <button class="btn btn-secondary" id="syncMcBtn" onclick="syncFromMailchimp()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            Sync from Mailchimp
+          </button>
           <button class="btn btn-primary" onclick="openAddSubscriberModal()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Add Subscriber
@@ -399,6 +403,8 @@
             <th>First Name</th>
             <th>Last Name</th>
             <th>Email</th>
+            <th>Tags</th>
+            <th>Status</th>
             <th>Date Subscribed</th>
             <th>Actions</th>
           </tr></thead>
@@ -2479,26 +2485,37 @@ async function renderSubscribersTable() {
   if (count) count.textContent = rows.length + ' of ' + _cachedSubscribers.length + ' subscriber' + (_cachedSubscribers.length !== 1 ? 's' : '');
   if (!rows.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
   empty.style.display = 'none';
-  tbody.innerHTML = rows.map((s, i) => `
+  tbody.innerHTML = rows.map((s, i) => {
+    const tagBadges = (s.tags||[]).map(t =>
+      `<span style="display:inline-block;padding:2px 8px;border-radius:50px;background:rgba(21,92,162,.1);color:var(--secondary);font-size:.75rem;font-weight:600;margin:2px 2px 2px 0;">${t}</span>`
+    ).join('') || '<span style="color:var(--text-muted);font-size:.82rem;">—</span>';
+    const statusColor = s.status === 'subscribed' ? 'var(--success)' : '#999';
+    const statusLabel = s.status || 'subscribed';
+    return `
     <tr>
       <td style="color:var(--text-muted);font-size:.82rem;">${i + 1}</td>
       <td><strong>${s.firstName || '—'}</strong></td>
       <td>${s.lastName || '—'}</td>
       <td><a href="mailto:${s.email}" style="color:var(--secondary);">${s.email}</a></td>
+      <td>${tagBadges}</td>
+      <td><span style="font-size:.78rem;font-weight:600;color:${statusColor};text-transform:capitalize;">${statusLabel}</span></td>
       <td style="font-size:.82rem;color:var(--text-muted);">${s.createdAt ? new Date(s.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—'}</td>
       <td><div class="td-actions">
         <button class="btn btn-danger btn-sm" onclick="deleteItem('subscriber',${s.id},'${(s.email||'').replace(/'/g,"\\'")}')">Remove</button>
       </div></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 function exportSubscribersCSV() {
   if (!_cachedSubscribers.length) { showToast('No subscribers to export.', true); return; }
-  const header = ['Email Address','First Name','Last Name','Date Subscribed'];
+  const header = ['Email Address','First Name','Last Name','Tags','Status','Date Subscribed'];
   const rows = _cachedSubscribers.map(s => [
     '"' + (s.email||'').replace(/"/g,'""') + '"',
     '"' + (s.firstName||'').replace(/"/g,'""') + '"',
     '"' + (s.lastName||'').replace(/"/g,'""') + '"',
+    '"' + (s.tags||[]).join('; ').replace(/"/g,'""') + '"',
+    '"' + (s.status||'subscribed') + '"',
     '"' + (s.createdAt ? new Date(s.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '') + '"'
   ]);
   const csv = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
@@ -2507,6 +2524,26 @@ function exportSubscribersCSV() {
   a.download = 'hhc_subscribers_' + new Date().toISOString().slice(0,10) + '.csv';
   a.click();
   showToast('✓ Exported ' + _cachedSubscribers.length + ' subscribers');
+}
+
+async function syncFromMailchimp() {
+  const btn = document.getElementById('syncMcBtn');
+  btn.disabled = true; btn.textContent = 'Syncing…';
+  try {
+    const res = await SupaDB.mailchimp('get_members');
+    if (res.error || !res.members) {
+      showToast('Mailchimp error: ' + (res.error || 'No members returned'), true);
+      return;
+    }
+    const result = await SupaDB.upsertSubscribersFromMailchimp(res.members);
+    if (result.error) { showToast('Sync error: ' + result.error, true); return; }
+    showToast('✓ Synced ' + result.count + ' contacts from Mailchimp');
+    await renderSubscribersTable();
+    updateStats();
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg> Sync from Mailchimp';
+  }
 }
 
 /* ── MAILCHIMP EMAIL ────────────────────────────────────────── */

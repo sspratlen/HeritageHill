@@ -167,6 +167,128 @@ create policy "Admin full access to sermons"
 
 
 -- ================================================================
+--  SUBSCRIBERS  (newsletter opt-ins, synced with Mailchimp)
+-- ================================================================
+create table if not exists subscribers (
+  id         bigint generated always as identity primary key,
+  first_name text        not null default '',
+  last_name  text        not null default '',
+  email      text        not null unique,
+  tags       text[]      not null default '{}',
+  status     text        not null default 'subscribed',
+  created_at timestamptz not null default now()
+);
+
+-- Safe migrations: add columns if the table already existed without them
+alter table subscribers add column if not exists tags   text[] not null default '{}';
+alter table subscribers add column if not exists status text   not null default 'subscribed';
+
+alter table subscribers enable row level security;
+
+-- Public: insert only (signup form)
+create policy "Public can subscribe"
+  on subscribers for insert
+  with check (true);
+
+-- Admin: full access
+create policy "Admin full access to subscribers"
+  on subscribers for all
+  using (auth.role() = 'authenticated');
+
+
+-- ================================================================
+--  PRAYER REQUESTS
+-- ================================================================
+create table if not exists prayer_requests (
+  id         bigint generated always as identity primary key,
+  name       text,
+  email      text,
+  request    text        not null,
+  private    boolean     not null default false,
+  prayed     boolean     not null default false,
+  created_at timestamptz not null default now()
+);
+
+alter table prayer_requests enable row level security;
+
+create policy "Public can submit prayer requests"
+  on prayer_requests for insert
+  with check (true);
+
+create policy "Admin full access to prayer requests"
+  on prayer_requests for all
+  using (auth.role() = 'authenticated');
+
+
+-- ================================================================
+--  CONTACT MESSAGES
+-- ================================================================
+create table if not exists contact_messages (
+  id         bigint generated always as identity primary key,
+  name       text        not null,
+  email      text        not null,
+  phone      text,
+  message    text        not null,
+  source     text,
+  created_at timestamptz not null default now()
+);
+
+alter table contact_messages enable row level security;
+
+create policy "Public can submit contact messages"
+  on contact_messages for insert
+  with check (true);
+
+create policy "Admin full access to contact messages"
+  on contact_messages for all
+  using (auth.role() = 'authenticated');
+
+
+-- ================================================================
+--  EVENT RSVPs
+-- ================================================================
+create table if not exists event_rsvps (
+  id          bigint generated always as identity primary key,
+  event_id    bigint references events(id) on delete set null,
+  event_title text,
+  full_name   text        not null,
+  email       text        not null,
+  phone       text,
+  created_at  timestamptz not null default now()
+);
+
+alter table event_rsvps enable row level security;
+
+create policy "Public can submit RSVPs"
+  on event_rsvps for insert
+  with check (true);
+
+create policy "Admin full access to event RSVPs"
+  on event_rsvps for all
+  using (auth.role() = 'authenticated');
+
+
+-- ================================================================
+--  SITE SETTINGS  (key/value store for banner, pastor emails, etc.)
+-- ================================================================
+create table if not exists site_settings (
+  key        text primary key,
+  value      jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table site_settings enable row level security;
+
+create policy "Public can read site settings"
+  on site_settings for select
+  using (true);
+
+create policy "Admin full access to site settings"
+  on site_settings for all
+  using (auth.role() = 'authenticated');
+
+
+-- ================================================================
 --  INDEXES  (speed up common queries)
 -- ================================================================
 create index if not exists events_date_sort_idx  on events  (date_sort);

@@ -125,6 +125,37 @@ serve(async (req: Request) => {
       return json({ ok: true, campaignId: campaign.id });
     }
 
+    // ── Get all audience members with tags ─────────────────────
+    if (action === "get_members") {
+      let allMembers: unknown[] = [];
+      let offset = 0;
+      const count = 500;
+
+      while (true) {
+        const data = await mc(
+          `/lists/${MAILCHIMP_LIST_ID}/members?count=${count}&offset=${offset}&fields=members.email_address,members.merge_fields,members.status,members.tags`
+        );
+        const batch = data.members ?? [];
+        allMembers = allMembers.concat(batch);
+        if (batch.length < count) break;
+        offset += count;
+      }
+
+      const members = allMembers.map((m: Record<string, unknown>) => {
+        const merge = (m.merge_fields as Record<string, unknown>) ?? {};
+        const tags = ((m.tags as Array<{ name: string }>) ?? []).map(t => t.name);
+        return {
+          email: m.email_address,
+          firstName: merge.FNAME ?? '',
+          lastName: merge.LNAME ?? '',
+          status: m.status ?? 'subscribed',
+          tags,
+        };
+      });
+
+      return json({ members });
+    }
+
     // ── Get sent campaign history ───────────────────────────────
     if (action === "get_campaigns") {
       const data = await mc(

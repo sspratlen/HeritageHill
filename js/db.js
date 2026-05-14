@@ -125,11 +125,19 @@ function subscriberFromDb(r) {
     firstName: r.first_name || '',
     lastName: r.last_name || '',
     email: r.email,
+    tags: r.tags || [],
+    status: r.status || 'subscribed',
     createdAt: r.created_at,
   };
 }
 function subscriberToDb(s) {
-  return { first_name: s.firstName, last_name: s.lastName, email: s.email };
+  return {
+    first_name: s.firstName || '',
+    last_name: s.lastName || '',
+    email: s.email,
+    tags: s.tags || [],
+    status: s.status || 'subscribed',
+  };
 }
 
 function sermonFromDb(r) {
@@ -439,6 +447,23 @@ window.SupaDB = {
       const { error } = await db().from('subscribers').delete().eq('id', id);
       if (error) throw error;
     } catch(e) { console.error('[SupaDB] deleteSubscriber:', e.message); }
+  },
+
+  async upsertSubscribersFromMailchimp(members) {
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const rows = members.map(m => subscriberToDb({
+        firstName: m.firstName || '',
+        lastName: m.lastName || '',
+        email: m.email,
+        tags: m.tags || [],
+        status: m.status || 'subscribed',
+      }));
+      const { error } = await db().from('subscribers')
+        .upsert(rows, { onConflict: 'email' });
+      if (error) throw error;
+      return { ok: true, count: rows.length };
+    } catch(e) { console.error('[SupaDB] upsertSubscribersFromMailchimp:', e.message); return { error: e.message }; }
   },
 
   /* ── PUBLIC: Contact Form ───────────────────────────────── */
