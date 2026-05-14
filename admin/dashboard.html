@@ -542,9 +542,6 @@
             <select id="mcAudienceTag"
               style="font-family:'DM Sans',sans-serif; font-size:.9rem; font-weight:600; color:var(--text); background:#fff; border:1.5px solid var(--border); border-radius:10px; padding:10px 14px; cursor:pointer; width:100%; appearance:none; background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%236B6B6B' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E&quot;); background-repeat:no-repeat; background-position:right 12px center;">
               <option value="">All Subscribers</option>
-              <option value="Heritage Hill Updates">Heritage Hill Updates</option>
-              <option value="Heritage Hill Kids!">Heritage Hill Kids!</option>
-              <option value="Small Group Leader">Small Group Leader</option>
             </select>
           </div>
 
@@ -1300,7 +1297,7 @@ function switchTab(tab) {
   else if(tab==='rsvps') renderRsvpsPanel();
   else if(tab==='prayer') renderPrayerTable();
   else if(tab==='sermons') renderSermonsTable();
-  else if(tab==='email')    { loadCampaignHistory(); }
+  else if(tab==='email')    { loadCampaignHistory(); loadMailchimpTags(); }
   else if(tab==='settings') loadBannerSettings();
 }
 const urlTab = new URLSearchParams(window.location.search).get('tab');
@@ -3106,6 +3103,24 @@ async function sendMailchimpCampaign() {
   document.getElementById('mcSubject').value = '';
   document.getElementById('mcPreviewText').value = '';
   setTimeout(loadCampaignHistory, 3000);
+}
+
+async function loadMailchimpTags() {
+  const sel = document.getElementById('mcAudienceTag');
+  const current = sel.value;
+  sel.innerHTML = '<option value="" disabled>Loading tags…</option>';
+  sel.disabled = true;
+
+  const res = await SupaDB.mailchimp('get_tags');
+
+  sel.disabled = false;
+  if (res.error || !res.tags) {
+    sel.innerHTML = '<option value="">All Subscribers</option>';
+    return;
+  }
+
+  sel.innerHTML = '<option value="">All Subscribers</option>' +
+    res.tags.map(t => `<option value="${t.name}"${t.name === current ? ' selected' : ''}>${t.name}</option>`).join('');
 }
 
 async function loadCampaignHistory() {
