@@ -2531,8 +2531,17 @@ async function syncFromMailchimp() {
   btn.disabled = true; btn.textContent = 'Syncing…';
   try {
     const res = await SupaDB.mailchimp('get_members');
-    if (res.error || !res.members) {
-      showToast('Mailchimp error: ' + (res.error || 'No members returned'), true);
+    if (res.error) {
+      showToast(res.error, true);
+      console.error('[Sync] Mailchimp error:', res.error);
+      return;
+    }
+    if (!res.members) {
+      showToast('No members returned from Mailchimp — check edge function logs', true);
+      return;
+    }
+    if (res.members.length === 0) {
+      showToast('Mailchimp returned 0 contacts — check API key and List ID in Supabase secrets', true);
       return;
     }
     const result = await SupaDB.upsertSubscribersFromMailchimp(res.members);

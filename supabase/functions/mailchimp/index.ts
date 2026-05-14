@@ -135,7 +135,16 @@ serve(async (req: Request) => {
         const data = await mc(
           `/lists/${MAILCHIMP_LIST_ID}/members?count=${count}&offset=${offset}`
         );
-        const batch = (data.members ?? []) as Record<string, unknown>[];
+
+        // Surface Mailchimp API errors instead of silently returning []
+        if (data.status && data.status !== 200) {
+          return json({ error: `Mailchimp API error: ${data.detail ?? data.title ?? JSON.stringify(data)}` }, 400);
+        }
+        if (!data.members) {
+          return json({ error: `Unexpected Mailchimp response: ${JSON.stringify(data).slice(0, 300)}` }, 400);
+        }
+
+        const batch = data.members as Record<string, unknown>[];
         allMembers = allMembers.concat(batch);
         if (batch.length < count) break;
         offset += count;
@@ -153,7 +162,7 @@ serve(async (req: Request) => {
         };
       });
 
-      return json({ members });
+      return json({ members, total: members.length });
     }
 
     // ── Get sent campaign history ───────────────────────────────
