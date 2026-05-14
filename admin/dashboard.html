@@ -536,6 +536,18 @@
             </select>
           </div>
 
+          <!-- Audience tag selector -->
+          <div class="field" style="margin-bottom:24px;">
+            <label style="font-size:.8rem;">Send To</label>
+            <select id="mcAudienceTag"
+              style="font-family:'DM Sans',sans-serif; font-size:.9rem; font-weight:600; color:var(--text); background:#fff; border:1.5px solid var(--border); border-radius:10px; padding:10px 14px; cursor:pointer; width:100%; appearance:none; background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%236B6B6B' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E&quot;); background-repeat:no-repeat; background-position:right 12px center;">
+              <option value="">All Subscribers</option>
+              <option value="Heritage Hill Updates">Heritage Hill Updates</option>
+              <option value="Heritage Hill Kids!">Heritage Hill Kids!</option>
+              <option value="Small Group Leader">Small Group Leader</option>
+            </select>
+          </div>
+
           <!-- ── OPENING CARD (all modes, label changes per type) ── -->
           <div id="mcOpeningCard" style="border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:14px;">
             <div style="margin-bottom:12px;">
@@ -3059,6 +3071,7 @@ async function sendMailchimpCampaign() {
   const previewText = document.getElementById('mcPreviewText').value.trim();
   const fromName    = document.getElementById('mcFromName').value.trim();
   const replyTo     = document.getElementById('mcReplyTo').value.trim();
+  const tag         = document.getElementById('mcAudienceTag').value;
   const errEl       = document.getElementById('mcSendError');
   const btn         = document.getElementById('mcSendBtn');
   const sendIcon    = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
@@ -3075,15 +3088,16 @@ async function sendMailchimpCampaign() {
     errEl.textContent = result.error; errEl.style.display = ''; return;
   }
 
+  const audienceLabel = tag ? `subscribers tagged "${tag}"` : 'your entire Mailchimp audience';
   const confirmMsg = _mcPurpose === 'events'
-    ? `Found ${result.events.length} event(s).\n\nSend "${subject}" to your entire Mailchimp audience now?`
-    : `Send "${subject}" to your entire Mailchimp audience now?`;
+    ? `Found ${result.events.length} event(s).\n\nSend "${subject}" to ${audienceLabel} now?`
+    : `Send "${subject}" to ${audienceLabel} now?`;
   if (!confirm(confirmMsg)) {
     btn.disabled = false; btn.innerHTML = `${sendIcon} Send Campaign`; return;
   }
 
   btn.textContent = 'Sending…';
-  const res = await SupaDB.mailchimp('send_campaign', { htmlContent: result.html, subject, previewText, fromName, replyTo });
+  const res = await SupaDB.mailchimp('send_campaign', { htmlContent: result.html, subject, previewText, fromName, replyTo, ...(tag ? { tag } : {}) });
   btn.disabled = false; btn.innerHTML = `${sendIcon} Send Campaign`;
 
   if (res.error) { errEl.textContent = res.error; errEl.style.display = ''; return; }
