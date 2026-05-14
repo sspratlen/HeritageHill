@@ -26,8 +26,8 @@ serve(async (req: Request) => {
   }
 
   const MAILCHIMP_API_KEY = Deno.env.get("MAILCHIMP_API_KEY") ?? "";
-  const MAILCHIMP_LIST_ID = Deno.env.get("MAILCHIMP_LIST_ID") ?? "";
-  const DC = MAILCHIMP_API_KEY.split("-").pop() ?? "us1";
+  const MAILCHIMP_LIST_ID = Deno.env.get("MAILCHIMP_AUDIENCE_ID") ?? Deno.env.get("MAILCHIMP_LIST_ID") ?? "";
+  const DC = Deno.env.get("MAILCHIMP_SERVER_PREFIX") || MAILCHIMP_API_KEY.split("-").pop() || "us1";
   const BASE = `https://${DC}.api.mailchimp.com/3.0`;
   const AUTH = "Basic " + btoa(`anystring:${MAILCHIMP_API_KEY}`);
 
