@@ -575,6 +575,25 @@ window.SupaDB = {
   },
 
   /* ── Site Settings (banner, etc.) ──────────────────────── */
+  /* ── Site Settings: Save the Dates ─────────────────────────── */
+  async getSaveDates() {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('site_settings').select('value').eq('key', 'save_the_dates').single();
+      if (error) return [];
+      return Array.isArray(data?.value) ? data.value : [];
+    } catch(e) { console.error('[SupaDB] getSaveDates:', e.message); return []; }
+  },
+  async saveSaveDates(items) {
+    if (!db()) return { error: 'No DB' };
+    try {
+      const { error } = await db().from('site_settings')
+        .upsert({ key: 'save_the_dates', value: items, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] saveSaveDates:', e.message); return { error: e.message }; }
+  },
+
   async getBannerSettings() {
     if (!db()) return null;
     try {

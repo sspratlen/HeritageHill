@@ -881,6 +881,48 @@
             <button class="btn btn-ghost" onclick="loadBannerSettings()">Reset</button>
           </div>
         </div>
+
+        <!-- Save the Dates Card -->
+        <div style="background:var(--bg-card);border:1.5px solid var(--border);border-radius:14px;padding:28px 32px;margin-top:24px;">
+          <div style="margin-bottom:20px;">
+            <h3 style="margin:0 0 4px;font-size:1.05rem;">Save the Date</h3>
+            <p style="margin:0;font-size:.85rem;color:var(--text-muted);">Upcoming dates shown as a block section on the Events page.</p>
+          </div>
+
+          <!-- Existing items list -->
+          <div id="saveDatesList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+
+          <!-- Add new item form -->
+          <div style="border:1px solid var(--border);border-radius:10px;padding:16px;background:var(--bg);">
+            <p style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin:0 0 12px;">Add Item</p>
+            <div style="display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-bottom:10px;">
+              <div class="field" style="margin:0;">
+                <label style="font-size:.8rem;">Date *</label>
+                <input type="text" id="sdDate" placeholder="e.g. July 17-20" />
+              </div>
+              <div class="field" style="margin:0;">
+                <label style="font-size:.8rem;">Title *</label>
+                <input type="text" id="sdTitle" placeholder="e.g. Kid's Camp" />
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+              <div class="field" style="margin:0;">
+                <label style="font-size:.8rem;">Location <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+                <input type="text" id="sdLocation" placeholder="e.g. Heritage Hill Church" />
+              </div>
+              <div class="field" style="margin:0;">
+                <label style="font-size:.8rem;">Note <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+                <input type="text" id="sdNote" placeholder="e.g. Registration required" />
+              </div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="addSaveDate()">+ Add</button>
+          </div>
+
+          <div style="margin-top:16px;display:flex;gap:10px;align-items:center;">
+            <button class="btn btn-primary" onclick="saveSaveDates()">Save</button>
+            <span id="sdSaveMsg" style="font-size:.82rem;display:none;"></span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1304,7 +1346,7 @@ function switchTab(tab) {
   else if(tab==='prayer') renderPrayerTable();
   else if(tab==='sermons') renderSermonsTable();
   else if(tab==='email')    { loadCampaignHistory(); loadMailchimpTags(); }
-  else if(tab==='settings') loadBannerSettings();
+  else if(tab==='settings') { loadBannerSettings(); loadSaveDatesSettings(); }
 }
 const urlTab = new URLSearchParams(window.location.search).get('tab');
 if(ALL_TABS.includes(urlTab)) switchTab(urlTab); else renderEventsTable();
@@ -3616,6 +3658,61 @@ async function saveBannerSettings() {
   const result = await SupaDB.saveBannerSettings(settings);
   if (result && result.error) { showToast('Error saving banner: ' + result.error, true); return; }
   showToast('Banner saved! Changes are live on the site. ✓');
+}
+
+/* ── SAVE THE DATES ─────────────────────────────────────────── */
+let _saveDates = [];
+
+async function loadSaveDatesSettings() {
+  _saveDates = await SupaDB.getSaveDates();
+  renderSaveDatesList();
+}
+
+function renderSaveDatesList() {
+  const el = document.getElementById('saveDatesList');
+  if (!_saveDates.length) {
+    el.innerHTML = '<p style="font-size:.85rem;color:var(--text-muted);margin:0;">No items yet — add one below.</p>';
+    return;
+  }
+  el.innerHTML = _saveDates.map((item, i) => `
+    <div style="display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;">
+      <div style="flex:1;min-width:0;">
+        <span style="font-weight:700;color:var(--primary);font-size:.85rem;">${item.date}</span>
+        <span style="color:var(--text);font-size:.85rem;margin-left:10px;">${item.title}</span>
+        ${item.location ? `<span style="color:var(--text-muted);font-size:.78rem;margin-left:8px;">· ${item.location}</span>` : ''}
+        ${item.note ? `<span style="color:var(--text-muted);font-size:.78rem;margin-left:6px;font-style:italic;">${item.note}</span>` : ''}
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="deleteSaveDate(${i})" style="color:#ef4444;flex-shrink:0;">Remove</button>
+    </div>`).join('');
+}
+
+function addSaveDate() {
+  const date  = document.getElementById('sdDate').value.trim();
+  const title = document.getElementById('sdTitle').value.trim();
+  const location = document.getElementById('sdLocation').value.trim();
+  const note  = document.getElementById('sdNote').value.trim();
+  if (!date || !title) { showToast('Date and Title are required.', true); return; }
+  _saveDates.push({ date, title, ...(location && { location }), ...(note && { note }) });
+  renderSaveDatesList();
+  document.getElementById('sdDate').value = '';
+  document.getElementById('sdTitle').value = '';
+  document.getElementById('sdLocation').value = '';
+  document.getElementById('sdNote').value = '';
+}
+
+function deleteSaveDate(index) {
+  _saveDates.splice(index, 1);
+  renderSaveDatesList();
+}
+
+async function saveSaveDates() {
+  const msg = document.getElementById('sdSaveMsg');
+  const result = await SupaDB.saveSaveDates(_saveDates);
+  if (result && result.error) { showToast('Error saving: ' + result.error, true); return; }
+  msg.textContent = 'Saved! ✓';
+  msg.style.color = 'var(--primary)';
+  msg.style.display = '';
+  setTimeout(() => msg.style.display = 'none', 3000);
 }
 </script>
 </body>
