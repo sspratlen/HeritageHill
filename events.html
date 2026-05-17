@@ -120,12 +120,12 @@
 <!-- ── Save the Date ─────────────────────────────────────── -->
 <section class="section-sm" id="saveDatesSection" style="display:none; background:#1C1F28;">
   <div class="container">
-    <div style="max-width:600px; margin:0 auto 40px; text-align:center;">
+    <div style="max-width:860px; margin:0 auto 32px; text-align:center;">
       <div style="height:1px; background:linear-gradient(to right, transparent, rgba(188,122,30,.65) 30%, rgba(188,122,30,.65) 70%, transparent); margin-bottom:16px;"></div>
       <div style="font-family:'Oswald',sans-serif; font-size:2rem; font-weight:700; letter-spacing:.35em; text-transform:uppercase; -webkit-text-stroke:1.5px #BC7A1E; color:transparent; display:inline-block; padding:0 4px;">Save the Date</div>
       <div style="height:1px; background:linear-gradient(to right, transparent, rgba(188,122,30,.65) 30%, rgba(188,122,30,.65) 70%, transparent); margin-top:16px;"></div>
     </div>
-    <div id="saveDatesGrid" style="display:flex; flex-direction:column; gap:10px; max-width:680px; margin:0 auto;"></div>
+    <div id="saveDatesGrid" style="display:flex; flex-direction:column; gap:8px; max-width:860px; margin:0 auto;"></div>
   </div>
 </section>
 
@@ -339,14 +339,14 @@ async function submitSubscribe() {
     if (!items || !items.length) return;
     document.getElementById('saveDatesSection').style.display = '';
     document.getElementById('saveDatesGrid').innerHTML = items.map(item => `
-      <div style="display:flex; align-items:center; gap:0; background:#262A36; border:1px solid rgba(255,255,255,.07); border-radius:10px; overflow:hidden;">
-        <div style="flex-shrink:0; padding:18px 22px; border-right:1px solid rgba(255,255,255,.08); min-width:120px; text-align:center;">
-          <div style="font-family:'Oswald',sans-serif; font-weight:700; font-size:1.25rem; text-transform:uppercase; letter-spacing:.06em; color:#BC7A1E; line-height:1.2;">${item.date}</div>
+      <div style="display:flex; align-items:center; background:#262A36; border:1px solid rgba(255,255,255,.07); border-radius:8px; overflow:hidden;">
+        <div style="flex-shrink:0; white-space:nowrap; padding:12px 18px; border-right:1px solid rgba(255,255,255,.08); text-align:center;">
+          <div style="font-family:'Oswald',sans-serif; font-weight:700; font-size:1.1rem; text-transform:uppercase; letter-spacing:.06em; color:#BC7A1E; line-height:1.2;">${item.date}</div>
         </div>
-        <div style="flex:1; padding:18px 22px;">
-          <div style="font-family:'DM Sans',sans-serif; font-size:1rem; font-weight:600; color:#fff; line-height:1.3;">${item.title}</div>
-          ${item.location ? `<div style="font-size:.82rem; color:rgba(255,255,255,.45); margin-top:4px;">${item.location}</div>` : ''}
-          ${item.note ? `<div style="font-size:.78rem; color:rgba(255,255,255,.3); margin-top:3px; font-style:italic;">${item.note}</div>` : ''}
+        <div style="flex:1; padding:12px 18px;">
+          <div style="font-family:'DM Sans',sans-serif; font-size:.95rem; font-weight:600; color:#fff; line-height:1.3;">${item.title}</div>
+          ${item.location ? `<div style="font-size:.8rem; color:rgba(255,255,255,.45); margin-top:3px;">${item.location}</div>` : ''}
+          ${item.note ? `<div style="font-size:.76rem; color:rgba(255,255,255,.3); margin-top:2px; font-style:italic;">${item.note}</div>` : ''}
         </div>
       </div>`).join('');
   });
