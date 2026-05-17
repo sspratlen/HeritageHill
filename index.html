@@ -8,7 +8,7 @@
   <link rel="icon" href="assets/logos/logo-icon-color-white.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
   <style>
     /* ── Event Detail Modal (mirrors events.html) ── */
@@ -147,13 +147,14 @@
 </section>
 
 <!-- ── Save the Date ─────────────────────────────────────── -->
-<section class="section-sm" id="homeSaveDatesSection" style="display:none; background:#0D0F14;">
+<section class="section-sm" id="homeSaveDatesSection" style="display:none; background:#1C1F28;">
   <div class="container">
-    <div style="text-align:center; margin-bottom:36px;" data-reveal>
-      <span class="section-label" style="color:rgba(255,255,255,.45);">Coming Up</span>
-      <h2 style="font-size:1.7rem; margin:6px 0 0; color:#fff; letter-spacing:.04em; text-transform:uppercase;">Save the Date</h2>
+    <div style="max-width:600px; margin:0 auto 40px; text-align:center;" data-reveal>
+      <div style="height:1px; background:linear-gradient(to right, transparent, rgba(188,122,30,.65) 30%, rgba(188,122,30,.65) 70%, transparent); margin-bottom:16px;"></div>
+      <div style="font-family:'Oswald',sans-serif; font-size:2rem; font-weight:700; letter-spacing:.35em; text-transform:uppercase; -webkit-text-stroke:1.5px #BC7A1E; color:transparent; display:inline-block; padding:0 4px;">Save the Date</div>
+      <div style="height:1px; background:linear-gradient(to right, transparent, rgba(188,122,30,.65) 30%, rgba(188,122,30,.65) 70%, transparent); margin-top:16px;"></div>
     </div>
-    <div id="homeSaveDatesGrid" style="display:flex; flex-direction:column; max-width:720px; margin:0 auto;"></div>
+    <div id="homeSaveDatesGrid" style="display:flex; flex-direction:column; gap:10px; max-width:680px; margin:0 auto;"></div>
   </div>
 </section>
 
@@ -451,16 +452,15 @@
   SupaDB.getSaveDates().then(items => {
     if (!items || !items.length) return;
     document.getElementById('homeSaveDatesSection').style.display = '';
-    document.getElementById('homeSaveDatesGrid').innerHTML = items.map((item, i) => `
-      <div style="display:flex; align-items:center; gap:28px; padding:22px 0; ${i < items.length - 1 ? 'border-bottom:1px solid rgba(255,255,255,.09);' : ''}">
-        <div style="flex-shrink:0; width:4px; align-self:stretch; background:#BC7A1E; border-radius:2px;"></div>
-        <div style="flex-shrink:0; min-width:130px;">
-          <div style="color:#BC7A1E; font-weight:900; font-size:1.45rem; line-height:1.15; text-transform:uppercase; letter-spacing:.03em;">${item.date}</div>
+    document.getElementById('homeSaveDatesGrid').innerHTML = items.map(item => `
+      <div style="display:flex; align-items:center; gap:0; background:#262A36; border:1px solid rgba(255,255,255,.07); border-radius:10px; overflow:hidden;">
+        <div style="flex-shrink:0; padding:18px 22px; border-right:1px solid rgba(255,255,255,.08); min-width:120px; text-align:center;">
+          <div style="font-family:'Oswald',sans-serif; font-weight:700; font-size:1.25rem; text-transform:uppercase; letter-spacing:.06em; color:#BC7A1E; line-height:1.2;">${item.date}</div>
         </div>
-        <div style="flex:1;">
-          <div style="color:#fff; font-size:1.1rem; font-weight:700; line-height:1.3;">${item.title}</div>
-          ${item.location ? `<div style="color:rgba(255,255,255,.5); font-size:.85rem; margin-top:4px;">${item.location}</div>` : ''}
-          ${item.note ? `<div style="color:rgba(255,255,255,.38); font-size:.8rem; margin-top:2px; font-style:italic;">${item.note}</div>` : ''}
+        <div style="flex:1; padding:18px 22px;">
+          <div style="font-family:'DM Sans',sans-serif; font-size:1rem; font-weight:600; color:#fff; line-height:1.3;">${item.title}</div>
+          ${item.location ? `<div style="font-size:.82rem; color:rgba(255,255,255,.45); margin-top:4px;">${item.location}</div>` : ''}
+          ${item.note ? `<div style="font-size:.78rem; color:rgba(255,255,255,.3); margin-top:3px; font-style:italic;">${item.note}</div>` : ''}
         </div>
       </div>`).join('');
   });
