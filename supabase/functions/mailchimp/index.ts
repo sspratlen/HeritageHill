@@ -13,6 +13,13 @@
 // ================================================================
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { crypto as stdCrypto } from "https://deno.land/std@0.168.0/crypto/mod.ts";
+
+async function subscriberHash(email: string): Promise<string> {
+  const data = new TextEncoder().encode(email.toLowerCase().trim());
+  const buf = await stdCrypto.subtle.digest("MD5", data);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -185,6 +192,34 @@ serve(async (req: Request) => {
         };
       });
       return json({ campaigns });
+    }
+
+    // ── Upsert member and apply a tag ─────────────────────────
+    if (action === "tag_member") {
+      const { email, firstName = "", lastName = "", tag } = p;
+      if (!email || !tag) return json({ error: "email and tag are required" }, 400);
+
+      const hash = await subscriberHash(email);
+
+      // Upsert: creates member if new, preserves status if already subscribed
+      await mc(`/lists/${MAILCHIMP_LIST_ID}/members/${hash}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          email_address: email,
+          status_if_new: "subscribed",
+          merge_fields: { FNAME: firstName, LNAME: lastName },
+        }),
+      });
+
+      // Add the tag
+      await mc(`/lists/${MAILCHIMP_LIST_ID}/members/${hash}/tags`, {
+        method: "POST",
+        body: JSON.stringify({
+          tags: [{ name: tag, status: "active" }],
+        }),
+      });
+
+      return json({ ok: true });
     }
 
     return json({ error: "Unknown action" }, 400);
