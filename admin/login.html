@@ -121,6 +121,27 @@
       border: 1px solid var(--border);
     }
     .hint strong { color: var(--text); }
+    .forgot-link {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .85rem;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .forgot-link:hover { color: var(--primary-dark); }
+    .success-msg {
+      background: rgba(34,197,94,.08);
+      border: 1px solid rgba(34,197,94,.3);
+      color: #16a34a;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: .875rem;
+      margin-top: 14px;
+    }
   </style>
 </head>
 <body>
@@ -148,8 +169,27 @@
         <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required />
       </div>
       <button type="submit" class="btn-login" id="loginBtn">Sign In</button>
+      <div style="text-align:center; margin-top:14px;">
+        <button type="button" class="forgot-link" onclick="showForgot()">Forgot password?</button>
+      </div>
       <div class="error-msg" id="errorMsg">Incorrect email or password. Please try again.</div>
     </form>
+  </div>
+
+  <!-- Forgot password card -->
+  <div class="login-card" id="forgotCard" style="display:none;">
+    <h2>Reset Password</h2>
+    <p>Enter your admin email and we'll send you a reset link.</p>
+    <div class="form-group" id="forgotInputGroup">
+      <label for="forgotEmail">Email Address</label>
+      <input type="email" id="forgotEmail" placeholder="you@example.com" autocomplete="email" />
+    </div>
+    <button class="btn-login" id="forgotBtn" onclick="handleForgotPassword()">Send Reset Link</button>
+    <div class="error-msg" id="forgotError"></div>
+    <div class="success-msg" id="forgotSuccess" style="display:none;">Check your inbox — a reset link is on its way.</div>
+    <div style="text-align:center; margin-top:14px;">
+      <button type="button" class="forgot-link" onclick="showLogin()">← Back to sign in</button>
+    </div>
   </div>
 
   <!-- Set password card (shown when arriving via invite or password-reset link) -->
@@ -247,6 +287,56 @@
     } else {
       const redirect = new URLSearchParams(window.location.search).get('next') || 'dashboard.html';
       window.location.href = redirect;
+    }
+  }
+
+  // ── Forgot password flow ──
+  function showForgot() {
+    document.getElementById('loginCard').style.display = 'none';
+    document.getElementById('forgotCard').style.display = 'block';
+    // Pre-fill email if already typed
+    const typed = document.getElementById('emailInput').value.trim();
+    if (typed) document.getElementById('forgotEmail').value = typed;
+    document.getElementById('forgotEmail').focus();
+  }
+
+  function showLogin() {
+    document.getElementById('forgotCard').style.display = 'none';
+    document.getElementById('loginCard').style.display = 'block';
+    document.getElementById('emailInput').focus();
+  }
+
+  async function handleForgotPassword() {
+    const email = document.getElementById('forgotEmail').value.trim();
+    const btn   = document.getElementById('forgotBtn');
+    const err   = document.getElementById('forgotError');
+    const suc   = document.getElementById('forgotSuccess');
+
+    err.classList.remove('show');
+    suc.style.display = 'none';
+
+    if (!email) {
+      err.textContent = 'Please enter your email address.';
+      err.classList.add('show');
+      document.getElementById('forgotEmail').focus();
+      return;
+    }
+
+    btn.textContent = 'Sending…';
+    btn.disabled = true;
+
+    const redirectTo = window.location.origin + window.location.pathname;
+    const { error } = await window._supabase.auth.resetPasswordForEmail(email, { redirectTo });
+
+    if (error) {
+      err.textContent = error.message || 'Something went wrong. Please try again.';
+      err.classList.add('show');
+      btn.textContent = 'Send Reset Link';
+      btn.disabled = false;
+    } else {
+      document.getElementById('forgotInputGroup').style.display = 'none';
+      btn.style.display = 'none';
+      suc.style.display = 'block';
     }
   }
 
