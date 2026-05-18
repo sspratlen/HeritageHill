@@ -14,6 +14,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { crypto as stdCrypto } from "https://deno.land/std@0.168.0/crypto/mod.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 async function subscriberHash(email: string): Promise<string> {
   const data = new TextEncoder().encode(email.toLowerCase().trim());
@@ -66,7 +67,7 @@ serve(async (req: Request) => {
     const body = await req.json();
     const { action, ...p } = body;
 
-    // ── Add subscriber to Mailchimp audience ────────────────────
+    // ── Add subscriber to Mailchimp audience (PUBLIC — no auth required) ──
     if (action === "add_subscriber") {
       const { email, firstName = "", lastName = "" } = p;
       if (!email) return json({ error: "email is required" }, 400);
@@ -81,6 +82,17 @@ serve(async (req: Request) => {
       });
 
       return json({ ok: true });
+    }
+
+    // ── Admin-only actions: verify authenticated session ────────
+    const token = (req.headers.get("Authorization") ?? "").replace("Bearer ", "");
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+    const { data: { user } } = await supabase.auth.getUser(token);
+    if (!user) {
+      return json({ error: "Unauthorized" }, 401);
     }
 
     // ── Send a Mailchimp campaign ───────────────────────────────
