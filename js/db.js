@@ -449,6 +449,16 @@ window.SupaDB = {
     } catch(e) { console.error('[SupaDB] deleteSubscriber:', e.message); }
   },
 
+  async upsertSubscriber(sub) {
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const { error } = await db().from('subscribers')
+        .upsert(subscriberToDb(sub), { onConflict: 'email' });
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] upsertSubscriber:', e.message); return { error: e.message }; }
+  },
+
   async upsertSubscribersFromMailchimp(members) {
     if (!db()) return { error: 'Not configured' };
     try {
