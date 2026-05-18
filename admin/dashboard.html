@@ -3682,15 +3682,56 @@ function renderSaveDatesList() {
     return;
   }
   el.innerHTML = _saveDates.map((item, i) => `
-    <div style="display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;">
-      <div style="flex:1;min-width:0;">
-        <span style="font-weight:700;color:var(--primary);font-size:.85rem;">${item.date}</span>
-        <span style="color:var(--text);font-size:.85rem;margin-left:10px;">${item.title}</span>
-        ${item.location ? `<span style="color:var(--text-muted);font-size:.78rem;margin-left:8px;">· ${item.location}</span>` : ''}
-        ${item.note ? `<span style="color:var(--text-muted);font-size:.78rem;margin-left:6px;font-style:italic;">${item.note}</span>` : ''}
+    <div id="sdRow${i}" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;">
+      <!-- View mode -->
+      <div id="sdView${i}" style="display:flex;align-items:center;gap:10px;">
+        <div style="flex:1;min-width:0;">
+          <span style="font-weight:700;color:var(--primary);font-size:.85rem;">${item.date}</span>
+          <span style="color:var(--text);font-size:.85rem;margin-left:10px;">${item.title}</span>
+          ${item.location ? `<span style="color:var(--text-muted);font-size:.78rem;margin-left:8px;">· ${item.location}</span>` : ''}
+          ${item.note ? `<span style="color:var(--text-muted);font-size:.78rem;margin-left:6px;font-style:italic;">${item.note}</span>` : ''}
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="editSaveDate(${i})">Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="deleteSaveDate(${i})" style="color:#ef4444;">Remove</button>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="deleteSaveDate(${i})" style="color:#ef4444;flex-shrink:0;">Remove</button>
+      <!-- Edit mode (hidden by default) -->
+      <div id="sdEdit${i}" style="display:none;">
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-bottom:8px;">
+          <div class="field" style="margin:0;"><label style="font-size:.78rem;">Date *</label><input type="text" id="sdEDate${i}" value="${item.date||''}" placeholder="e.g. July 17-20" /></div>
+          <div class="field" style="margin:0;"><label style="font-size:.78rem;">Title *</label><input type="text" id="sdETitle${i}" value="${item.title||''}" placeholder="e.g. Kid's Camp" /></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div class="field" style="margin:0;"><label style="font-size:.78rem;">Location <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label><input type="text" id="sdELoc${i}" value="${item.location||''}" placeholder="e.g. Heritage Hill Church" /></div>
+          <div class="field" style="margin:0;"><label style="font-size:.78rem;">Note <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label><input type="text" id="sdENote${i}" value="${item.note||''}" placeholder="e.g. Registration required" /></div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary btn-sm" onclick="commitSaveDate(${i})">Save</button>
+          <button class="btn btn-ghost btn-sm" onclick="cancelEditSaveDate(${i})">Cancel</button>
+        </div>
+      </div>
     </div>`).join('');
+}
+
+function editSaveDate(i) {
+  document.getElementById('sdView'+i).style.display = 'none';
+  document.getElementById('sdEdit'+i).style.display = '';
+  document.getElementById('sdEDate'+i).focus();
+}
+
+function cancelEditSaveDate(i) {
+  document.getElementById('sdEdit'+i).style.display = 'none';
+  document.getElementById('sdView'+i).style.display = 'flex';
+}
+
+async function commitSaveDate(i) {
+  const date     = document.getElementById('sdEDate'+i).value.trim();
+  const title    = document.getElementById('sdETitle'+i).value.trim();
+  const location = document.getElementById('sdELoc'+i).value.trim();
+  const note     = document.getElementById('sdENote'+i).value.trim();
+  if (!date || !title) { showToast('Date and Title are required.', true); return; }
+  _saveDates[i] = { date, title, ...(location && { location }), ...(note && { note }) };
+  renderSaveDatesList();
+  await saveSaveDates();
 }
 
 function addSaveDate() {
