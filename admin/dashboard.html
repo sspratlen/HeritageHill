@@ -1864,9 +1864,11 @@ async function approveApplication(id){
     const TAG='Small Group Leader';
     SupaDB.mailchimp('tag_member',{email:a.email,firstName,lastName,tag:TAG});
     SupaDB.upsertSubscriber({firstName,lastName,email:a.email,tags:[TAG],status:'subscribed'});
+    // Fire-and-forget approval email to applicant
+    SupaDB.notifyLeaderApproved(a.email, a.name, a.groupName);
   }
   renderApplicationsTable();updateStats();
-  showToast(`✓ Approved! Draft group "${a.groupName}" created — review in Small Groups.`);
+  showToast(`✓ Approved! Draft group "${a.groupName}" created — approval email sent to ${a.email||'leader'}.`);
 }
 async function rejectApplication(id){
   await SupaDB.updateApplication(id,{status:'rejected'});

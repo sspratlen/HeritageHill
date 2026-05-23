@@ -7,9 +7,10 @@
    ================================================================ */
 
 /* ── Edge Function URLs ─────────────────────────────────────── */
-const CONTACT_FUNCTION_URL    = SUPABASE_URL + '/functions/v1/send-contact-email';
-const MAILCHIMP_FUNCTION_URL  = SUPABASE_URL + '/functions/v1/mailchimp';
-const PRAYER_NOTIFY_URL       = SUPABASE_URL + '/functions/v1/notify-pastors';
+const CONTACT_FUNCTION_URL       = SUPABASE_URL + '/functions/v1/send-contact-email';
+const MAILCHIMP_FUNCTION_URL     = SUPABASE_URL + '/functions/v1/mailchimp';
+const PRAYER_NOTIFY_URL          = SUPABASE_URL + '/functions/v1/notify-pastors';
+const LEADER_APPROVED_NOTIFY_URL = SUPABASE_URL + '/functions/v1/notify-leader-approved';
 
 /* ── Column-name mappers (snake_case DB ↔ camelCase JS) ────── */
 
@@ -531,6 +532,15 @@ window.SupaDB = {
       if (error) throw error;
       return { ok: true };
     } catch(e) { console.error('[SupaDB] savePastorEmails:', e.message); return { error: e.message }; }
+  },
+
+  /* ── ADMIN: Leader Approval Notification ───────────────── */
+  notifyLeaderApproved(applicantEmail, applicantName, groupName) {
+    fetch(LEADER_APPROVED_NOTIFY_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
+      body:    JSON.stringify({ applicantEmail, applicantName, groupName }),
+    }).catch(e => console.warn('[SupaDB] Leader approval notify failed (non-critical):', e.message));
   },
 
   /* ── ADMIN: Prayer Requests ─────────────────────────────── */
