@@ -268,10 +268,11 @@
 <script src="../js/db.js"></script>
 <script>
 /* ── Auth guard ── */
-supabaseClient.auth.getSession().then(({ data: { session } }) => {
-  if (!session) { window.location.href = 'login.html'; return; }
+(async () => {
+  const user = await SupaDB.getUser();
+  if (!user) { window.location.href = 'login.html'; return; }
   init();
-});
+})();
 
 let _allData = [];
 let _range   = 13;
