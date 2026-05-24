@@ -267,23 +267,32 @@
 <script src="../js/supabase-client.js"></script>
 <script src="../js/db.js"></script>
 <script>
-/* ── Auth guard ── */
-(async () => {
-  const user = await SupaDB.getUser();
-  if (!user) { window.location.href = 'login.html'; return; }
-  init();
-})();
-
 let _allData = [];
 let _range   = 13;
 let _trendChart, _rateChart;
 
+/* ── Auth guard + boot ── */
+(async () => {
+  try {
+    const user = await SupaDB.getUser();
+    if (!user) { window.location.href = 'login.html'; return; }
+    await init();
+  } catch(err) {
+    document.getElementById('loadingMsg').textContent = 'Error loading page: ' + err.message;
+  }
+})();
+
 async function init() {
-  _allData = await SupaDB.adminGetAllAttendance();
-  // Sort ascending for charts
-  _allData.sort((a, b) => a.serviceDate.localeCompare(b.serviceDate));
-  document.getElementById('loadingMsg').style.display = 'none';
-  document.getElementById('pageContent').style.display = '';
+  try {
+    _allData = await SupaDB.adminGetAllAttendance();
+    _allData.sort((a, b) => a.serviceDate.localeCompare(b.serviceDate));
+  } catch(err) {
+    console.error('[Attendance] init error:', err);
+    _allData = [];
+  } finally {
+    document.getElementById('loadingMsg').style.display = 'none';
+    document.getElementById('pageContent').style.display = '';
+  }
   render();
 }
 
@@ -316,9 +325,9 @@ function fmtFull(d) {
 
 function render() {
   const data = sliced();
-  updateStats(data);
-  updateCharts(data);
-  updateTable(data);
+  try { updateStats(data);  } catch(e) { console.error('updateStats:', e); }
+  try { updateCharts(data); } catch(e) { console.error('updateCharts:', e); }
+  try { updateTable(data);  } catch(e) { console.error('updateTable:', e); }
 }
 
 function updateStats(data) {
