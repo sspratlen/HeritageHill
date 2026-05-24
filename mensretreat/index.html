@@ -926,6 +926,22 @@
         throw new Error(txt || 'Registration failed. Please try again.');
       }
 
+      // Fire confirmation email (fire-and-forget — don't block success screen)
+      fetch(SUPA_URL + '/functions/v1/notify-retreat-registrant', {
+        method:  'POST',
+        headers: {
+          'apikey':        ANON_KEY,
+          'Authorization': 'Bearer ' + ANON_KEY,
+          'Content-Type':  'application/json',
+        },
+        body: JSON.stringify({
+          fullName: payload.full_name,
+          email:    payload.email,
+          church:   payload.church   || null,
+          dietary:  payload.dietary  || null,
+        }),
+      }).catch(function () { /* email failure is non-fatal */ });
+
       // Show success screen
       var firstName = payload.full_name.split(' ')[0] || 'friend';
       document.getElementById('reg-success-name').textContent = firstName;
