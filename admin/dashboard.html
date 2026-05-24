@@ -221,6 +221,10 @@
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 17l4-8 4 4 4-6 4 8"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
       Retreat 2025
     </a>
+    <a onclick="switchTab('attendance')" id="sideAttendance">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Attendance
+    </a>
     <div class="nav-section" style="margin-top:8px;">Media</div>
     <a onclick="switchTab('sermons')" id="sideSermons">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
@@ -979,6 +983,62 @@
       </div>
     </div>
 
+    <!-- ── Attendance ───────────────────────────────────────────── -->
+    <div class="tab-panel" id="panelAttendance">
+      <div class="action-bar">
+        <h2>Attendance Tracking</h2>
+        <a href="attendance-dashboard.html" class="btn btn-secondary btn-sm" target="_blank">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          View Analytics
+        </a>
+      </div>
+
+      <!-- Quick-entry card -->
+      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px;">
+        <h3 style="font-size:.95rem;font-weight:700;margin-bottom:16px;">Add Weekly Entry</h3>
+        <div style="display:grid;grid-template-columns:160px 1fr 1fr 1fr auto;gap:12px;align-items:end;flex-wrap:wrap;">
+          <div class="field">
+            <label>Date</label>
+            <input type="date" id="attDate" />
+          </div>
+          <div class="field">
+            <label>Worship Attendance</label>
+            <input type="number" id="attWorship" placeholder="e.g. 142" min="0" />
+          </div>
+          <div class="field">
+            <label>Small Group Total</label>
+            <input type="number" id="attSmallGroup" placeholder="e.g. 64" min="0" />
+          </div>
+          <div class="field">
+            <label>Notes <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+            <input type="text" id="attNotes" placeholder="e.g. Easter Sunday" />
+          </div>
+          <button class="btn btn-primary" onclick="addAttendanceEntry()" id="attAddBtn" style="margin-bottom:1px;">Add</button>
+        </div>
+        <p id="attAddError"   style="color:var(--danger);font-size:.82rem;margin-top:8px;display:none;"></p>
+        <p id="attAddSuccess" style="color:var(--success);font-size:.82rem;margin-top:8px;display:none;">✓ Entry saved!</p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Date</th>
+            <th>Worship</th>
+            <th>Small Groups</th>
+            <th>SG Rate</th>
+            <th>Notes</th>
+            <th>Actions</th>
+          </tr></thead>
+          <tbody id="attendanceTable"></tbody>
+        </table>
+        <div id="attendanceEmpty" class="empty" style="display:none;">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <h3>No entries yet</h3>
+          <p>Add your first weekly attendance record above.</p>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1407,6 +1467,31 @@
   </div>
 </div>
 
+<!-- Attendance Edit Modal -->
+<div class="modal-overlay" id="attEditModal" onclick="if(event.target===this)closeAttEditModal()">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h3>Edit Attendance Entry</h3>
+      <button class="modal-close" onclick="closeAttEditModal()">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+      <input type="hidden" id="attEditId" />
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="field"><label>Date</label><input type="date" id="attEditDate" /></div>
+        <div class="field"><label>Notes</label><input type="text" id="attEditNotes" placeholder="Optional" /></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="field"><label>Worship Attendance</label><input type="number" id="attEditWorship" min="0" /></div>
+        <div class="field"><label>Small Group Total</label><input type="number" id="attEditSmallGroup" min="0" /></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeAttEditModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAttEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- Delete confirm modal -->
 <div class="modal-overlay" id="deleteModal">
   <div class="modal" style="max-width:400px;">
@@ -1429,7 +1514,7 @@
   if (!user) window.location.href = 'login.html?next=dashboard.html';
 })();
 
-const ALL_TABS = ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','sermons','email','settings'];
+const ALL_TABS = ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','attendance','sermons','email','settings'];
 function switchTab(tab) {
   ALL_TABS.forEach(t => {
     const c = t[0].toUpperCase()+t.slice(1);
@@ -1439,7 +1524,7 @@ function switchTab(tab) {
   const c = tab[0].toUpperCase()+tab.slice(1);
   const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
   if(p) p.classList.add('active'); if(s) s.classList.add('active');
-  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2025',sermons:'Sermons',email:'Email',settings:'Settings'};
+  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2025',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings'};
   document.getElementById('topbarTitle').textContent = titles[tab]||tab;
   if(tab==='events') renderEventsTable();
   else if(tab==='groups') renderGroupsTable();
@@ -1449,6 +1534,7 @@ function switchTab(tab) {
   else if(tab==='rsvps') renderRsvpsPanel();
   else if(tab==='prayer')  renderPrayerTable();
   else if(tab==='retreat') renderRetreatTable();
+  else if(tab==='attendance') renderAttendanceTable();
   else if(tab==='sermons') renderSermonsTable();
   else if(tab==='email')    { loadCampaignHistory(); loadMailchimpTags(); }
   else if(tab==='settings') { loadBannerSettings(); loadSaveDatesSettings(); }
@@ -4181,6 +4267,110 @@ function downloadRetreatCSV() {
   const a    = Object.assign(document.createElement('a'), { href: url, download: `retreat-registrations-${new Date().toISOString().slice(0,10)}.csv` });
   document.body.appendChild(a); a.click();
   document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+/* ══════════════════════════════════════════════════════════
+   ATTENDANCE
+══════════════════════════════════════════════════════════ */
+let _cachedAttendance = [];
+
+async function renderAttendanceTable() {
+  _cachedAttendance = await SupaDB.adminGetAllAttendance();
+  const tbody = document.getElementById('attendanceTable');
+  const empty = document.getElementById('attendanceEmpty');
+  if (!_cachedAttendance.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+
+  const fmt = d => {
+    if (!d) return '–';
+    const [y,m,day] = d.split('-');
+    return new Date(y, m-1, day).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+  };
+
+  tbody.innerHTML = _cachedAttendance.map(r => {
+    const rate = (r.worshipCount && r.smallGroupCount)
+      ? Math.round(r.smallGroupCount / r.worshipCount * 100) + '%'
+      : '–';
+    return `<tr>
+      <td style="font-weight:600;">${fmt(r.serviceDate)}</td>
+      <td>${r.worshipCount != null ? r.worshipCount.toLocaleString() : '–'}</td>
+      <td>${r.smallGroupCount != null ? r.smallGroupCount.toLocaleString() : '–'}</td>
+      <td><span style="background:rgba(188,122,30,.1);color:var(--primary);font-size:.8rem;font-weight:700;padding:2px 8px;border-radius:20px;">${rate}</span></td>
+      <td style="color:var(--text-muted);font-size:.85rem;">${r.notes || ''}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editAttEntry('${r.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteAttEntry('${r.id}')">Delete</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+async function addAttendanceEntry() {
+  const btn    = document.getElementById('attAddBtn');
+  const errEl  = document.getElementById('attAddError');
+  const okEl   = document.getElementById('attAddSuccess');
+  errEl.style.display = 'none'; okEl.style.display = 'none';
+
+  const date    = document.getElementById('attDate').value;
+  const worship = document.getElementById('attWorship').value;
+  const sg      = document.getElementById('attSmallGroup').value;
+  const notes   = document.getElementById('attNotes').value.trim();
+
+  if (!date) { errEl.textContent = 'Please select a date.'; errEl.style.display = ''; return; }
+  if (!worship && !sg) { errEl.textContent = 'Enter at least one attendance count.'; errEl.style.display = ''; return; }
+
+  btn.disabled = true;
+  const res = await SupaDB.adminAddAttendance({
+    serviceDate: date,
+    worshipCount: worship ? parseInt(worship) : null,
+    smallGroupCount: sg ? parseInt(sg) : null,
+    notes,
+  });
+  btn.disabled = false;
+
+  if (res.error) {
+    errEl.textContent = res.error.includes('23505') ? 'An entry for this date already exists.' : res.error;
+    errEl.style.display = ''; return;
+  }
+  ['attDate','attWorship','attSmallGroup','attNotes'].forEach(id => document.getElementById(id).value = '');
+  okEl.style.display = '';
+  setTimeout(() => okEl.style.display = 'none', 2500);
+  renderAttendanceTable();
+}
+
+function editAttEntry(id) {
+  const r = _cachedAttendance.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('attEditId').value           = id;
+  document.getElementById('attEditDate').value         = r.serviceDate;
+  document.getElementById('attEditWorship').value      = r.worshipCount  ?? '';
+  document.getElementById('attEditSmallGroup').value   = r.smallGroupCount ?? '';
+  document.getElementById('attEditNotes').value        = r.notes || '';
+  document.getElementById('attEditModal').classList.add('open');
+}
+function closeAttEditModal() { document.getElementById('attEditModal').classList.remove('open'); }
+
+async function saveAttEdit() {
+  const id     = document.getElementById('attEditId').value;
+  const date   = document.getElementById('attEditDate').value;
+  const worship = document.getElementById('attEditWorship').value;
+  const sg      = document.getElementById('attEditSmallGroup').value;
+  const notes   = document.getElementById('attEditNotes').value.trim();
+  const res = await SupaDB.adminUpdateAttendance(id, {
+    serviceDate: date,
+    worshipCount: worship !== '' ? parseInt(worship) : null,
+    smallGroupCount: sg !== '' ? parseInt(sg) : null,
+    notes,
+  });
+  if (res.error) { alert('Error: ' + res.error); return; }
+  closeAttEditModal();
+  renderAttendanceTable();
+}
+
+async function deleteAttEntry(id) {
+  if (!confirm('Delete this attendance entry? This cannot be undone.')) return;
+  await SupaDB.adminDeleteAttendance(id);
+  renderAttendanceTable();
 }
 </script>
 </body>

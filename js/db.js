@@ -681,7 +681,53 @@ window.SupaDB = {
     } catch(e) { console.error('[SupaDB] saveBannerSettings:', e.message); return { error: e.message }; }
   },
 
-  /* ── YouTube (via Supabase Edge Function) ───────────────── */
+  /* ── Attendance ─────────────────────────────────────────── */
+  async adminGetAllAttendance() {
+    if (!db()) return [];
+    const { data, error } = await db()
+      .from('attendance')
+      .select('*')
+      .order('service_date', { ascending: false });
+    if (error) { console.error('[SupaDB] adminGetAllAttendance:', error.message); return []; }
+    return (data || []).map(r => ({
+      id:              r.id,
+      serviceDate:     r.service_date,
+      worshipCount:    r.worship_count,
+      smallGroupCount: r.small_group_count,
+      notes:           r.notes,
+      createdAt:       r.created_at,
+    }));
+  },
+  async adminAddAttendance({ serviceDate, worshipCount, smallGroupCount, notes }) {
+    if (!db()) return { error: 'Not configured' };
+    const { error } = await db().from('attendance').insert({
+      service_date:      serviceDate,
+      worship_count:     worshipCount  ?? null,
+      small_group_count: smallGroupCount ?? null,
+      notes:             notes || null,
+    });
+    if (error) return { error: error.message };
+    return { success: true };
+  },
+  async adminUpdateAttendance(id, { serviceDate, worshipCount, smallGroupCount, notes }) {
+    if (!db()) return { error: 'Not configured' };
+    const { error } = await db().from('attendance').update({
+      service_date:      serviceDate,
+      worship_count:     worshipCount  ?? null,
+      small_group_count: smallGroupCount ?? null,
+      notes:             notes || null,
+    }).eq('id', id);
+    if (error) return { error: error.message };
+    return { success: true };
+  },
+  async adminDeleteAttendance(id) {
+    if (!db()) return { error: 'Not configured' };
+    const { error } = await db().from('attendance').delete().eq('id', id);
+    if (error) return { error: error.message };
+    return { success: true };
+  },
+
+/* ── YouTube (via Supabase Edge Function) ───────────────── */
   async getLatestYouTubeVideos(maxResults = 12) {
     try {
       const res = await fetch(`${YOUTUBE_FUNCTION_URL}?maxResults=${maxResults}`);
