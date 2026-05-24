@@ -217,6 +217,10 @@
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
       Prayer Requests
     </a>
+    <a onclick="switchTab('retreat')" id="sideRetreat">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 17l4-8 4 4 4-6 4 8"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+      Retreat 2025
+    </a>
     <div class="nav-section" style="margin-top:8px;">Media</div>
     <a onclick="switchTab('sermons')" id="sideSermons">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
@@ -928,6 +932,53 @@
       </div>
     </div>
 
+    <!-- ── Retreat 2025 ───────────────────────────────────────── -->
+    <div class="tab-panel" id="panelRetreat">
+      <div class="action-bar">
+        <h2>Retreat Registrations</h2>
+        <span id="retreatCount" style="font-size:.85rem;color:var(--text-muted);"></span>
+        <button class="btn btn-secondary btn-sm" onclick="downloadRetreatCSV()" style="margin-left:auto;">⬇ Download CSV</button>
+      </div>
+
+      <!-- Summary stats -->
+      <div id="retreatStats" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;"></div>
+
+      <!-- Search / filter -->
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+        <input type="text" id="retreatSearch" placeholder="Search by name, email, church…" oninput="filterRetreatRegs()"
+          style="flex:1;min-width:200px;padding:.55rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;" />
+        <select id="retreatFilter" onchange="filterRetreatRegs()"
+          style="padding:.55rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;background:#fff;">
+          <option value="">All</option>
+          <option value="paid">Paid</option>
+          <option value="unpaid">Not Paid</option>
+          <option value="checked_in">Checked In</option>
+          <option value="not_in">Not Checked In</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Date</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Church</th>
+            <th style="text-align:center;">Paid</th>
+            <th style="text-align:center;">Checked In</th>
+            <th>Actions</th>
+          </tr></thead>
+          <tbody id="retreatTable"></tbody>
+        </table>
+        <div class="empty" id="retreatEmpty" style="display:none;">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 17l4-8 4 4 4-6 4 8"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+          <h3>No registrations yet</h3>
+          <p>Registrations submitted on the Men's Retreat page will appear here.</p>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1305,6 +1356,57 @@
   </div>
 </div>
 
+<!-- Retreat Registration Edit Modal -->
+<div class="modal-overlay" id="retreatEditModal" onclick="if(event.target===this)closeRetreatEditModal()">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <h3>Edit Registration</h3>
+      <button class="modal-close" onclick="closeRetreatEditModal()">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+      <input type="hidden" id="retreatEditId" />
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label style="display:block;font-size:.78rem;font-weight:700;margin-bottom:5px;color:var(--text-muted);">Full Name</label>
+          <input id="retreatEditName" type="text" style="width:100%;padding:.55rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;" />
+        </div>
+        <div>
+          <label style="display:block;font-size:.78rem;font-weight:700;margin-bottom:5px;color:var(--text-muted);">Email</label>
+          <input id="retreatEditEmail" type="email" style="width:100%;padding:.55rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;" />
+        </div>
+        <div>
+          <label style="display:block;font-size:.78rem;font-weight:700;margin-bottom:5px;color:var(--text-muted);">Phone</label>
+          <input id="retreatEditPhone" type="tel" style="width:100%;padding:.55rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;" />
+        </div>
+        <div>
+          <label style="display:block;font-size:.78rem;font-weight:700;margin-bottom:5px;color:var(--text-muted);">Church</label>
+          <input id="retreatEditChurch" type="text" style="width:100%;padding:.55rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;" />
+        </div>
+      </div>
+      <div>
+        <label style="display:block;font-size:.78rem;font-weight:700;margin-bottom:5px;color:var(--text-muted);">Dietary / Special Needs</label>
+        <input id="retreatEditDietary" type="text" style="width:100%;padding:.55rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;" />
+      </div>
+      <div>
+        <label style="display:block;font-size:.78rem;font-weight:700;margin-bottom:5px;color:var(--text-muted);">Admin Notes</label>
+        <textarea id="retreatEditNotes" rows="2" style="width:100%;padding:.55rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;resize:vertical;outline:none;"></textarea>
+      </div>
+      <div style="display:flex;gap:28px;padding:12px 16px;background:var(--bg-soft);border-radius:8px;border:1px solid var(--border);">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.9rem;font-weight:600;">
+          <input type="checkbox" id="retreatEditPaid" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer;" /> Paid
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.9rem;font-weight:600;">
+          <input type="checkbox" id="retreatEditCheckedIn" style="width:16px;height:16px;accent-color:#16a34a;cursor:pointer;" /> Checked In
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeRetreatEditModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveRetreatEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- Delete confirm modal -->
 <div class="modal-overlay" id="deleteModal">
   <div class="modal" style="max-width:400px;">
@@ -1327,7 +1429,7 @@
   if (!user) window.location.href = 'login.html?next=dashboard.html';
 })();
 
-const ALL_TABS = ['events','groups','signups','applications','subscribers','rsvps','prayer','sermons','email','settings'];
+const ALL_TABS = ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','sermons','email','settings'];
 function switchTab(tab) {
   ALL_TABS.forEach(t => {
     const c = t[0].toUpperCase()+t.slice(1);
@@ -1337,7 +1439,7 @@ function switchTab(tab) {
   const c = tab[0].toUpperCase()+tab.slice(1);
   const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
   if(p) p.classList.add('active'); if(s) s.classList.add('active');
-  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',sermons:'Sermons',email:'Email',settings:'Settings'};
+  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2025',sermons:'Sermons',email:'Email',settings:'Settings'};
   document.getElementById('topbarTitle').textContent = titles[tab]||tab;
   if(tab==='events') renderEventsTable();
   else if(tab==='groups') renderGroupsTable();
@@ -1345,7 +1447,8 @@ function switchTab(tab) {
   else if(tab==='applications') renderApplicationsTable();
   else if(tab==='subscribers') renderSubscribersTable();
   else if(tab==='rsvps') renderRsvpsPanel();
-  else if(tab==='prayer') renderPrayerTable();
+  else if(tab==='prayer')  renderPrayerTable();
+  else if(tab==='retreat') renderRetreatTable();
   else if(tab==='sermons') renderSermonsTable();
   else if(tab==='email')    { loadCampaignHistory(); loadMailchimpTags(); }
   else if(tab==='settings') { loadBannerSettings(); loadSaveDatesSettings(); }
@@ -3925,6 +4028,159 @@ async function saveSaveDates() {
   msg.style.color = 'var(--primary)';
   msg.style.display = '';
   setTimeout(() => msg.style.display = 'none', 3000);
+}
+
+/* ── Retreat Registrations ───────────────────────────────── */
+let _allRetreatRegs = [];
+
+async function renderRetreatTable() {
+  _allRetreatRegs = await SupaDB.adminGetAllRetreatRegistrations();
+  filterRetreatRegs();
+}
+
+function filterRetreatRegs() {
+  const q      = (document.getElementById('retreatSearch')?.value || '').toLowerCase();
+  const filter = document.getElementById('retreatFilter')?.value || '';
+  let rows = [..._allRetreatRegs];
+
+  if (q) rows = rows.filter(r =>
+    (r.fullName||'').toLowerCase().includes(q) ||
+    (r.email||'').toLowerCase().includes(q) ||
+    (r.church||'').toLowerCase().includes(q) ||
+    (r.phone||'').toLowerCase().includes(q)
+  );
+  if (filter === 'paid')       rows = rows.filter(r =>  r.paid);
+  if (filter === 'unpaid')     rows = rows.filter(r => !r.paid);
+  if (filter === 'checked_in') rows = rows.filter(r =>  r.checkedIn);
+  if (filter === 'not_in')     rows = rows.filter(r => !r.checkedIn);
+
+  document.getElementById('retreatCount').textContent =
+    `${rows.length} registration${rows.length !== 1 ? 's' : ''}`;
+  updateRetreatStats();
+
+  const tbody = document.getElementById('retreatTable');
+  const empty = document.getElementById('retreatEmpty');
+  if (!rows.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = rows.map(r => {
+    const date = r.createdAt
+      ? new Date(r.createdAt).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})
+      : '—';
+    return `<tr>
+      <td style="white-space:nowrap;font-size:.82rem;color:var(--text-muted);">${date}</td>
+      <td style="font-weight:600;">${r.fullName || '—'}</td>
+      <td style="font-size:.85rem;">${r.email ? `<a href="mailto:${r.email}" style="color:var(--secondary);">${r.email}</a>` : '—'}</td>
+      <td style="font-size:.85rem;white-space:nowrap;">${r.phone || '—'}</td>
+      <td style="font-size:.85rem;">${r.church || '—'}</td>
+      <td style="text-align:center;">
+        <input type="checkbox" ${r.paid ? 'checked' : ''} title="Mark as paid"
+          onchange="toggleRetreatField('${r.id}','paid',this.checked)"
+          style="width:16px;height:16px;cursor:pointer;accent-color:var(--primary);" />
+      </td>
+      <td style="text-align:center;">
+        <input type="checkbox" ${r.checkedIn ? 'checked' : ''} title="Mark as checked in"
+          onchange="toggleRetreatField('${r.id}','checkedIn',this.checked)"
+          style="width:16px;height:16px;cursor:pointer;accent-color:#16a34a;" />
+      </td>
+      <td class="td-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editRetreatReg('${r.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteRetreatReg('${r.id}')">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function updateRetreatStats() {
+  const total     = _allRetreatRegs.length;
+  const paid      = _allRetreatRegs.filter(r =>  r.paid).length;
+  const checkedIn = _allRetreatRegs.filter(r =>  r.checkedIn).length;
+  const unpaid    = total - paid;
+  const el = document.getElementById('retreatStats');
+  if (!el) return;
+  el.innerHTML = `
+    <span style="font-size:.82rem;padding:4px 12px;background:var(--bg-soft);border:1px solid var(--border);border-radius:50px;">${total} Total</span>
+    <span style="font-size:.82rem;padding:4px 12px;background:rgba(22,163,74,.1);color:#16a34a;border-radius:50px;">${paid} Paid</span>
+    ${unpaid ? `<span style="font-size:.82rem;padding:4px 12px;background:rgba(245,158,11,.1);color:#d97706;border-radius:50px;">${unpaid} Unpaid</span>` : ''}
+    <span style="font-size:.82rem;padding:4px 12px;background:rgba(21,92,162,.1);color:var(--secondary);border-radius:50px;">${checkedIn} Checked In</span>
+  `;
+}
+
+async function toggleRetreatField(id, field, value) {
+  const res = await SupaDB.updateRetreatRegistration(id, { [field]: value });
+  if (res.error) { showToast('Update failed: ' + res.error); renderRetreatTable(); return; }
+  const reg = _allRetreatRegs.find(r => r.id === id);
+  if (reg) reg[field] = value;
+  updateRetreatStats();
+}
+
+function editRetreatReg(id) {
+  const r = _allRetreatRegs.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('retreatEditId').value          = r.id;
+  document.getElementById('retreatEditName').value        = r.fullName  || '';
+  document.getElementById('retreatEditEmail').value       = r.email     || '';
+  document.getElementById('retreatEditPhone').value       = r.phone     || '';
+  document.getElementById('retreatEditChurch').value      = r.church    || '';
+  document.getElementById('retreatEditDietary').value     = r.dietary   || '';
+  document.getElementById('retreatEditNotes').value       = r.notes     || '';
+  document.getElementById('retreatEditPaid').checked      = r.paid;
+  document.getElementById('retreatEditCheckedIn').checked = r.checkedIn;
+  document.getElementById('retreatEditModal').classList.add('open');
+}
+
+function closeRetreatEditModal() {
+  document.getElementById('retreatEditModal').classList.remove('open');
+}
+
+async function saveRetreatEdit() {
+  const id = document.getElementById('retreatEditId').value;
+  const updates = {
+    fullName:  document.getElementById('retreatEditName').value.trim(),
+    email:     document.getElementById('retreatEditEmail').value.trim(),
+    phone:     document.getElementById('retreatEditPhone').value.trim(),
+    church:    document.getElementById('retreatEditChurch').value.trim(),
+    dietary:   document.getElementById('retreatEditDietary').value.trim(),
+    notes:     document.getElementById('retreatEditNotes').value.trim(),
+    paid:      document.getElementById('retreatEditPaid').checked,
+    checkedIn: document.getElementById('retreatEditCheckedIn').checked,
+  };
+  const res = await SupaDB.updateRetreatRegistration(id, updates);
+  if (res.error) { showToast('Error saving: ' + res.error); return; }
+  const reg = _allRetreatRegs.find(r => r.id === id);
+  if (reg) Object.assign(reg, updates);
+  closeRetreatEditModal();
+  filterRetreatRegs();
+  showToast('Registration updated.');
+}
+
+async function deleteRetreatReg(id) {
+  const r = _allRetreatRegs.find(x => x.id === id);
+  if (!confirm(`Delete registration for ${r?.fullName || 'this person'}? This cannot be undone.`)) return;
+  const res = await SupaDB.deleteRetreatRegistration(id);
+  if (res.error) { showToast('Error: ' + res.error); return; }
+  _allRetreatRegs = _allRetreatRegs.filter(x => x.id !== id);
+  filterRetreatRegs();
+  showToast('Registration deleted.');
+}
+
+function downloadRetreatCSV() {
+  if (!_allRetreatRegs.length) { showToast('No registrations to export.'); return; }
+  const headers = ['Date Registered','Full Name','Email','Phone','Church / Home Church','Dietary / Special Needs','Paid','Checked In','Admin Notes'];
+  const rows = _allRetreatRegs.map(r => [
+    r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'}) : '',
+    r.fullName  || '', r.email     || '', r.phone     || '',
+    r.church    || '', r.dietary   || '',
+    r.paid      ? 'Yes' : 'No',
+    r.checkedIn ? 'Yes' : 'No',
+    r.notes     || '',
+  ]);
+  const csv  = [headers, ...rows].map(row => row.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: `retreat-registrations-${new Date().toISOString().slice(0,10)}.csv` });
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
 }
 </script>
 </body>

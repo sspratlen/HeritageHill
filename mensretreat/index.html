@@ -814,79 +814,66 @@
 <section class="section-register" id="register">
   <div class="container">
     <div class="register-inner">
-      <span class="eyebrow">Registration</span>
-      <h2>Secure Your Spot</h2>
-      <p class="register-deck">Space is limited. Register early.</p>
 
-      <!--
-        Temporary mailto form.
-        method="post" enctype="text/plain" opens the default mail client
-        with field data in the body — replace action with a Google Form
-        or Planning Center URL when ready.
-      -->
-      <form action="mailto:office@heritagehill.church" method="post" enctype="text/plain">
+      <!-- Form state -->
+      <div id="reg-form-wrap">
+        <span class="eyebrow">Registration</span>
+        <h2>Secure Your Spot</h2>
+        <p class="register-deck">Space is limited. Register early.</p>
 
-        <div class="form-group">
-          <label for="reg-name">Full Name</label>
-          <input
-            type="text"
-            id="reg-name"
-            name="Full Name"
-            placeholder="John Smith"
-            required
-            autocomplete="name" />
-        </div>
+        <form id="reg-form" onsubmit="handleRetreatSubmit(event)">
 
-        <div class="form-group">
-          <label for="reg-email">Email Address</label>
-          <input
-            type="email"
-            id="reg-email"
-            name="Email"
-            placeholder="you@email.com"
-            required
-            autocomplete="email" />
-        </div>
+          <div class="form-group">
+            <label for="reg-name">Full Name</label>
+            <input type="text" id="reg-name" placeholder="John Smith" required autocomplete="name" />
+          </div>
 
-        <div class="form-group">
-          <label for="reg-phone">Phone Number</label>
-          <input
-            type="tel"
-            id="reg-phone"
-            name="Phone"
-            placeholder="(402) 555-0100"
-            autocomplete="tel" />
-        </div>
+          <div class="form-group">
+            <label for="reg-email">Email Address</label>
+            <input type="email" id="reg-email" placeholder="you@email.com" required autocomplete="email" />
+          </div>
 
-        <div class="form-group">
-          <label for="reg-church">Church / Home Church</label>
-          <input
-            type="text"
-            id="reg-church"
-            name="Church"
-            placeholder="Heritage Hill Church — Papillion" />
-        </div>
+          <div class="form-group">
+            <label for="reg-phone">Phone Number</label>
+            <input type="tel" id="reg-phone" placeholder="(402) 555-0100" autocomplete="tel" />
+          </div>
 
-        <div class="form-group">
-          <label for="reg-dietary">
-            Dietary Restrictions or Special Needs
-            <span style="font-weight:400; font-size:.72rem; letter-spacing:0; text-transform:none; opacity:.7;">(optional)</span>
-          </label>
-          <textarea
-            id="reg-dietary"
-            name="Dietary Restrictions or Special Needs"
-            placeholder="Let us know if there's anything we should be aware of…"></textarea>
-        </div>
+          <div class="form-group">
+            <label for="reg-church">Church / Home Church</label>
+            <input type="text" id="reg-church" placeholder="Heritage Hill Church — Papillion" />
+          </div>
 
-        <button type="submit" class="btn-submit">I'm In — Register Me</button>
-        <p class="form-note">After submitting, you'll receive a confirmation email within 48 hours.</p>
+          <div class="form-group">
+            <label for="reg-dietary">
+              Dietary Restrictions or Special Needs
+              <span style="font-weight:400;font-size:.72rem;letter-spacing:0;text-transform:none;opacity:.7;">(optional)</span>
+            </label>
+            <textarea id="reg-dietary" placeholder="Let us know if there's anything we should be aware of…"></textarea>
+          </div>
 
-      </form>
+          <p id="reg-error" style="display:none;font-size:.85rem;color:#f87171;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:6px;padding:10px 14px;margin-bottom:12px;"></p>
 
-      <div class="form-temp-note">
-        <strong>Note:</strong> This form opens your default email client with your details pre-filled.
-        This is a temporary setup — a direct online registration link will be available soon.
+          <button type="submit" id="reg-submit-btn" class="btn-submit">I'm In — Register Me</button>
+          <p class="form-note">After submitting, you'll receive a confirmation email within 48 hours.</p>
+
+        </form>
       </div>
+
+      <!-- Success state (hidden until form submits) -->
+      <div id="reg-success" style="display:none;text-align:center;padding:40px 16px;">
+        <div style="width:64px;height:64px;border-radius:50%;background:rgba(232,137,26,.15);border:2px solid #E8891A;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;">
+          <svg width="30" height="30" fill="none" stroke="#E8891A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h2 style="color:#E8891A;font-size:1.9rem;margin-bottom:10px;">You're Registered!</h2>
+        <p style="color:rgba(245,240,232,.75);font-size:1rem;line-height:1.7;margin-bottom:6px;">
+          Thanks, <strong id="reg-success-name" style="color:#F5F0E8;"></strong>. We've got you on the list.
+        </p>
+        <p style="color:rgba(245,240,232,.5);font-size:.88rem;line-height:1.7;margin-bottom:32px;">
+          Check your inbox for a confirmation — and get ready for August 21–22.
+        </p>
+        <a href="#" style="color:rgba(245,240,232,.4);font-size:.82rem;text-decoration:none;border-bottom:1px solid rgba(245,240,232,.2);padding-bottom:2px;">↑ Back to top</a>
+      </div>
+
     </div>
   </div>
 </section>
@@ -901,5 +888,58 @@
   </div>
 </footer>
 
+<script>
+(function () {
+  var SUPA_URL = 'https://ktyplbmawlaerzohkdqy.supabase.co';
+  var ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0eXBsYm1hd2xhZXJ6b2hrZHF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNjU4MDgsImV4cCI6MjA5MzY0MTgwOH0.Pe0_syQjPqkwrdl8cno9YliY2i1i8x77R8bYCG8KXr4';
+
+  window.handleRetreatSubmit = async function (e) {
+    e.preventDefault();
+    var btn = document.getElementById('reg-submit-btn');
+    var err = document.getElementById('reg-error');
+    btn.disabled    = true;
+    btn.textContent = 'Submitting…';
+    err.style.display = 'none';
+
+    var payload = {
+      full_name: document.getElementById('reg-name').value.trim(),
+      email:     document.getElementById('reg-email').value.trim(),
+      phone:     document.getElementById('reg-phone').value.trim()   || null,
+      church:    document.getElementById('reg-church').value.trim()  || null,
+      dietary:   document.getElementById('reg-dietary').value.trim() || null,
+    };
+
+    try {
+      var res = await fetch(SUPA_URL + '/rest/v1/retreat_registrations', {
+        method:  'POST',
+        headers: {
+          'apikey':        ANON_KEY,
+          'Authorization': 'Bearer ' + ANON_KEY,
+          'Content-Type':  'application/json',
+          'Prefer':        'return=minimal',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        var txt = await res.text();
+        throw new Error(txt || 'Registration failed. Please try again.');
+      }
+
+      // Show success screen
+      var firstName = payload.full_name.split(' ')[0] || 'friend';
+      document.getElementById('reg-success-name').textContent = firstName;
+      document.getElementById('reg-form-wrap').style.display = 'none';
+      document.getElementById('reg-success').style.display   = '';
+
+    } catch (ex) {
+      err.textContent   = ex.message || 'Something went wrong. Please try again or email office@heritagehill.church.';
+      err.style.display = '';
+      btn.disabled      = false;
+      btn.textContent   = "I'm In — Register Me";
+    }
+  };
+}());
+</script>
 </body>
 </html>

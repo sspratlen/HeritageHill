@@ -543,6 +543,55 @@ window.SupaDB = {
     }).catch(e => console.warn('[SupaDB] Leader approval notify failed (non-critical):', e.message));
   },
 
+  /* ── ADMIN: Retreat Registrations ──────────────────────── */
+  async adminGetAllRetreatRegistrations() {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('retreat_registrations')
+        .select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(r => ({
+        id:        r.id,
+        createdAt: r.created_at,
+        fullName:  r.full_name,
+        email:     r.email,
+        phone:     r.phone    || '',
+        church:    r.church   || '',
+        dietary:   r.dietary  || '',
+        paid:      !!r.paid,
+        checkedIn: !!r.checked_in,
+        notes:     r.admin_notes || '',
+      }));
+    } catch(e) { console.error('[SupaDB] adminGetAllRetreatRegistrations:', e.message); return []; }
+  },
+
+  async updateRetreatRegistration(id, updates) {
+    if (!db()) return { error: 'No DB' };
+    try {
+      const d = {};
+      if (updates.fullName  !== undefined) d.full_name   = updates.fullName;
+      if (updates.email     !== undefined) d.email       = updates.email;
+      if (updates.phone     !== undefined) d.phone       = updates.phone;
+      if (updates.church    !== undefined) d.church      = updates.church;
+      if (updates.dietary   !== undefined) d.dietary     = updates.dietary;
+      if (updates.paid      !== undefined) d.paid        = updates.paid;
+      if (updates.checkedIn !== undefined) d.checked_in  = updates.checkedIn;
+      if (updates.notes     !== undefined) d.admin_notes = updates.notes;
+      const { error } = await db().from('retreat_registrations').update(d).eq('id', id);
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] updateRetreatRegistration:', e.message); return { error: e.message }; }
+  },
+
+  async deleteRetreatRegistration(id) {
+    if (!db()) return { error: 'No DB' };
+    try {
+      const { error } = await db().from('retreat_registrations').delete().eq('id', id);
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] deleteRetreatRegistration:', e.message); return { error: e.message }; }
+  },
+
   /* ── ADMIN: Prayer Requests ─────────────────────────────── */
   async adminGetAllPrayerRequests() {
     if (!db()) return [];
