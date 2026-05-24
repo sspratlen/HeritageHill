@@ -31,7 +31,15 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { name, email, phone, message, source } = await req.json();
+    const { name, email, phone, message, source, honeypot } = await req.json();
+
+    // Honeypot check — silently succeed so bots don't know they were caught
+    if (honeypot) {
+      return new Response(
+        JSON.stringify({ success: true }),
+        { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+      );
+    }
 
     if (!name || !email || !message) {
       return new Response(

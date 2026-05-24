@@ -130,6 +130,11 @@
       <div data-reveal style="background:var(--bg); border-radius:var(--radius-lg); padding:36px; box-shadow:var(--shadow-md);">
         <h3 style="margin-bottom:1.2rem;">Have a Question?</h3>
         <form id="groupContactForm" onsubmit="handleGroupContact(event)">
+          <!-- Honeypot: hidden from real users, bots fill it -->
+          <div style="position:absolute;left:-9999px;height:0;overflow:hidden;" aria-hidden="true">
+            <input type="text" id="gcHoneypot" name="website" tabindex="-1" autocomplete="off" />
+          </div>
+          <input type="hidden" id="gcLoadedAt" />
           <div style="margin-bottom:14px;">
             <input type="text" placeholder="Your Name" required style="width:100%; padding:.65rem 1rem; border:1px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.9375rem; outline:none;" id="gcName" />
           </div>
@@ -330,8 +335,16 @@
     filterGroups();
   });
 
+  // Stamp load time so we can reject instant (bot) submissions
+  document.getElementById('gcLoadedAt').value = Date.now();
+
   async function handleGroupContact(e) {
     e.preventDefault();
+    // Honeypot: bots fill this hidden field, humans never see it
+    if (document.getElementById('gcHoneypot').value) return;
+    // Time check: real humans take more than 2 seconds to fill a form
+    if (Date.now() - parseInt(document.getElementById('gcLoadedAt').value || '0') < 2000) return;
+
     const name  = document.getElementById('gcName').value.trim();
     const email = document.getElementById('gcEmail').value.trim();
     const msg   = document.getElementById('gcMsg').value.trim();
@@ -339,7 +352,8 @@
     if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
 
     const result = await SupaDB.submitContactMessage({
-      name, email, message: msg, source: 'Small Groups – Have a Question'
+      name, email, message: msg, source: 'Small Groups – Have a Question',
+      honeypot: document.getElementById('gcHoneypot').value,
     });
 
     if (btn) { btn.disabled = false; btn.textContent = 'Send Message'; }

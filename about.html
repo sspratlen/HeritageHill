@@ -238,6 +238,11 @@
           <div style="margin-top:24px; padding-top:24px; border-top:1px solid var(--border);">
             <h4 style="margin-bottom:1.2rem;">Have a Question?</h4>
             <form id="visitContactForm" onsubmit="handleVisitContact(event)">
+              <!-- Honeypot: hidden from real users, bots fill it -->
+              <div style="position:absolute;left:-9999px;height:0;overflow:hidden;" aria-hidden="true">
+                <input type="text" id="vcHoneypot" name="website" tabindex="-1" autocomplete="off" />
+              </div>
+              <input type="hidden" id="vcLoadedAt" />
               <div style="display:flex;flex-direction:column;gap:12px;">
                 <input type="text" id="vcName" placeholder="Your Name" required
                   style="width:100%;box-sizing:border-box;padding:.65rem 1rem;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;" />
@@ -386,9 +391,16 @@
 <script src="js/main.js"></script>
 <script>
   document.getElementById('footerYear').textContent = new Date().getFullYear();
+  // Stamp load time so we can reject instant (bot) submissions
+  document.getElementById('vcLoadedAt').value = Date.now();
 
   async function handleVisitContact(e) {
     e.preventDefault();
+    // Honeypot: bots fill this hidden field, humans never see it
+    if (document.getElementById('vcHoneypot').value) return;
+    // Time check: real humans take more than 2 seconds to fill a form
+    if (Date.now() - parseInt(document.getElementById('vcLoadedAt').value || '0') < 2000) return;
+
     const name  = document.getElementById('vcName').value.trim();
     const email = document.getElementById('vcEmail').value.trim();
     const phone = document.getElementById('vcPhone').value.trim();
@@ -399,7 +411,8 @@
     btn.disabled = true; btn.textContent = 'Sending…';
 
     const result = await SupaDB.submitContactMessage({
-      name, email, phone, message: msg, source: 'About Us – Visit section'
+      name, email, phone, message: msg, source: 'About Us – Visit section',
+      honeypot: document.getElementById('vcHoneypot').value,
     });
 
     btn.disabled = false; btn.textContent = 'Send Message';

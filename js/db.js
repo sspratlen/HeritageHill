@@ -483,7 +483,7 @@ window.SupaDB = {
   },
 
   /* ── PUBLIC: Contact Form ───────────────────────────────── */
-  async submitContactMessage({ name, email, phone, message, source }) {
+  async submitContactMessage({ name, email, phone, message, source, honeypot }) {
     try {
       const res = await fetch(CONTACT_FUNCTION_URL, {
         method: 'POST',
@@ -492,7 +492,7 @@ window.SupaDB = {
           'apikey': SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify({ name, email, phone: phone || '', message, source }),
+        body: JSON.stringify({ name, email, phone: phone || '', message, source, honeypot: honeypot || '' }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return { success: true };
