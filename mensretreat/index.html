@@ -923,6 +923,10 @@
 
       if (!res.ok) {
         var txt = await res.text();
+        // Postgres unique-constraint violation = code 23505
+        if (txt && txt.indexOf('23505') !== -1) {
+          throw new Error('This email address is already registered. If you have questions, email scottspratlen@heritagehill.church.');
+        }
         throw new Error(txt || 'Registration failed. Please try again.');
       }
 
