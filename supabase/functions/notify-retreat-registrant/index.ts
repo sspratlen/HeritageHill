@@ -77,8 +77,8 @@ serve(async (req: Request) => {
             <p style="margin:0 0 12px;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#E8891A;">What's Next</p>
             <ul style="margin:0;padding-left:18px;font-size:14px;line-height:1.85;color:rgba(245,240,232,.85);">
               <li>A full schedule will be sent closer to the event.</li>
-              <li>Payment of <strong style="color:#F5F0E8;">$100</strong> can be made at the retreat check-in or arranged in advance — we'll be in touch.</li>
-              <li>Questions? Reply to this email or reach out to <a href="mailto:scottspratlen@heritagehill.church" style="color:#E8891A;font-weight:600;">scottspratlen@heritagehill.church</a>.</li>
+              <li>Payment of <strong style="color:#F5F0E8;">$100</strong> can be made at the retreat check-in or arranged in advance.</li>
+              <li>Questions? Reply to this email or reach out to <a href="mailto:scottspratlen@heritagehill.church" style="color:#E8891A;font-weight:600;">Scott Spratlen (scottspratlen@heritagehill.church)</a>.</li>
             </ul>
           </div>
 
@@ -114,7 +114,7 @@ serve(async (req: Request) => {
       `WHAT'S NEXT`,
       `  • A full schedule will be sent closer to the event.`,
       `  • Payment of $100 can be made at retreat check-in or arranged in advance.`,
-      `  • Questions? Reply to this email or contact scottspratlen@heritagehill.church`,
+      `  • Questions? Reply to this email or contact Scott Spratlen at scottspratlen@heritagehill.church`,
       ``,
       `See you in August —`,
       `Heritage Hill Church`,
