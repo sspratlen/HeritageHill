@@ -56,6 +56,10 @@ serve(async (req: Request) => {
                 <td style="padding:5px 0;font-size:14px;color:#F5F0E8;">August 21–22, 2025<br><span style="font-size:12px;color:rgba(245,240,232,.6);">Thursday evening through Friday</span></td>
               </tr>
               <tr>
+                <td style="padding:5px 0;font-size:13px;color:#9ca3af;font-weight:700;vertical-align:top;">WHERE</td>
+                <td style="padding:5px 0;font-size:14px;color:#F5F0E8;">Nebraska Youth Camp<br><span style="font-size:12px;color:rgba(245,240,232,.6);">65 Sweetwater Ave S, Kearney, NE 68847</span></td>
+              </tr>
+              <tr>
                 <td style="padding:5px 0;font-size:13px;color:#9ca3af;font-weight:700;vertical-align:top;">COST</td>
                 <td style="padding:5px 0;font-size:14px;color:#F5F0E8;">$100 per person<br><span style="font-size:12px;color:rgba(245,240,232,.6);">Includes all meals &amp; lodging</span></td>
               </tr>
@@ -101,6 +105,7 @@ serve(async (req: Request) => {
       ``,
       `EVENT DETAILS`,
       `  When:  August 21–22, 2025 (Thursday evening through Friday)`,
+      `  Where: Nebraska Youth Camp — 65 Sweetwater Ave S, Kearney, NE 68847`,
       `  Cost:  $100 per person — includes all meals & lodging`,
       `  Name:  ${fullName}`,
       ...(church ? [`  Church: ${church}`] : []),
