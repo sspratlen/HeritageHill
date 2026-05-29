@@ -16,7 +16,7 @@ serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
   try {
-    const { fullName, email, church, dietary } = await req.json()
+    const { fullName, email, church, tshirtSize, lodging, dietary } = await req.json()
 
     if (!email) {
       return new Response(
@@ -25,9 +25,14 @@ serve(async (req: Request) => {
       )
     }
 
-    const firstName = (fullName || '').trim().split(/\s+/)[0] || 'Friend'
-    const churchLine = church ? `<tr><td style="padding:5px 0;font-size:13px;color:#9ca3af;font-weight:700;width:90px;vertical-align:top;">CHURCH</td><td style="padding:5px 0;font-size:14px;color:#F5F0E8;">${church}</td></tr>` : ''
-    const dietaryLine = dietary ? `<tr><td style="padding:5px 0;font-size:13px;color:#9ca3af;font-weight:700;vertical-align:top;">DIETARY</td><td style="padding:5px 0;font-size:14px;color:#F5F0E8;">${dietary}</td></tr>` : ''
+    const firstName   = (fullName || '').trim().split(/\s+/)[0] || 'Friend'
+    const lodgingLabel = lodging === 'camp' ? 'Staying at Nebraska Youth Camp' : lodging === 'hotel' ? 'Getting a hotel nearby' : null
+    const row = (label: string, val: string) =>
+      `<tr><td style="padding:5px 0;font-size:13px;color:#9ca3af;font-weight:700;width:90px;vertical-align:top;">${label}</td><td style="padding:5px 0;font-size:14px;color:#F5F0E8;">${val}</td></tr>`
+    const churchLine   = church       ? row('CHURCH',  church)       : ''
+    const tshirtLine   = tshirtSize   ? row('T-SHIRT', tshirtSize)   : ''
+    const lodgingLine  = lodgingLabel ? row('LODGING', lodgingLabel) : ''
+    const dietaryLine  = dietary      ? row('DIETARY', dietary)      : ''
 
     const htmlBody = `
       <div style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;background:#1A1A1A;color:#F5F0E8;border-radius:12px;overflow:hidden;">
@@ -68,6 +73,8 @@ serve(async (req: Request) => {
                 <td style="padding:5px 0;font-size:14px;color:#F5F0E8;">${fullName}</td>
               </tr>
               ${churchLine}
+              ${tshirtLine}
+              ${lodgingLine}
               ${dietaryLine}
             </table>
           </div>
@@ -107,9 +114,11 @@ serve(async (req: Request) => {
       `  When:  August 21–22, 2025 (Thursday evening through Friday)`,
       `  Where: Nebraska Youth Camp — 65 Sweetwater Ave S, Kearney, NE 68847`,
       `  Cost:  $100 per person — includes all meals & lodging`,
-      `  Name:  ${fullName}`,
-      ...(church ? [`  Church: ${church}`] : []),
-      ...(dietary ? [`  Dietary notes: ${dietary}`] : []),
+      `  Name:    ${fullName}`,
+      ...(church       ? [`  Church:  ${church}`]           : []),
+      ...(tshirtSize   ? [`  T-Shirt: ${tshirtSize}`]       : []),
+      ...(lodgingLabel ? [`  Lodging: ${lodgingLabel}`]     : []),
+      ...(dietary      ? [`  Dietary: ${dietary}`]          : []),
       ``,
       `WHAT'S NEXT`,
       `  • A full schedule will be sent closer to the event.`,

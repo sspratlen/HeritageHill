@@ -969,6 +969,8 @@
             <th>Email</th>
             <th>Phone</th>
             <th>Church</th>
+            <th>T-Shirt</th>
+            <th>Lodging</th>
             <th style="text-align:center;">Paid</th>
             <th style="text-align:center;">Checked In</th>
             <th>Actions</th>
@@ -1441,6 +1443,28 @@
         <div>
           <label style="display:block;font-size:.78rem;font-weight:700;margin-bottom:5px;color:var(--text-muted);">Church</label>
           <input id="retreatEditChurch" type="text" style="width:100%;padding:.55rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;" />
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label style="display:block;font-size:.78rem;font-weight:700;margin-bottom:5px;color:var(--text-muted);">T-Shirt Size</label>
+          <select id="retreatEditTshirt" style="width:100%;padding:.55rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;background:#fff;">
+            <option value="">—</option>
+            <option value="S">S</option>
+            <option value="M">M</option>
+            <option value="L">L</option>
+            <option value="XL">XL</option>
+            <option value="2XL">2XL</option>
+            <option value="3XL">3XL</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-size:.78rem;font-weight:700;margin-bottom:5px;color:var(--text-muted);">Lodging</label>
+          <select id="retreatEditLodging" style="width:100%;padding:.55rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;background:#fff;">
+            <option value="">—</option>
+            <option value="camp">Staying at Camp</option>
+            <option value="hotel">Getting a Hotel</option>
+          </select>
         </div>
       </div>
       <div>
@@ -4159,6 +4183,8 @@ function filterRetreatRegs() {
       <td style="font-size:.85rem;">${r.email ? `<a href="mailto:${r.email}" style="color:var(--secondary);">${r.email}</a>` : '—'}</td>
       <td style="font-size:.85rem;white-space:nowrap;">${r.phone || '—'}</td>
       <td style="font-size:.85rem;">${r.church || '—'}</td>
+      <td style="font-size:.85rem;white-space:nowrap;">${r.tshirtSize || '—'}</td>
+      <td style="font-size:.85rem;">${r.lodging === 'camp' ? 'Camp' : r.lodging === 'hotel' ? 'Hotel' : '—'}</td>
       <td style="text-align:center;">
         <input type="checkbox" ${r.paid ? 'checked' : ''} title="Mark as paid"
           onchange="toggleRetreatField('${r.id}','paid',this.checked)"
@@ -4207,8 +4233,10 @@ function editRetreatReg(id) {
   document.getElementById('retreatEditName').value        = r.fullName  || '';
   document.getElementById('retreatEditEmail').value       = r.email     || '';
   document.getElementById('retreatEditPhone').value       = r.phone     || '';
-  document.getElementById('retreatEditChurch').value      = r.church    || '';
-  document.getElementById('retreatEditDietary').value     = r.dietary   || '';
+  document.getElementById('retreatEditChurch').value      = r.church     || '';
+  document.getElementById('retreatEditTshirt').value      = r.tshirtSize || '';
+  document.getElementById('retreatEditLodging').value     = r.lodging    || '';
+  document.getElementById('retreatEditDietary').value     = r.dietary    || '';
   document.getElementById('retreatEditNotes').value       = r.notes     || '';
   document.getElementById('retreatEditPaid').checked      = r.paid;
   document.getElementById('retreatEditCheckedIn').checked = r.checkedIn;
@@ -4225,8 +4253,10 @@ async function saveRetreatEdit() {
     fullName:  document.getElementById('retreatEditName').value.trim(),
     email:     document.getElementById('retreatEditEmail').value.trim(),
     phone:     document.getElementById('retreatEditPhone').value.trim(),
-    church:    document.getElementById('retreatEditChurch').value.trim(),
-    dietary:   document.getElementById('retreatEditDietary').value.trim(),
+    church:      document.getElementById('retreatEditChurch').value.trim(),
+    tshirtSize:  document.getElementById('retreatEditTshirt').value,
+    lodging:     document.getElementById('retreatEditLodging').value,
+    dietary:     document.getElementById('retreatEditDietary').value.trim(),
     notes:     document.getElementById('retreatEditNotes').value.trim(),
     paid:      document.getElementById('retreatEditPaid').checked,
     checkedIn: document.getElementById('retreatEditCheckedIn').checked,

@@ -555,12 +555,14 @@ window.SupaDB = {
         createdAt: r.created_at,
         fullName:  r.full_name,
         email:     r.email,
-        phone:     r.phone    || '',
-        church:    r.church   || '',
-        dietary:   r.dietary  || '',
-        paid:      !!r.paid,
-        checkedIn: !!r.checked_in,
-        notes:     r.admin_notes || '',
+        phone:      r.phone        || '',
+        church:     r.church       || '',
+        tshirtSize: r.tshirt_size  || '',
+        lodging:    r.lodging      || '',
+        dietary:    r.dietary      || '',
+        paid:       !!r.paid,
+        checkedIn:  !!r.checked_in,
+        notes:      r.admin_notes  || '',
       }));
     } catch(e) { console.error('[SupaDB] adminGetAllRetreatRegistrations:', e.message); return []; }
   },
@@ -572,8 +574,10 @@ window.SupaDB = {
       if (updates.fullName  !== undefined) d.full_name   = updates.fullName;
       if (updates.email     !== undefined) d.email       = updates.email;
       if (updates.phone     !== undefined) d.phone       = updates.phone;
-      if (updates.church    !== undefined) d.church      = updates.church;
-      if (updates.dietary   !== undefined) d.dietary     = updates.dietary;
+      if (updates.church     !== undefined) d.church       = updates.church;
+      if (updates.tshirtSize !== undefined) d.tshirt_size  = updates.tshirtSize;
+      if (updates.lodging    !== undefined) d.lodging      = updates.lodging;
+      if (updates.dietary    !== undefined) d.dietary      = updates.dietary;
       if (updates.paid      !== undefined) d.paid        = updates.paid;
       if (updates.checkedIn !== undefined) d.checked_in  = updates.checkedIn;
       if (updates.notes     !== undefined) d.admin_notes = updates.notes;
