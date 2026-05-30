@@ -40,7 +40,7 @@ serve(async (req: Request) => {
         <!-- Header -->
         <div style="background:#0C0E11;padding:36px 32px 28px;text-align:center;border-bottom:3px solid #E8891A;">
           <p style="margin:0 0 10px;font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#E8891A;">Nebraska Nazarene</p>
-          <h1 style="margin:0 0 6px;color:#F5F0E8;font-size:26px;font-weight:800;line-height:1.2;">Men's Retreat 2025</h1>
+          <h1 style="margin:0 0 6px;color:#F5F0E8;font-size:26px;font-weight:800;line-height:1.2;">Men's Retreat 2026</h1>
           <p style="margin:0;font-size:14px;color:rgba(245,240,232,.6);font-style:italic;">Building Teams: At Home, At Church, and At Work</p>
         </div>
 
@@ -58,7 +58,7 @@ serve(async (req: Request) => {
             <table style="width:100%;border-collapse:collapse;">
               <tr>
                 <td style="padding:5px 0;font-size:13px;color:#9ca3af;font-weight:700;width:90px;vertical-align:top;">WHEN</td>
-                <td style="padding:5px 0;font-size:14px;color:#F5F0E8;">August 21–22, 2025<br><span style="font-size:12px;color:rgba(245,240,232,.6);">Thursday evening through Friday</span></td>
+                <td style="padding:5px 0;font-size:14px;color:#F5F0E8;">August 21–22, 2026<br><span style="font-size:12px;color:rgba(245,240,232,.6);">Thursday evening through Friday</span></td>
               </tr>
               <tr>
                 <td style="padding:5px 0;font-size:13px;color:#9ca3af;font-weight:700;vertical-align:top;">WHERE</td>
@@ -111,7 +111,7 @@ serve(async (req: Request) => {
       `Building Teams: At Home, At Church, and At Work`,
       ``,
       `EVENT DETAILS`,
-      `  When:  August 21–22, 2025 (Thursday evening through Friday)`,
+      `  When:  August 21–22, 2026 (Thursday evening through Friday)`,
       `  Where: Nebraska Youth Camp — 65 Sweetwater Ave S, Kearney, NE 68847`,
       `  Cost:  $100 per person — includes all meals & lodging`,
       `  Name:    ${fullName}`,
@@ -141,7 +141,7 @@ serve(async (req: Request) => {
       body: JSON.stringify({
         from:    'Heritage Hill Church <noreply@heritagehill.church>',
         to:      [email],
-        subject: `You're Registered — Nebraska Nazarene Men's Retreat 2025`,
+        subject: `You're Registered — Nebraska Nazarene Men's Retreat 2026`,
         text:    textBody,
         html:    htmlBody,
       }),
