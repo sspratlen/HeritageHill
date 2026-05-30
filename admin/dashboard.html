@@ -219,7 +219,7 @@
     </a>
     <a onclick="switchTab('retreat')" id="sideRetreat">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 17l4-8 4 4 4-6 4 8"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
-      Retreat 2025
+      Retreat 2026
     </a>
     <a onclick="switchTab('attendance')" id="sideAttendance">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
@@ -936,7 +936,7 @@
       </div>
     </div>
 
-    <!-- ── Retreat 2025 ───────────────────────────────────────── -->
+    <!-- ── Retreat 2026 ───────────────────────────────────────── -->
     <div class="tab-panel" id="panelRetreat">
       <div class="action-bar">
         <h2>Retreat Registrations</h2>
@@ -1550,7 +1550,7 @@ function switchTab(tab) {
   const c = tab[0].toUpperCase()+tab.slice(1);
   const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
   if(p) p.classList.add('active'); if(s) s.classList.add('active');
-  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2025',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings'};
+  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings'};
   document.getElementById('topbarTitle').textContent = titles[tab]||tab;
   if(tab==='events') renderEventsTable();
   else if(tab==='groups') renderGroupsTable();
