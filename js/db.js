@@ -557,7 +557,8 @@ window.SupaDB = {
         email:     r.email,
         phone:      r.phone        || '',
         church:     r.church       || '',
-        tshirtSize: r.tshirt_size  || '',
+        cookingRole: r.cooking_role || '',
+        tshirtSize:  r.tshirt_size  || '',
         lodging:    r.lodging      || '',
         dietary:    r.dietary      || '',
         paid:       !!r.paid,
@@ -575,7 +576,8 @@ window.SupaDB = {
       if (updates.email     !== undefined) d.email       = updates.email;
       if (updates.phone     !== undefined) d.phone       = updates.phone;
       if (updates.church     !== undefined) d.church       = updates.church;
-      if (updates.tshirtSize !== undefined) d.tshirt_size  = updates.tshirtSize;
+      if (updates.cookingRole !== undefined) d.cooking_role = updates.cookingRole;
+      if (updates.tshirtSize  !== undefined) d.tshirt_size  = updates.tshirtSize;
       if (updates.lodging    !== undefined) d.lodging      = updates.lodging;
       if (updates.dietary    !== undefined) d.dietary      = updates.dietary;
       if (updates.paid      !== undefined) d.paid        = updates.paid;

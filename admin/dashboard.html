@@ -969,6 +969,7 @@
             <th>Email</th>
             <th>Phone</th>
             <th>Church</th>
+            <th>Cook/Clean</th>
             <th>T-Shirt</th>
             <th>Lodging</th>
             <th style="text-align:center;">Paid</th>
@@ -1446,6 +1447,14 @@
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label style="display:block;font-size:.78rem;font-weight:700;margin-bottom:5px;color:var(--text-muted);">Cook or Clean?</label>
+          <select id="retreatEditCooking" style="width:100%;padding:.55rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;background:#fff;">
+            <option value="">—</option>
+            <option value="cook">I'd rather cook</option>
+            <option value="clean">I'd rather clean</option>
+          </select>
+        </div>
         <div>
           <label style="display:block;font-size:.78rem;font-weight:700;margin-bottom:5px;color:var(--text-muted);">T-Shirt Size</label>
           <select id="retreatEditTshirt" style="width:100%;padding:.55rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;background:#fff;">
@@ -4185,6 +4194,7 @@ function filterRetreatRegs() {
       <td style="font-size:.85rem;">${r.email ? `<a href="mailto:${r.email}" style="color:var(--secondary);">${r.email}</a>` : '—'}</td>
       <td style="font-size:.85rem;white-space:nowrap;">${r.phone || '—'}</td>
       <td style="font-size:.85rem;">${r.church || '—'}</td>
+      <td style="font-size:.85rem;">${r.cookingRole === 'cook' ? '🍳 Cook' : r.cookingRole === 'clean' ? '🧹 Clean' : '—'}</td>
       <td style="font-size:.85rem;white-space:nowrap;">${r.tshirtSize || '—'}</td>
       <td style="font-size:.85rem;">${r.lodging === 'camp' ? 'Camp' : r.lodging === 'hotel' ? 'Hotel' : '—'}</td>
       <td style="text-align:center;">
@@ -4236,7 +4246,8 @@ function editRetreatReg(id) {
   document.getElementById('retreatEditEmail').value       = r.email     || '';
   document.getElementById('retreatEditPhone').value       = r.phone     || '';
   document.getElementById('retreatEditChurch').value      = r.church     || '';
-  document.getElementById('retreatEditTshirt').value      = r.tshirtSize || '';
+  document.getElementById('retreatEditCooking').value     = r.cookingRole || '';
+  document.getElementById('retreatEditTshirt').value      = r.tshirtSize  || '';
   document.getElementById('retreatEditLodging').value     = r.lodging    || '';
   document.getElementById('retreatEditDietary').value     = r.dietary    || '';
   document.getElementById('retreatEditNotes').value       = r.notes     || '';
@@ -4256,6 +4267,7 @@ async function saveRetreatEdit() {
     email:     document.getElementById('retreatEditEmail').value.trim(),
     phone:     document.getElementById('retreatEditPhone').value.trim(),
     church:      document.getElementById('retreatEditChurch').value.trim(),
+    cookingRole: document.getElementById('retreatEditCooking').value,
     tshirtSize:  document.getElementById('retreatEditTshirt').value,
     lodging:     document.getElementById('retreatEditLodging').value,
     dietary:     document.getElementById('retreatEditDietary').value.trim(),
