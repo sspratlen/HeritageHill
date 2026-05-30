@@ -867,6 +867,15 @@
           </div>
 
           <div class="form-group">
+            <label for="reg-cooking">Husker Breakfast Platter — Would you rather cook or clean up after?</label>
+            <select id="reg-cooking" required>
+              <option value="" disabled selected>Select your role…</option>
+              <option value="cook">I'd rather cook</option>
+              <option value="clean">I'd rather clean</option>
+            </select>
+          </div>
+
+          <div class="form-group">
             <label for="reg-tshirt">T-Shirt Size</label>
             <select id="reg-tshirt" required>
               <option value="" disabled selected>Select your size…</option>
@@ -953,6 +962,7 @@
       email:        document.getElementById('reg-email').value.trim(),
       phone:        document.getElementById('reg-phone').value.trim()   || null,
       church:       document.getElementById('reg-church').value.trim()  || null,
+      cooking_role: document.getElementById('reg-cooking').value        || null,
       tshirt_size:  document.getElementById('reg-tshirt').value         || null,
       lodging:      document.getElementById('reg-lodging').value        || null,
       dietary:      document.getElementById('reg-dietary').value.trim() || null,
@@ -991,7 +1001,8 @@
           fullName:    payload.full_name,
           email:       payload.email,
           church:      payload.church      || null,
-          tshirtSize:  payload.tshirt_size || null,
+          cookingRole: payload.cooking_role || null,
+          tshirtSize:  payload.tshirt_size  || null,
           lodging:     payload.lodging     || null,
           dietary:     payload.dietary     || null,
         }),
