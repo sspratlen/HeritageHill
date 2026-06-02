@@ -255,22 +255,27 @@ async function submitSubscribe() {
   // Cache all published events so filters don't re-query on every keystroke
   let _allEvents = [];
 
+  // "June 8, 2026" + "June 11, 2026" → "June 8–11, 2026"
+  // "June 28, 2026" + "July 2, 2026" → "June 28 – July 2, 2026"
+  function formatDateRange(startStr, endStr) {
+    if (!endStr) return startStr;
+    const re = /([A-Za-z]+)\s+(\d+)(?:,?\s*(\d{4}))?/;
+    const sp = startStr.match(re), ep = endStr.match(re);
+    if (!sp || !ep) return `${startStr} – ${endStr}`;
+    const [, sMon, sDay, sYear] = sp;
+    const [, eMon, eDay] = ep;
+    const yr = sYear ? `, ${sYear}` : '';
+    if (sMon === eMon) return `${sMon} ${sDay}–${eDay}${yr}`;
+    return `${sMon} ${sDay} – ${eMon} ${eDay}${yr}`;
+  }
+
   function renderEventCard(ev) {
     const dateParts = ev.date.match(/([A-Za-z]+)\s+(\d+)/);
     const month = dateParts ? dateParts[1].slice(0,3).toUpperCase() : '';
     const day   = dateParts ? dateParts[2] : '';
     const badge = (month && day) ? `<div class="date-badge"><span class="month">${month}</span><span class="day">${day}</span></div>` : '';
     const recTag = ev.recurring ? `<span class="group-tag">Recurring</span>` : '';
-    // Smart date range: "June 14 – 16" same month, "June 28 – July 2" cross-month
-    let dateDisplay = ev.date;
-    if (ev.endDate) {
-      const endParts = ev.endDate.match(/([A-Za-z]+)\s+(\d+)/);
-      if (endParts) {
-        dateDisplay = (dateParts && dateParts[1] === endParts[1])
-          ? `${ev.date} – ${endParts[2]}`
-          : `${ev.date} – ${ev.endDate}`;
-      }
-    }
+    const dateDisplay = ev.endDate ? formatDateRange(ev.date, ev.endDate) : ev.date;
     return `
     <article class="card" data-reveal>
       <div class="card-img">
@@ -372,12 +377,7 @@ async function submitSubscribe() {
     document.getElementById('evDetailTitle').textContent = ev.title;
 
     // Meta
-    let dateDisplay = ev.date;
-    if (ev.endDate) {
-      const dp = ev.date.match(/([A-Za-z]+)\s+(\d+)/);
-      const ep = ev.endDate.match(/([A-Za-z]+)\s+(\d+)/);
-      if (dp && ep) dateDisplay = dp[1]===ep[1] ? `${ev.date} – ${ep[2]}` : `${ev.date} – ${ev.endDate}`;
-    }
+    const dateDisplay = ev.endDate ? formatDateRange(ev.date, ev.endDate) : ev.date;
     document.getElementById('evDetailMeta').innerHTML = `
       <span><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${dateDisplay}</span>
       <span><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${ev.time}</span>
