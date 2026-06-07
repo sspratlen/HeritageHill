@@ -273,14 +273,13 @@ async function submitSubscribe() {
     const dateParts = ev.date.match(/([A-Za-z]+)\s+(\d+)/);
     const month = dateParts ? dateParts[1].slice(0,3).toUpperCase() : '';
     const day   = dateParts ? dateParts[2] : '';
-    const badge = (month && day) ? `<div class="date-badge"><span class="month">${month}</span><span class="day">${day}</span></div>` : '';
     const recTag = ev.recurring ? `<span class="group-tag">Recurring</span>` : '';
     const dateDisplay = ev.endDate ? formatDateRange(ev.date, ev.endDate) : ev.date;
     return `
     <article class="card" data-reveal>
       <div class="card-img">
         <img src="${ev.image}" alt="${ev.title}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800&q=80'" />
-        ${badge}
+
       </div>
       <div class="card-body">
         <div style="margin-bottom:.5rem;">${recTag}<span class="group-tag" style="background:rgba(21,92,162,.1);color:var(--secondary);">${ev.category}</span></div>
