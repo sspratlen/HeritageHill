@@ -733,6 +733,41 @@ window.SupaDB = {
     return { success: true };
   },
 
+/* ── User Roles ─────────────────────────────────────────── */
+  async getUserRoleByEmail(email) {
+    if (!db() || !email) return null;
+    try {
+      const { data, error } = await db().from('user_roles').select('*').eq('email', email.toLowerCase()).single();
+      if (error) return null;
+      return data ? { email: data.email, displayName: data.display_name || '', role: data.role, createdAt: data.created_at } : null;
+    } catch(e) { return null; }
+  },
+  async adminGetAllUserRoles() {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('user_roles').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(r => ({ email: r.email, displayName: r.display_name || '', role: r.role, createdAt: r.created_at }));
+    } catch(e) { console.error('[SupaDB] adminGetAllUserRoles:', e.message); return []; }
+  },
+  async adminUpsertUserRole({ email, displayName, role }) {
+    if (!db()) return { error: 'No DB' };
+    try {
+      const { error } = await db().from('user_roles')
+        .upsert({ email: email.toLowerCase(), display_name: displayName || '', role }, { onConflict: 'email' });
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] adminUpsertUserRole:', e.message); return { error: e.message }; }
+  },
+  async adminDeleteUserRole(email) {
+    if (!db()) return { error: 'No DB' };
+    try {
+      const { error } = await db().from('user_roles').delete().eq('email', email.toLowerCase());
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] adminDeleteUserRole:', e.message); return { error: e.message }; }
+  },
+
 /* ── YouTube (via Supabase Edge Function) ───────────────── */
   async getLatestYouTubeVideos(maxResults = 12) {
     try {

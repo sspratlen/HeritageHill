@@ -187,57 +187,61 @@
     <span>Admin Dashboard</span>
   </div>
   <nav class="sidebar-nav">
-    <div class="nav-section">Content</div>
-    <a onclick="switchTab('events')" id="sideEvents" class="active">
+    <div class="nav-section" id="navSectionContent">Content</div>
+    <a onclick="switchTab('events')" id="sideEvents" data-tab="events" class="active">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Events
     </a>
-    <a onclick="switchTab('groups')" id="sideGroups">
+    <a onclick="switchTab('groups')" id="sideGroups" data-tab="groups">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
       Small Groups
     </a>
-    <div class="nav-section" style="margin-top:8px;">People</div>
-    <a onclick="switchTab('signups')" id="sideSignups">
+    <div class="nav-section" id="navSectionPeople" style="margin-top:8px;">People</div>
+    <a onclick="switchTab('signups')" id="sideSignups" data-tab="signups">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
       Sign-Up Requests
     </a>
-    <a onclick="switchTab('applications')" id="sideApplications">
+    <a onclick="switchTab('applications')" id="sideApplications" data-tab="applications">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
       Leader Applications
     </a>
-    <a onclick="switchTab('subscribers')" id="sideSubscribers">
+    <a onclick="switchTab('subscribers')" id="sideSubscribers" data-tab="subscribers">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
       Subscribers
     </a>
-    <a onclick="switchTab('rsvps')" id="sideRsvps">
+    <a onclick="switchTab('rsvps')" id="sideRsvps" data-tab="rsvps">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
       Event RSVPs
     </a>
-    <a onclick="switchTab('prayer')" id="sidePrayer">
+    <a onclick="switchTab('prayer')" id="sidePrayer" data-tab="prayer">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
       Prayer Requests
     </a>
-    <a onclick="switchTab('retreat')" id="sideRetreat">
+    <a onclick="switchTab('retreat')" id="sideRetreat" data-tab="retreat">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 17l4-8 4 4 4-6 4 8"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
       Retreat 2026
     </a>
-    <a onclick="switchTab('attendance')" id="sideAttendance">
+    <a onclick="switchTab('attendance')" id="sideAttendance" data-tab="attendance">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       Attendance
     </a>
-    <div class="nav-section" style="margin-top:8px;">Media</div>
-    <a onclick="switchTab('sermons')" id="sideSermons">
+    <div class="nav-section" id="navSectionMedia" style="margin-top:8px;">Media</div>
+    <a onclick="switchTab('sermons')" id="sideSermons" data-tab="sermons">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
       Sermons
     </a>
-    <a onclick="switchTab('email')" id="sideNewsletter">
+    <a onclick="switchTab('email')" id="sideNewsletter" data-tab="email">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
       Email
     </a>
-    <div class="nav-section" style="margin-top:8px;">Site</div>
-    <a onclick="switchTab('settings')" id="sideSettings">
+    <div class="nav-section" id="navSectionSite" style="margin-top:8px;">Site</div>
+    <a onclick="switchTab('settings')" id="sideSettings" data-tab="settings">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
       Settings
+    </a>
+    <a onclick="switchTab('users')" id="sideUsers" data-tab="users">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+      User Permissions
     </a>
   </nav>
   <div class="sidebar-footer">
@@ -256,7 +260,7 @@
   <div class="topbar">
     <h1 id="topbarTitle">Events</h1>
     <div style="display:flex;align-items:center;gap:12px;">
-      <span class="admin-badge">Admin</span>
+      <span class="admin-badge" id="roleBadge">Admin</span>
     </div>
   </div>
 
@@ -1042,6 +1046,34 @@
       </div>
     </div>
 
+    <!-- USER PERMISSIONS -->
+    <div class="tab-panel" id="panelUsers">
+      <div class="action-bar">
+        <h2>User Permissions</h2>
+        <button class="btn btn-primary" onclick="openUserModal()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add User
+        </button>
+      </div>
+      <div style="background:rgba(188,122,30,.07);border:1px solid rgba(188,122,30,.25);border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:.875rem;color:var(--text-muted);line-height:1.6;">
+        <strong style="color:var(--text);">How it works:</strong> Add a user's email and assign a role. When they log in, they'll only see the sections their role allows. The user account itself must be created in your Supabase dashboard (Authentication → Users → Invite user).
+        <br><br>
+        <strong style="color:var(--text);">Admin</strong> — Full access to all sections.<br>
+        <strong style="color:var(--text);">Event Manager</strong> — Events, RSVPs, Sermons, Email.<br>
+        <strong style="color:var(--text);">Small Group Leader</strong> — Small Groups, Sign-Ups, Leader Applications, Subscribers.
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Email</th><th>Name</th><th>Role</th><th>Added</th><th>Actions</th></tr></thead>
+          <tbody id="usersTable"></tbody>
+        </table>
+        <div class="empty" id="usersEmpty" style="display:none;">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          <h3>No users configured</h3>
+          <p>Add users above to grant limited access to specific sections of the admin dashboard.</p>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1527,6 +1559,47 @@
   </div>
 </div>
 
+<!-- USER MODAL -->
+<div class="modal-overlay" id="userModal" onclick="if(event.target===this)closeUserModal()">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <h3 id="userModalTitle">Add User</h3>
+      <button class="modal-close" onclick="closeUserModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="userEditEmail" />
+      <div class="form-row full" style="margin-bottom:16px;">
+        <div class="field">
+          <label>Email Address <span style="color:var(--danger);">*</span></label>
+          <input type="email" id="userEmail" placeholder="jane@example.com" />
+          <p style="margin-top:5px;font-size:.78rem;color:var(--text-muted);">Must match the login email in Supabase Authentication.</p>
+        </div>
+      </div>
+      <div class="form-row full" style="margin-bottom:16px;">
+        <div class="field">
+          <label>Display Name</label>
+          <input type="text" id="userDisplayName" placeholder="Jane Smith" />
+        </div>
+      </div>
+      <div class="form-row full" style="margin-bottom:4px;">
+        <div class="field">
+          <label>Role <span style="color:var(--danger);">*</span></label>
+          <select id="userRole">
+            <option value="">Select a role…</option>
+            <option value="admin">Admin — Full access to all sections</option>
+            <option value="event_manager">Event Manager — Events, RSVPs, Sermons, Email</option>
+            <option value="small_group_leader">Small Group Leader — Groups, Sign-Ups, Applications, Subscribers</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeUserModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveUser()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Delete confirm modal -->
 <div class="modal-overlay" id="deleteModal">
   <div class="modal" style="max-width:400px;">
@@ -1543,14 +1616,60 @@
 <script src="../js/db.js"></script>
 <script src="../js/main.js"></script>
 <script>
-// Auth guard — redirect to login if not signed in
+// Role-based access map
+const ROLE_TABS = {
+  admin:               ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','attendance','sermons','email','settings','users'],
+  event_manager:       ['events','rsvps','sermons','email'],
+  small_group_leader:  ['groups','signups','applications','subscribers'],
+};
+const ROLE_LABELS = { admin:'Admin', event_manager:'Event Manager', small_group_leader:'Small Group Leader' };
+
+function applyRoleVisibility() {
+  const allowed = ROLE_TABS[window._userRole] || ROLE_TABS.admin;
+  // Show/hide sidebar items
+  document.querySelectorAll('.sidebar-nav a[data-tab]').forEach(el => {
+    el.style.display = allowed.includes(el.dataset.tab) ? '' : 'none';
+  });
+  // Hide section headers if all items beneath them are hidden
+  ['navSectionContent','navSectionPeople','navSectionMedia','navSectionSite'].forEach(secId => {
+    const sec = document.getElementById(secId);
+    if (!sec) return;
+    let next = sec.nextElementSibling, anyVisible = false;
+    while (next && !next.classList.contains('nav-section')) {
+      if (next.tagName === 'A' && next.style.display !== 'none') anyVisible = true;
+      next = next.nextElementSibling;
+    }
+    sec.style.display = anyVisible ? '' : 'none';
+  });
+  // Hide stats row for non-admins (stats cover data they can't see)
+  if (window._userRole !== 'admin') {
+    const statsRow = document.querySelector('.stats-row');
+    if (statsRow) statsRow.style.display = 'none';
+  }
+  // Update role badge label
+  document.getElementById('roleBadge').textContent = ROLE_LABELS[window._userRole] || 'Admin';
+}
+
+// Auth guard — redirect to login if not signed in; load role before rendering
 (async () => {
   const user = await SupaDB.getUser();
-  if (!user) window.location.href = 'login.html?next=dashboard.html';
+  if (!user) { window.location.href = 'login.html?next=dashboard.html'; return; }
+  window._currentUser = user;
+  const roleData = await SupaDB.getUserRoleByEmail(user.email);
+  window._userRole = roleData ? roleData.role : 'admin';
+  applyRoleVisibility();
+  const allowed = ROLE_TABS[window._userRole] || ROLE_TABS.admin;
+  const urlTab = new URLSearchParams(window.location.search).get('tab');
+  const startTab = (urlTab && allowed.includes(urlTab)) ? urlTab : allowed[0];
+  switchTab(startTab);
+  if (window._userRole === 'admin') updateStats();
 })();
 
-const ALL_TABS = ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','attendance','sermons','email','settings'];
+const ALL_TABS = ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','attendance','sermons','email','settings','users'];
 function switchTab(tab) {
+  // Block access to tabs the current role doesn't have
+  const allowed = ROLE_TABS[window._userRole] || ROLE_TABS.admin;
+  if (!allowed.includes(tab)) return;
   ALL_TABS.forEach(t => {
     const c = t[0].toUpperCase()+t.slice(1);
     const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
@@ -1559,7 +1678,7 @@ function switchTab(tab) {
   const c = tab[0].toUpperCase()+tab.slice(1);
   const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
   if(p) p.classList.add('active'); if(s) s.classList.add('active');
-  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings'};
+  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings',users:'User Permissions'};
   document.getElementById('topbarTitle').textContent = titles[tab]||tab;
   if(tab==='events') renderEventsTable();
   else if(tab==='groups') renderGroupsTable();
@@ -1573,10 +1692,8 @@ function switchTab(tab) {
   else if(tab==='sermons') renderSermonsTable();
   else if(tab==='email')    { loadCampaignHistory(); loadMailchimpTags(); }
   else if(tab==='settings') { loadBannerSettings(); loadSaveDatesSettings(); }
+  else if(tab==='users') renderUsersTable();
 }
-const urlTab = new URLSearchParams(window.location.search).get('tab');
-if(ALL_TABS.includes(urlTab)) switchTab(urlTab); else renderEventsTable();
-updateStats();
 
 async function updateStats() {
   const [evs, grs, sigs, apps, subs] = await Promise.all([
@@ -4415,6 +4532,71 @@ async function deleteAttEntry(id) {
   if (!confirm('Delete this attendance entry? This cannot be undone.')) return;
   await SupaDB.adminDeleteAttendance(id);
   renderAttendanceTable();
+}
+
+/* ── USER PERMISSIONS ─────────────────────────────────────── */
+let _cachedUsers = [];
+const _roleLabels = { admin:'Admin', event_manager:'Event Manager', small_group_leader:'Small Group Leader' };
+const _roleBadgeClass = { admin:'badge-blue', event_manager:'badge-amber', small_group_leader:'badge-green' };
+
+async function renderUsersTable() {
+  _cachedUsers = await SupaDB.adminGetAllUserRoles();
+  const tbody = document.getElementById('usersTable');
+  const empty = document.getElementById('usersEmpty');
+  if (!_cachedUsers.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = _cachedUsers.map(u => `
+    <tr>
+      <td><strong>${u.email}</strong></td>
+      <td style="color:var(--text-muted);">${u.displayName || '—'}</td>
+      <td><span class="badge ${_roleBadgeClass[u.role]||'badge-gray'}">${_roleLabels[u.role]||u.role}</span></td>
+      <td style="color:var(--text-muted);font-size:.82rem;">${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}</td>
+      <td><div class="td-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editUser('${u.email.replace(/'/g,"\\'")}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.email.replace(/'/g,"\\'")}')">Remove</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function openUserModal(email) {
+  document.getElementById('userModalTitle').textContent = email ? 'Edit User' : 'Add User';
+  document.getElementById('userEditEmail').value  = email || '';
+  document.getElementById('userEmail').value      = email || '';
+  document.getElementById('userEmail').disabled   = !!email;
+  document.getElementById('userDisplayName').value = '';
+  document.getElementById('userRole').value        = '';
+  if (email) {
+    const u = _cachedUsers.find(x => x.email === email);
+    if (u) {
+      document.getElementById('userDisplayName').value = u.displayName || '';
+      document.getElementById('userRole').value        = u.role || '';
+    }
+  }
+  document.getElementById('userModal').classList.add('open');
+}
+function closeUserModal() { document.getElementById('userModal').classList.remove('open'); }
+function editUser(email) { openUserModal(email); }
+
+async function saveUser() {
+  const editEmail = document.getElementById('userEditEmail').value;
+  const email = editEmail || document.getElementById('userEmail').value.trim().toLowerCase();
+  const displayName = document.getElementById('userDisplayName').value.trim();
+  const role = document.getElementById('userRole').value;
+  if (!email) { alert('Email is required.'); return; }
+  if (!role)  { alert('Please select a role.'); return; }
+  const res = await SupaDB.adminUpsertUserRole({ email, displayName, role });
+  if (res.error) { alert('Error: ' + res.error); return; }
+  closeUserModal();
+  showToast('User saved.');
+  renderUsersTable();
+}
+
+async function deleteUser(email) {
+  if (!confirm(`Remove access for ${email}? They will lose dashboard access immediately.`)) return;
+  const res = await SupaDB.adminDeleteUserRole(email);
+  if (res.error) { alert('Error: ' + res.error); return; }
+  showToast('User removed.');
+  renderUsersTable();
 }
 </script>
 </body>
