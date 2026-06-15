@@ -4553,6 +4553,7 @@ async function renderUsersTable() {
       <td style="color:var(--text-muted);font-size:.82rem;">${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}</td>
       <td><div class="td-actions">
         <button class="btn btn-ghost btn-sm" onclick="editUser('${u.email.replace(/'/g,"\\'")}')">Edit</button>
+        <button class="btn btn-secondary btn-sm" onclick="sendPasswordReset('${u.email.replace(/'/g,"\\'")}')">Reset Password</button>
         <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.email.replace(/'/g,"\\'")}')">Remove</button>
       </div></td>
     </tr>`).join('');
@@ -4597,6 +4598,15 @@ async function deleteUser(email) {
   if (res.error) { alert('Error: ' + res.error); return; }
   showToast('User removed.');
   renderUsersTable();
+}
+
+async function sendPasswordReset(email) {
+  if (!confirm(`Send a password reset email to ${email}?`)) return;
+  const { error } = await db().auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/admin/login.html',
+  });
+  if (error) { alert('Error: ' + error.message + '\n\nNote: the user must have an account in Supabase Authentication before a reset email can be sent.'); return; }
+  showToast('Reset email sent to ' + email);
 }
 </script>
 </body>
