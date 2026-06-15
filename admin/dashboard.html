@@ -7,6 +7,7 @@
   <link rel="icon" href="../assets/logos/logo-icon-color-white.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -177,6 +178,13 @@
     @media (max-width: 1200px) { .stats-row { grid-template-columns: repeat(3,1fr); } }
     @media (max-width: 900px) { .sidebar { width: 200px; } .main { margin-left: 200px; } .form-row { grid-template-columns: 1fr; } .stats-row { grid-template-columns: repeat(2,1fr); } }
     @media (max-width: 680px) { .sidebar { display: none; } .main { margin-left: 0; } }
+    /* Quill editor */
+    .ql-toolbar.ql-snow { border-radius: 8px 8px 0 0; border-color: var(--border); font-family: 'DM Sans', sans-serif; }
+    .ql-container.ql-snow { border-radius: 0 0 8px 8px; border-color: var(--border); font-family: 'DM Sans', sans-serif; font-size: .9rem; min-height: 220px; }
+    .ql-editor { min-height: 220px; }
+    .ql-snow .ql-picker { font-family: 'DM Sans', sans-serif; }
+    .group-email-recipients { width:100%; padding:.62rem .9rem; border:1.5px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.875rem; resize:vertical; min-height:64px; outline:none; transition:border-color .2s; }
+    .group-email-recipients:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(188,122,30,.12); }
   </style>
 </head>
 <body>
@@ -1600,6 +1608,39 @@
   </div>
 </div>
 
+<!-- GROUP EMAIL MODAL -->
+<div class="modal-overlay" id="groupEmailModal" onclick="if(event.target===this)closeGroupEmailModal()">
+  <div class="modal modal-lg" style="max-width:780px;">
+    <div class="modal-header">
+      <h3 id="groupEmailTitle">Email Group</h3>
+      <button class="modal-close" onclick="closeGroupEmailModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field" style="margin-bottom:16px;">
+        <label>To <span style="font-size:.78rem;color:var(--text-muted);font-weight:400;">— recipients pulled from group sign-ups. Edit as needed, one email per line or comma-separated. Sent via BCC so members don't see each other.</span></label>
+        <textarea class="group-email-recipients" id="groupEmailTo" placeholder="member@example.com, another@example.com" oninput="updateGroupEmailCount()"></textarea>
+      </div>
+      <div class="field" style="margin-bottom:16px;">
+        <label>Subject</label>
+        <input type="text" id="groupEmailSubject" placeholder="e.g. This Sunday's Small Group" />
+      </div>
+      <div class="field" style="margin-bottom:4px;">
+        <label style="margin-bottom:8px;display:block;">Message</label>
+        <div id="groupEmailEditor"></div>
+      </div>
+      <p id="groupEmailError" style="color:var(--danger);font-size:.82rem;margin-top:10px;display:none;"></p>
+    </div>
+    <div class="modal-footer">
+      <span id="groupEmailRecipientCount" style="font-size:.82rem;color:var(--text-muted);margin-right:auto;"></span>
+      <button class="btn btn-ghost" onclick="closeGroupEmailModal()">Cancel</button>
+      <button class="btn btn-primary" id="groupEmailSendBtn" onclick="sendGroupEmail()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send Email
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- Delete confirm modal -->
 <div class="modal-overlay" id="deleteModal">
   <div class="modal" style="max-width:400px;">
@@ -1611,6 +1652,7 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../js/supabase-client.js"></script>
 <script src="../js/db.js"></script>
@@ -1905,6 +1947,10 @@ async function renderGroupsTable(){
       <td><div class="td-actions">
         <button class="btn btn-ghost btn-sm" onclick="openGroupRoster(${g.id})">Members</button>
         <button class="btn btn-ghost btn-sm" onclick="editGroup(${g.id})">Edit</button>
+        <button class="btn btn-secondary btn-sm" onclick="openGroupEmailModal(${g.id})">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Email Group
+        </button>
         ${!isLeader?`<button class="btn btn-danger btn-sm" onclick="deleteItem('group',${g.id},'${g.name.replace(/'/g,"\\'")}')">Delete</button>`:''}
       </div></td>
     </tr>`).join('');
@@ -4555,6 +4601,98 @@ async function deleteAttEntry(id) {
   if (!confirm('Delete this attendance entry? This cannot be undone.')) return;
   await SupaDB.adminDeleteAttendance(id);
   renderAttendanceTable();
+}
+
+/* ── GROUP EMAIL ──────────────────────────────────────────── */
+let _groupEmailQuill = null;
+let _groupEmailGroupId = null;
+
+async function openGroupEmailModal(groupId) {
+  _groupEmailGroupId = groupId;
+  const group = _cachedGroups.find(g => g.id === groupId);
+  document.getElementById('groupEmailTitle').textContent = group ? `Email — ${group.name}` : 'Email Group';
+  document.getElementById('groupEmailSubject').value = '';
+  document.getElementById('groupEmailError').style.display = 'none';
+
+  // Pre-populate recipients from sign-ups for this group
+  const signups = await SupaDB.adminGetSignupsByGroup(groupId);
+  const emails = [...new Set(signups.map(s => s.email).filter(Boolean))];
+  document.getElementById('groupEmailTo').value = emails.join('\n');
+  updateGroupEmailCount();
+
+  // Init Quill once, reset content on reopen
+  if (!_groupEmailQuill) {
+    _groupEmailQuill = new Quill('#groupEmailEditor', {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+          [{ header: [1, 2, 3, false] }],
+          [{ font: [] }],
+          [{ size: ['small', false, 'large', 'huge'] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ color: [] }, { background: [] }],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          [{ align: [] }],
+          ['link', 'image'],
+          ['clean'],
+        ],
+      },
+    });
+  } else {
+    _groupEmailQuill.setContents([]);
+  }
+
+  document.getElementById('groupEmailModal').classList.add('open');
+}
+
+function updateGroupEmailCount() {
+  const raw = document.getElementById('groupEmailTo').value;
+  const count = raw.split(/[\n,]+/).map(e => e.trim()).filter(e => e.includes('@')).length;
+  document.getElementById('groupEmailRecipientCount').textContent = count ? `${count} recipient${count !== 1 ? 's' : ''}` : '';
+}
+
+function closeGroupEmailModal() {
+  document.getElementById('groupEmailModal').classList.remove('open');
+}
+
+async function sendGroupEmail() {
+  const toRaw = document.getElementById('groupEmailTo').value;
+  const recipients = toRaw.split(/[\n,]+/).map(e => e.trim()).filter(e => e.includes('@'));
+  const subject = document.getElementById('groupEmailSubject').value.trim();
+  const htmlBody = _groupEmailQuill ? _groupEmailQuill.root.innerHTML : '';
+  const errEl = document.getElementById('groupEmailError');
+  errEl.style.display = 'none';
+
+  if (!recipients.length) { errEl.textContent = 'Add at least one recipient email.'; errEl.style.display = ''; return; }
+  if (!subject)           { errEl.textContent = 'Subject is required.';              errEl.style.display = ''; return; }
+  if (!htmlBody || htmlBody === '<p><br></p>') { errEl.textContent = 'Message cannot be empty.'; errEl.style.display = ''; return; }
+
+  const btn = document.getElementById('groupEmailSendBtn');
+  btn.disabled = true; btn.innerHTML = 'Sending…';
+
+  const group = _cachedGroups.find(g => g.id === _groupEmailGroupId);
+
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/send-group-email', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        subject,
+        htmlBody,
+        recipients,
+        fromName: group ? group.leader : 'Heritage Hill Church',
+      }),
+    });
+    const json = await res.json();
+    if (json.error) { errEl.textContent = 'Error: ' + json.error; errEl.style.display = ''; return; }
+    closeGroupEmailModal();
+    showToast(`Email sent to ${recipients.length} recipient${recipients.length !== 1 ? 's' : ''} ✓`);
+  } catch(e) {
+    errEl.textContent = 'Error: ' + e.message; errEl.style.display = '';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send Email';
+  }
 }
 
 /* ── USER PERMISSIONS ─────────────────────────────────────── */
