@@ -4553,6 +4553,7 @@ async function renderUsersTable() {
       <td style="color:var(--text-muted);font-size:.82rem;">${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '—'}</td>
       <td><div class="td-actions">
         <button class="btn btn-ghost btn-sm" onclick="editUser('${u.email.replace(/'/g,"\\'")}')">Edit</button>
+        <button class="btn btn-success btn-sm" onclick="setupUserAccount('${u.email.replace(/'/g,"\\'")}')">Set Up Account</button>
         <button class="btn btn-secondary btn-sm" onclick="sendPasswordReset('${u.email.replace(/'/g,"\\'")}')">Reset Password</button>
         <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.email.replace(/'/g,"\\'")}')">Remove</button>
       </div></td>
@@ -4598,6 +4599,23 @@ async function deleteUser(email) {
   if (res.error) { alert('Error: ' + res.error); return; }
   showToast('User removed.');
   renderUsersTable();
+}
+
+async function setupUserAccount(email) {
+  if (!confirm(`Create or reset the account for ${email} with the default password (HHTemp!)?`)) return;
+  const btn = event.target;
+  btn.disabled = true; btn.textContent = 'Working…';
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/admin-create-user', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const json = await res.json();
+    if (json.error) { alert('Error: ' + json.error); return; }
+    showToast(json.action === 'created' ? `Account created for ${email} — password: HHTemp!` : `Password reset to HHTemp! for ${email}`);
+  } catch(e) { alert('Error: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = 'Set Up Account'; }
 }
 
 async function sendPasswordReset(email) {
