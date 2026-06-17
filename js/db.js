@@ -759,14 +759,14 @@ window.SupaDB = {
     try {
       const { data, error } = await db().from('user_roles').select('*').order('created_at', { ascending: false });
       if (error) throw error;
-      return (data || []).map(r => ({ email: r.email, displayName: r.display_name || '', role: r.role, createdAt: r.created_at }));
+      return (data || []).map(r => ({ email: r.email, displayName: r.display_name || '', role: r.role, createdAt: r.created_at, forcePasswordChange: !!r.force_password_change }));
     } catch(e) { console.error('[SupaDB] adminGetAllUserRoles:', e.message); return []; }
   },
-  async adminUpsertUserRole({ email, displayName, role }) {
+  async adminUpsertUserRole({ email, displayName, role, forcePasswordChange }) {
     if (!db()) return { error: 'No DB' };
     try {
       const { error } = await db().from('user_roles')
-        .upsert({ email: email.toLowerCase(), display_name: displayName || '', role }, { onConflict: 'email' });
+        .upsert({ email: email.toLowerCase(), display_name: displayName || '', role, force_password_change: !!forcePasswordChange }, { onConflict: 'email' });
       if (error) throw error;
       return { ok: true };
     } catch(e) { console.error('[SupaDB] adminUpsertUserRole:', e.message); return { error: e.message }; }
