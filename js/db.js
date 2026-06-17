@@ -737,6 +737,53 @@ window.SupaDB = {
     return { success: true };
   },
 
+/* ── Small Group Attendance ─────────────────────────────── */
+  async adminGetAllGroupAttendance() {
+    if (!db()) return [];
+    const { data, error } = await db()
+      .from('group_attendance')
+      .select('*')
+      .order('meeting_date', { ascending: false });
+    if (error) { console.error('[SupaDB] adminGetAllGroupAttendance:', error.message); return []; }
+    return (data || []).map(r => ({
+      id:          r.id,
+      groupId:     r.group_id,
+      groupName:   r.group_name,
+      meetingDate: r.meeting_date,
+      headcount:   r.headcount,
+      notes:       r.notes || '',
+      createdAt:   r.created_at,
+    }));
+  },
+  async adminAddGroupAttendance({ groupId, groupName, meetingDate, headcount, notes }) {
+    if (!db()) return { error: 'Not configured' };
+    const { error } = await db().from('group_attendance').insert({
+      group_id:     groupId || null,
+      group_name:   groupName,
+      meeting_date: meetingDate,
+      headcount:    headcount,
+      notes:        notes || null,
+    });
+    if (error) return { error: error.message };
+    return { success: true };
+  },
+  async adminUpdateGroupAttendance(id, { meetingDate, headcount, notes }) {
+    if (!db()) return { error: 'Not configured' };
+    const { error } = await db().from('group_attendance').update({
+      meeting_date: meetingDate,
+      headcount:    headcount,
+      notes:        notes || null,
+    }).eq('id', id);
+    if (error) return { error: error.message };
+    return { success: true };
+  },
+  async adminDeleteGroupAttendance(id) {
+    if (!db()) return { error: 'Not configured' };
+    const { error } = await db().from('group_attendance').delete().eq('id', id);
+    if (error) return { error: error.message };
+    return { success: true };
+  },
+
 /* ── User Roles ─────────────────────────────────────────── */
   async getUserRoleByEmail(email) {
     if (!db() || !email) return null;

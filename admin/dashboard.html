@@ -1016,48 +1016,95 @@
         </a>
       </div>
 
-      <!-- Quick-entry card -->
+      <!-- Worship attendance — admin only -->
+      <div id="attWorshipSection">
+        <!-- Quick-entry card -->
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px;">
+          <h3 style="font-size:.95rem;font-weight:700;margin-bottom:16px;">Add Weekly Entry</h3>
+          <div style="display:grid;grid-template-columns:160px 1fr 1fr 1fr auto;gap:12px;align-items:end;flex-wrap:wrap;">
+            <div class="field">
+              <label>Date</label>
+              <input type="date" id="attDate" />
+            </div>
+            <div class="field">
+              <label>Worship Attendance</label>
+              <input type="number" id="attWorship" placeholder="e.g. 142" min="0" />
+            </div>
+            <div class="field">
+              <label>Small Group Total</label>
+              <input type="number" id="attSmallGroup" placeholder="e.g. 64" min="0" />
+            </div>
+            <div class="field">
+              <label>Notes <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+              <input type="text" id="attNotes" placeholder="e.g. Easter Sunday" />
+            </div>
+            <button class="btn btn-primary" onclick="addAttendanceEntry()" id="attAddBtn" style="margin-bottom:1px;">Add</button>
+          </div>
+          <p id="attAddError"   style="color:var(--danger);font-size:.82rem;margin-top:8px;display:none;"></p>
+          <p id="attAddSuccess" style="color:var(--success);font-size:.82rem;margin-top:8px;display:none;">✓ Entry saved!</p>
+        </div>
+
+        <div class="table-wrap" style="margin-bottom:32px;">
+          <table>
+            <thead><tr>
+              <th>Date</th>
+              <th>Worship</th>
+              <th>Small Groups</th>
+              <th>SG Rate</th>
+              <th>Notes</th>
+              <th>Actions</th>
+            </tr></thead>
+            <tbody id="attendanceTable"></tbody>
+          </table>
+          <div id="attendanceEmpty" class="empty" style="display:none;">
+            <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            <h3>No entries yet</h3>
+            <p>Add your first weekly attendance record above.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Small group headcount — admins and leaders -->
       <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px;">
-        <h3 style="font-size:.95rem;font-weight:700;margin-bottom:16px;">Add Weekly Entry</h3>
-        <div style="display:grid;grid-template-columns:160px 1fr 1fr 1fr auto;gap:12px;align-items:end;flex-wrap:wrap;">
+        <h3 style="font-size:.95rem;font-weight:700;margin-bottom:16px;">Add Small Group Headcount</h3>
+        <div style="display:grid;grid-template-columns:1fr 160px 120px 1fr auto;gap:12px;align-items:end;flex-wrap:wrap;">
           <div class="field">
-            <label>Date</label>
-            <input type="date" id="attDate" />
+            <label>Group</label>
+            <select id="sgAttGroup"></select>
           </div>
           <div class="field">
-            <label>Worship Attendance</label>
-            <input type="number" id="attWorship" placeholder="e.g. 142" min="0" />
+            <label>Meeting Date</label>
+            <input type="date" id="sgAttDate" />
           </div>
           <div class="field">
-            <label>Small Group Total</label>
-            <input type="number" id="attSmallGroup" placeholder="e.g. 64" min="0" />
+            <label>Headcount</label>
+            <input type="number" id="sgAttCount" placeholder="e.g. 12" min="0" />
           </div>
           <div class="field">
             <label>Notes <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
-            <input type="text" id="attNotes" placeholder="e.g. Easter Sunday" />
+            <input type="text" id="sgAttNotes" placeholder="e.g. Holiday week" />
           </div>
-          <button class="btn btn-primary" onclick="addAttendanceEntry()" id="attAddBtn" style="margin-bottom:1px;">Add</button>
+          <button class="btn btn-primary" onclick="addGroupAttendanceEntry()" id="sgAttAddBtn" style="margin-bottom:1px;">Add</button>
         </div>
-        <p id="attAddError"   style="color:var(--danger);font-size:.82rem;margin-top:8px;display:none;"></p>
-        <p id="attAddSuccess" style="color:var(--success);font-size:.82rem;margin-top:8px;display:none;">✓ Entry saved!</p>
+        <p id="sgAttError"   style="color:var(--danger);font-size:.82rem;margin-top:8px;display:none;"></p>
+        <p id="sgAttSuccess" style="color:var(--success);font-size:.82rem;margin-top:8px;display:none;">✓ Entry saved!</p>
       </div>
 
       <div class="table-wrap">
         <table>
           <thead><tr>
+            <th>Group</th>
             <th>Date</th>
-            <th>Worship</th>
-            <th>Small Groups</th>
-            <th>SG Rate</th>
+            <th>Headcount</th>
             <th>Notes</th>
             <th>Actions</th>
           </tr></thead>
-          <tbody id="attendanceTable"></tbody>
+          <tbody id="sgAttendanceTable"></tbody>
         </table>
-        <div id="attendanceEmpty" class="empty" style="display:none;">
-          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          <h3>No entries yet</h3>
-          <p>Add your first weekly attendance record above.</p>
+        <div id="sgAttendanceEmpty" class="empty" style="display:none;">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <h3>No headcount entries yet</h3>
+          <p>Record your first small group meeting attendance above.</p>
         </div>
       </div>
     </div>
@@ -1575,6 +1622,29 @@
   </div>
 </div>
 
+<!-- Small Group Attendance Edit Modal -->
+<div class="modal-overlay" id="sgAttEditModal" onclick="if(event.target===this)closeSgAttEditModal()">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-header">
+      <h3>Edit Headcount Entry</h3>
+      <button class="modal-close" onclick="closeSgAttEditModal()">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+      <input type="hidden" id="sgAttEditId" />
+      <div class="field"><label>Group</label><input type="text" id="sgAttEditGroupName" readonly style="background:var(--bg);color:var(--text-muted);cursor:default;" /></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="field"><label>Meeting Date</label><input type="date" id="sgAttEditDate" /></div>
+        <div class="field"><label>Headcount</label><input type="number" id="sgAttEditCount" min="0" /></div>
+      </div>
+      <div class="field"><label>Notes <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label><input type="text" id="sgAttEditNotes" placeholder="Optional" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeSgAttEditModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSgAttEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- USER MODAL -->
 <div class="modal-overlay" id="userModal" onclick="if(event.target===this)closeUserModal()">
   <div class="modal" style="max-width:520px;">
@@ -1732,7 +1802,7 @@
 const ROLE_TABS = {
   admin:               ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','attendance','sermons','email','settings','users'],
   event_manager:       ['events','rsvps','sermons','email'],
-  small_group_leader:  ['groups','signups'],
+  small_group_leader:  ['groups','signups','attendance'],
 };
 const ROLE_LABELS = { admin:'Admin', event_manager:'Event Manager', small_group_leader:'Small Group Leader' };
 
@@ -1814,7 +1884,12 @@ function switchTab(tab) {
   else if(tab==='rsvps') renderRsvpsPanel();
   else if(tab==='prayer')  renderPrayerTable();
   else if(tab==='retreat') renderRetreatTable();
-  else if(tab==='attendance') renderAttendanceTable();
+  else if(tab==='attendance') {
+    const isLeader = window._userRole === 'small_group_leader';
+    document.getElementById('attWorshipSection').style.display = isLeader ? 'none' : '';
+    if (!isLeader) renderAttendanceTable();
+    renderGroupAttendanceTable();
+  }
   else if(tab==='sermons') renderSermonsTable();
   else if(tab==='email')    { loadCampaignHistory(); loadMailchimpTags(); }
   else if(tab==='settings') { loadBannerSettings(); loadSaveDatesSettings(); }
@@ -4715,6 +4790,106 @@ async function deleteAttEntry(id) {
   if (!confirm('Delete this attendance entry? This cannot be undone.')) return;
   await SupaDB.adminDeleteAttendance(id);
   renderAttendanceTable();
+}
+
+/* ── SMALL GROUP HEADCOUNT ───────────────────────────────── */
+let _cachedGroupAttendance = [];
+let _cachedSgAttGroups = [];
+
+async function renderGroupAttendanceTable() {
+  const isLeader = window._userRole === 'small_group_leader';
+  _cachedSgAttGroups = await SupaDB.adminGetAllGroups();
+  const visibleGroups = isLeader
+    ? _cachedSgAttGroups.filter(g => window._myGroupIds.includes(g.id))
+    : _cachedSgAttGroups;
+
+  // Populate group selector
+  const sel = document.getElementById('sgAttGroup');
+  sel.innerHTML = (!isLeader ? '<option value="">— Select group —</option>' : '')
+    + visibleGroups.map(g => `<option value="${g.id}" data-name="${g.name.replace(/"/g,'&quot;')}">${g.name}</option>`).join('');
+  if (isLeader && visibleGroups.length === 1) sel.value = String(visibleGroups[0].id);
+  sel.disabled = isLeader && visibleGroups.length <= 1;
+
+  // Load records
+  _cachedGroupAttendance = await SupaDB.adminGetAllGroupAttendance();
+  const records = isLeader
+    ? _cachedGroupAttendance.filter(r => window._myGroupIds.includes(r.groupId))
+    : _cachedGroupAttendance;
+
+  const tbody = document.getElementById('sgAttendanceTable');
+  const empty = document.getElementById('sgAttendanceEmpty');
+  const fmt = d => { if(!d) return '–'; const [y,m,day]=d.split('-'); return new Date(y,m-1,day).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); };
+  if (!records.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = records.map(r => `<tr>
+    <td style="font-weight:600;">${r.groupName}</td>
+    <td>${fmt(r.meetingDate)}</td>
+    <td>${r.headcount}</td>
+    <td style="color:var(--text-muted);font-size:.85rem;">${r.notes || ''}</td>
+    <td><div class="td-actions">
+      <button class="btn btn-ghost btn-sm" onclick="editSgAttEntry('${r.id}')">Edit</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteSgAttEntry('${r.id}')">Delete</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+async function addGroupAttendanceEntry() {
+  const btn   = document.getElementById('sgAttAddBtn');
+  const errEl = document.getElementById('sgAttError');
+  const okEl  = document.getElementById('sgAttSuccess');
+  errEl.style.display = 'none'; okEl.style.display = 'none';
+
+  const sel       = document.getElementById('sgAttGroup');
+  const groupId   = sel.value;
+  const groupName = sel.options[sel.selectedIndex]?.dataset.name || sel.options[sel.selectedIndex]?.text || '';
+  const date      = document.getElementById('sgAttDate').value;
+  const count     = document.getElementById('sgAttCount').value;
+  const notes     = document.getElementById('sgAttNotes').value.trim();
+
+  if (!groupId)  { errEl.textContent = 'Please select a group.';      errEl.style.display = ''; return; }
+  if (!date)     { errEl.textContent = 'Please select a date.';        errEl.style.display = ''; return; }
+  if (!count && count !== '0') { errEl.textContent = 'Please enter a headcount.'; errEl.style.display = ''; return; }
+
+  btn.disabled = true;
+  const res = await SupaDB.adminAddGroupAttendance({ groupId, groupName, meetingDate: date, headcount: parseInt(count), notes });
+  btn.disabled = false;
+
+  if (res.error) { errEl.textContent = res.error; errEl.style.display = ''; return; }
+  document.getElementById('sgAttDate').value  = '';
+  document.getElementById('sgAttCount').value = '';
+  document.getElementById('sgAttNotes').value = '';
+  okEl.style.display = '';
+  setTimeout(() => okEl.style.display = 'none', 2500);
+  renderGroupAttendanceTable();
+}
+
+function editSgAttEntry(id) {
+  const r = _cachedGroupAttendance.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('sgAttEditId').value        = id;
+  document.getElementById('sgAttEditGroupName').value = r.groupName;
+  document.getElementById('sgAttEditDate').value      = r.meetingDate;
+  document.getElementById('sgAttEditCount').value     = r.headcount;
+  document.getElementById('sgAttEditNotes').value     = r.notes || '';
+  document.getElementById('sgAttEditModal').classList.add('open');
+}
+function closeSgAttEditModal() { document.getElementById('sgAttEditModal').classList.remove('open'); }
+
+async function saveSgAttEdit() {
+  const id    = document.getElementById('sgAttEditId').value;
+  const date  = document.getElementById('sgAttEditDate').value;
+  const count = document.getElementById('sgAttEditCount').value;
+  const notes = document.getElementById('sgAttEditNotes').value.trim();
+  const res = await SupaDB.adminUpdateGroupAttendance(id, { meetingDate: date, headcount: parseInt(count), notes });
+  if (res.error) { alert('Error: ' + res.error); return; }
+  closeSgAttEditModal();
+  renderGroupAttendanceTable();
+}
+
+async function deleteSgAttEntry(id) {
+  if (!confirm('Delete this headcount entry? This cannot be undone.')) return;
+  await SupaDB.adminDeleteGroupAttendance(id);
+  renderGroupAttendanceTable();
 }
 
 /* ── FORCE PASSWORD CHANGE ────────────────────────────────── */
