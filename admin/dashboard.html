@@ -305,9 +305,14 @@
     <div class="tab-panel" id="panelGroups">
       <div class="action-bar">
         <h2>Manage Small Groups</h2>
-        <button class="btn btn-primary" id="addGroupBtn" onclick="openGroupModal()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Group
-        </button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-secondary" id="emailAllLeadersBtn" onclick="openAllLeadersEmailModal()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Email All Leaders
+          </button>
+          <button class="btn btn-primary" id="addGroupBtn" onclick="openGroupModal()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Group
+          </button>
+        </div>
       </div>
       <div class="table-wrap">
         <table><thead><tr><th>Group Name</th><th>Day & Time</th><th>Type</th><th>Audience</th><th>Published</th><th>Status</th><th>Actions</th></tr></thead>
@@ -1931,9 +1936,11 @@ async function renderGroupsTable(){
   _cachedGroups = await SupaDB.adminGetAllGroups();
   const isLeader = window._userRole === 'small_group_leader';
   const groups = isLeader ? _cachedGroups.filter(g => window._myGroupIds.includes(g.id)) : _cachedGroups;
-  // Show/hide Add Group button based on role
+  // Show/hide Add Group and Email All Leaders buttons based on role
   const addBtn = document.getElementById('addGroupBtn');
   if (addBtn) addBtn.style.display = isLeader ? 'none' : '';
+  const emailAllBtn = document.getElementById('emailAllLeadersBtn');
+  if (emailAllBtn) emailAllBtn.style.display = isLeader ? 'none' : '';
   const tbody=document.getElementById('groupsTable'),empty=document.getElementById('groupsEmpty');
   if(!groups.length){tbody.innerHTML='';empty.style.display='';return;}empty.style.display='none';
   tbody.innerHTML=groups.map(g=>`
@@ -4601,6 +4608,40 @@ async function deleteAttEntry(id) {
   if (!confirm('Delete this attendance entry? This cannot be undone.')) return;
   await SupaDB.adminDeleteAttendance(id);
   renderAttendanceTable();
+}
+
+/* ── EMAIL ALL LEADERS ────────────────────────────────────── */
+function openAllLeadersEmailModal() {
+  const emails = [...new Set(
+    _cachedGroups.map(g => g.leaderEmail).filter(e => e && e.includes('@'))
+  )];
+  document.getElementById('groupEmailTitle').textContent = 'Email All Group Leaders';
+  document.getElementById('groupEmailTo').value = emails.join('\n');
+  document.getElementById('groupEmailSubject').value = '';
+  document.getElementById('groupEmailError').style.display = 'none';
+  _groupEmailGroupId = null;
+  updateGroupEmailCount();
+  if (!_groupEmailQuill) {
+    _groupEmailQuill = new Quill('#groupEmailEditor', {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+          [{ header: [1, 2, 3, false] }],
+          [{ font: [] }],
+          [{ size: ['small', false, 'large', 'huge'] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ color: [] }, { background: [] }],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          [{ align: [] }],
+          ['link', 'image'],
+          ['clean'],
+        ],
+      },
+    });
+  } else {
+    _groupEmailQuill.setContents([]);
+  }
+  document.getElementById('groupEmailModal').classList.add('open');
 }
 
 /* ── GROUP EMAIL ──────────────────────────────────────────── */
