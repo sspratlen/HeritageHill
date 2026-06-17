@@ -183,6 +183,10 @@ window.SupaDB = {
     const { data: { user } } = await db().auth.getUser();
     return user;
   },
+  async updatePassword(newPassword) {
+    const { error } = await db().auth.updateUser({ password: newPassword });
+    if (error) throw error;
+  },
 
   /* ── PUBLIC: Events ─────────────────────────────────────── */
   async getPublishedEvents() {

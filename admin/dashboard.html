@@ -269,6 +269,9 @@
     <h1 id="topbarTitle">Events</h1>
     <div style="display:flex;align-items:center;gap:12px;">
       <span class="admin-badge" id="roleBadge">Admin</span>
+      <button onclick="openProfileModal()" title="My Profile" style="background:none;border:1.5px solid var(--border);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);transition:border-color .15s,color .15s;" onmouseenter="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'" onmouseleave="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      </button>
     </div>
   </div>
 
@@ -1673,6 +1676,37 @@
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         Send Email
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- Profile / change password modal -->
+<div class="modal-overlay" id="profileModal" onclick="if(event.target===this)closeProfileModal()">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <h3>My Profile</h3>
+      <button class="modal-close" onclick="closeProfileModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field" style="margin-bottom:18px;">
+        <label>Email</label>
+        <input type="email" id="profileEmail" readonly style="background:var(--bg);color:var(--text-muted);cursor:default;" />
+      </div>
+      <p style="font-size:.82rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin:0 0 12px;">Change Password</p>
+      <div class="field">
+        <label>New Password</label>
+        <input type="password" id="profileNewPw" placeholder="At least 8 characters" />
+      </div>
+      <div class="field">
+        <label>Confirm New Password</label>
+        <input type="password" id="profileConfirmPw" placeholder="Repeat your new password" />
+      </div>
+      <p id="profileError" style="display:none;color:var(--danger);font-size:.82rem;margin-top:8px;"></p>
+      <p id="profileSuccess" style="display:none;color:var(--success,#16a34a);font-size:.82rem;margin-top:8px;">Password updated successfully.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeProfileModal()">Cancel</button>
+      <button class="btn btn-primary" id="profileSaveBtn" onclick="saveProfilePassword()">Update Password</button>
     </div>
   </div>
 </div>
@@ -3778,6 +3812,43 @@ async function confirmDelete(){
 /* TOAST & LOGOUT */
 function showToast(msg,isError=false){const t=document.getElementById('toast');t.textContent=msg;t.style.background=isError?'#dc2626':'#111';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
 async function logout(){await SupaDB.signOut();window.location.href='login.html';}
+
+/* PROFILE */
+function openProfileModal(){
+  document.getElementById('profileEmail').value = window._currentUser?.email || '';
+  document.getElementById('profileNewPw').value = '';
+  document.getElementById('profileConfirmPw').value = '';
+  document.getElementById('profileError').style.display = 'none';
+  document.getElementById('profileSuccess').style.display = 'none';
+  document.getElementById('profileModal').classList.add('open');
+}
+function closeProfileModal(){ document.getElementById('profileModal').classList.remove('open'); }
+async function saveProfilePassword(){
+  const pw = document.getElementById('profileNewPw').value.trim();
+  const confirm = document.getElementById('profileConfirmPw').value.trim();
+  const errEl = document.getElementById('profileError');
+  const okEl = document.getElementById('profileSuccess');
+  errEl.style.display = 'none'; okEl.style.display = 'none';
+  if(!pw){ errEl.textContent='Please enter a new password.'; errEl.style.display=''; return; }
+  if(pw.length < 8){ errEl.textContent='Password must be at least 8 characters.'; errEl.style.display=''; return; }
+  if(pw !== confirm){ errEl.textContent='Passwords do not match.'; errEl.style.display=''; return; }
+  const btn = document.getElementById('profileSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    await SupaDB.updatePassword(pw);
+    // Clear force_password_change flag if it was set
+    if(window._currentUser?.email) await SupaDB.adminSetForcePasswordChange(window._currentUser.email, false);
+    okEl.style.display = '';
+    document.getElementById('profileNewPw').value = '';
+    document.getElementById('profileConfirmPw').value = '';
+    showToast('Password updated successfully.');
+  } catch(e){
+    errEl.textContent = e.message || 'Failed to update password.';
+    errEl.style.display = '';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Update Password';
+  }
+}
 
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 
