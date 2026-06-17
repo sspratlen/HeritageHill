@@ -739,8 +739,20 @@ window.SupaDB = {
     try {
       const { data, error } = await db().from('user_roles').select('*').eq('email', email.toLowerCase()).single();
       if (error) return null;
-      return data ? { email: data.email, displayName: data.display_name || '', role: data.role, createdAt: data.created_at } : null;
+      return data ? {
+        email: data.email, displayName: data.display_name || '', role: data.role,
+        createdAt: data.created_at, forcePasswordChange: !!data.force_password_change,
+      } : null;
     } catch(e) { return null; }
+  },
+  async adminSetForcePasswordChange(email, value = true) {
+    if (!db()) return { error: 'No DB' };
+    try {
+      const { error } = await db().from('user_roles')
+        .update({ force_password_change: value }).eq('email', email.toLowerCase());
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] adminSetForcePasswordChange:', e.message); return { error: e.message }; }
   },
   async adminGetAllUserRoles() {
     if (!db()) return [];

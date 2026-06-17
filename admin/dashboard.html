@@ -1613,6 +1613,30 @@
   </div>
 </div>
 
+<!-- FORCE PASSWORD CHANGE MODAL (non-dismissible) -->
+<div class="modal-overlay" id="forcePasswordModal" style="display:none;background:rgba(0,0,0,.75);">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header" style="border-bottom-color:var(--primary);">
+      <h3 style="color:var(--primary);">Set Your Password</h3>
+    </div>
+    <div class="modal-body">
+      <p style="margin:0 0 20px;font-size:.9rem;color:var(--text-muted);line-height:1.6;">You're using a temporary password. Please create a new password to continue.</p>
+      <div class="field" style="margin-bottom:16px;">
+        <label>New Password <span style="color:var(--danger);">*</span></label>
+        <input type="password" id="forceNewPw" placeholder="At least 8 characters" />
+      </div>
+      <div class="field" style="margin-bottom:4px;">
+        <label>Confirm Password <span style="color:var(--danger);">*</span></label>
+        <input type="password" id="forceConfirmPw" placeholder="Repeat your new password" />
+      </div>
+      <p id="forcePasswordError" style="color:var(--danger);font-size:.82rem;margin-top:10px;display:none;"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="forcePasswordBtn" onclick="submitForcePasswordChange()" style="width:100%;justify-content:center;">Set Password &amp; Continue</button>
+    </div>
+  </div>
+</div>
+
 <!-- GROUP EMAIL MODAL -->
 <div class="modal-overlay" id="groupEmailModal" onclick="if(event.target===this)closeGroupEmailModal()">
   <div class="modal modal-lg" style="max-width:780px;">
@@ -1704,6 +1728,13 @@ function applyRoleVisibility() {
   window._currentUser = user;
   const roleData = await SupaDB.getUserRoleByEmail(user.email);
   window._userRole = roleData ? roleData.role : 'admin';
+  // Force password change before loading dashboard
+  if (roleData && roleData.forcePasswordChange) {
+    await new Promise(resolve => {
+      window._passwordChangeDone = resolve;
+      document.getElementById('forcePasswordModal').style.display = 'flex';
+    });
+  }
   window._myGroups = [];
   window._myGroupIds = [];
   if (window._userRole === 'small_group_leader') {
@@ -4610,6 +4641,23 @@ async function deleteAttEntry(id) {
   renderAttendanceTable();
 }
 
+/* ── FORCE PASSWORD CHANGE ────────────────────────────────── */
+async function submitForcePasswordChange() {
+  const pw  = document.getElementById('forceNewPw').value;
+  const pw2 = document.getElementById('forceConfirmPw').value;
+  const errEl = document.getElementById('forcePasswordError');
+  errEl.style.display = 'none';
+  if (pw.length < 8)  { errEl.textContent = 'Password must be at least 8 characters.'; errEl.style.display = ''; return; }
+  if (pw !== pw2)     { errEl.textContent = 'Passwords do not match.';                  errEl.style.display = ''; return; }
+  const btn = document.getElementById('forcePasswordBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const { error } = await db().auth.updateUser({ password: pw });
+  if (error) { errEl.textContent = 'Error: ' + error.message; errEl.style.display = ''; btn.disabled = false; btn.textContent = 'Set Password & Continue'; return; }
+  await SupaDB.adminSetForcePasswordChange(window._currentUser.email, false);
+  document.getElementById('forcePasswordModal').style.display = 'none';
+  if (window._passwordChangeDone) window._passwordChangeDone();
+}
+
 /* ── EMAIL ALL LEADERS ────────────────────────────────────── */
 function openAllLeadersEmailModal() {
   const emails = [...new Set(
@@ -4815,6 +4863,7 @@ async function setupUserAccount(email) {
     });
     const json = await res.json();
     if (json.error) { alert('Error: ' + json.error); return; }
+    await SupaDB.adminSetForcePasswordChange(email, true);
     showToast(json.action === 'created' ? `Account created for ${email} — password: HHTemp!` : `Password reset to HHTemp! for ${email}`);
   } catch(e) { alert('Error: ' + e.message); }
   finally { btn.disabled = false; btn.textContent = 'Set Up Account'; }
