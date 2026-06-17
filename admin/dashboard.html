@@ -1016,95 +1016,45 @@
         </a>
       </div>
 
-      <!-- Worship attendance — admin only -->
-      <div id="attWorshipSection">
-        <!-- Quick-entry card -->
-        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px;">
-          <h3 style="font-size:.95rem;font-weight:700;margin-bottom:16px;">Add Weekly Entry</h3>
-          <div style="display:grid;grid-template-columns:160px 1fr 1fr 1fr auto;gap:12px;align-items:end;flex-wrap:wrap;">
-            <div class="field">
-              <label>Date</label>
-              <input type="date" id="attDate" />
-            </div>
-            <div class="field">
-              <label>Worship Attendance</label>
-              <input type="number" id="attWorship" placeholder="e.g. 142" min="0" />
-            </div>
-            <div class="field">
-              <label>Small Group Total</label>
-              <input type="number" id="attSmallGroup" placeholder="e.g. 64" min="0" />
-            </div>
-            <div class="field">
-              <label>Notes <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
-              <input type="text" id="attNotes" placeholder="e.g. Easter Sunday" />
-            </div>
-            <button class="btn btn-primary" onclick="addAttendanceEntry()" id="attAddBtn" style="margin-bottom:1px;">Add</button>
-          </div>
-          <p id="attAddError"   style="color:var(--danger);font-size:.82rem;margin-top:8px;display:none;"></p>
-          <p id="attAddSuccess" style="color:var(--success);font-size:.82rem;margin-top:8px;display:none;">✓ Entry saved!</p>
-        </div>
-
-        <div class="table-wrap" style="margin-bottom:32px;">
-          <table>
-            <thead><tr>
-              <th>Date</th>
-              <th>Worship</th>
-              <th>Small Groups</th>
-              <th>SG Rate</th>
-              <th>Notes</th>
-              <th>Actions</th>
-            </tr></thead>
-            <tbody id="attendanceTable"></tbody>
-          </table>
-          <div id="attendanceEmpty" class="empty" style="display:none;">
-            <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            <h3>No entries yet</h3>
-            <p>Add your first weekly attendance record above.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Small group headcount — admins and leaders -->
+      <!-- Quick-entry card -->
       <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px;">
-        <h3 style="font-size:.95rem;font-weight:700;margin-bottom:16px;">Add Small Group Headcount</h3>
-        <div style="display:grid;grid-template-columns:1fr 160px 120px 1fr auto;gap:12px;align-items:end;flex-wrap:wrap;">
+        <h3 style="font-size:.95rem;font-weight:700;margin-bottom:4px;">Add Weekly Entry</h3>
+        <p style="font-size:.8rem;color:var(--text-muted);margin:0 0 16px;">Small group totals are auto-calculated from each group's headcount entries.</p>
+        <div style="display:grid;grid-template-columns:160px 1fr 1fr auto;gap:12px;align-items:end;flex-wrap:wrap;">
           <div class="field">
-            <label>Group</label>
-            <select id="sgAttGroup"></select>
+            <label>Date</label>
+            <input type="date" id="attDate" />
           </div>
           <div class="field">
-            <label>Meeting Date</label>
-            <input type="date" id="sgAttDate" />
-          </div>
-          <div class="field">
-            <label>Headcount</label>
-            <input type="number" id="sgAttCount" placeholder="e.g. 12" min="0" />
+            <label>Worship Attendance</label>
+            <input type="number" id="attWorship" placeholder="e.g. 142" min="0" />
           </div>
           <div class="field">
             <label>Notes <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
-            <input type="text" id="sgAttNotes" placeholder="e.g. Holiday week" />
+            <input type="text" id="attNotes" placeholder="e.g. Easter Sunday" />
           </div>
-          <button class="btn btn-primary" onclick="addGroupAttendanceEntry()" id="sgAttAddBtn" style="margin-bottom:1px;">Add</button>
+          <button class="btn btn-primary" onclick="addAttendanceEntry()" id="attAddBtn" style="margin-bottom:1px;">Add</button>
         </div>
-        <p id="sgAttError"   style="color:var(--danger);font-size:.82rem;margin-top:8px;display:none;"></p>
-        <p id="sgAttSuccess" style="color:var(--success);font-size:.82rem;margin-top:8px;display:none;">✓ Entry saved!</p>
+        <p id="attAddError"   style="color:var(--danger);font-size:.82rem;margin-top:8px;display:none;"></p>
+        <p id="attAddSuccess" style="color:var(--success);font-size:.82rem;margin-top:8px;display:none;">✓ Entry saved!</p>
       </div>
 
       <div class="table-wrap">
         <table>
           <thead><tr>
-            <th>Group</th>
             <th>Date</th>
-            <th>Headcount</th>
+            <th>Worship</th>
+            <th>Small Groups</th>
+            <th>SG Rate</th>
             <th>Notes</th>
             <th>Actions</th>
           </tr></thead>
-          <tbody id="sgAttendanceTable"></tbody>
+          <tbody id="attendanceTable"></tbody>
         </table>
-        <div id="sgAttendanceEmpty" class="empty" style="display:none;">
-          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          <h3>No headcount entries yet</h3>
-          <p>Record your first small group meeting attendance above.</p>
+        <div id="attendanceEmpty" class="empty" style="display:none;">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <h3>No entries yet</h3>
+          <p>Add your first weekly attendance record above.</p>
         </div>
       </div>
     </div>
@@ -1599,7 +1549,7 @@
 
 <!-- Attendance Edit Modal -->
 <div class="modal-overlay" id="attEditModal" onclick="if(event.target===this)closeAttEditModal()">
-  <div class="modal" style="max-width:480px;">
+  <div class="modal" style="max-width:420px;">
     <div class="modal-header">
       <h3>Edit Attendance Entry</h3>
       <button class="modal-close" onclick="closeAttEditModal()">✕</button>
@@ -1608,12 +1558,9 @@
       <input type="hidden" id="attEditId" />
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div class="field"><label>Date</label><input type="date" id="attEditDate" /></div>
-        <div class="field"><label>Notes</label><input type="text" id="attEditNotes" placeholder="Optional" /></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div class="field"><label>Worship Attendance</label><input type="number" id="attEditWorship" min="0" /></div>
-        <div class="field"><label>Small Group Total</label><input type="number" id="attEditSmallGroup" min="0" /></div>
       </div>
+      <div class="field"><label>Notes</label><input type="text" id="attEditNotes" placeholder="Optional" /></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeAttEditModal()">Cancel</button>
@@ -1622,25 +1569,61 @@
   </div>
 </div>
 
-<!-- Small Group Attendance Edit Modal -->
-<div class="modal-overlay" id="sgAttEditModal" onclick="if(event.target===this)closeSgAttEditModal()">
-  <div class="modal" style="max-width:460px;">
+<!-- Per-group headcount modal -->
+<div class="modal-overlay" id="groupAttendanceModal" onclick="if(event.target===this)closeGroupAttendanceModal()">
+  <div class="modal" style="max-width:580px;">
     <div class="modal-header">
-      <h3>Edit Headcount Entry</h3>
-      <button class="modal-close" onclick="closeSgAttEditModal()">✕</button>
+      <h3 id="groupAttendanceTitle">Group Attendance</h3>
+      <button class="modal-close" onclick="closeGroupAttendanceModal()">✕</button>
     </div>
-    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
-      <input type="hidden" id="sgAttEditId" />
-      <div class="field"><label>Group</label><input type="text" id="sgAttEditGroupName" readonly style="background:var(--bg);color:var(--text-muted);cursor:default;" /></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div class="field"><label>Meeting Date</label><input type="date" id="sgAttEditDate" /></div>
-        <div class="field"><label>Headcount</label><input type="number" id="sgAttEditCount" min="0" /></div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:16px;">
+      <!-- Add entry form -->
+      <div style="background:var(--bg);border-radius:8px;padding:16px;">
+        <p style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin:0 0 12px;">Log a Meeting</p>
+        <div style="display:grid;grid-template-columns:1fr 100px 1fr auto;gap:10px;align-items:end;">
+          <div class="field" style="margin:0;"><label>Date</label><input type="date" id="grpAttDate" /></div>
+          <div class="field" style="margin:0;"><label>Headcount</label><input type="number" id="grpAttCount" placeholder="0" min="0" /></div>
+          <div class="field" style="margin:0;"><label>Notes <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label><input type="text" id="grpAttNotes" placeholder="e.g. Holiday week" /></div>
+          <button class="btn btn-primary btn-sm" onclick="addGroupHeadcount()" id="grpAttAddBtn" style="margin-bottom:1px;">Add</button>
+        </div>
+        <p id="grpAttError"   style="color:var(--danger);font-size:.82rem;margin:8px 0 0;display:none;"></p>
+        <p id="grpAttSuccess" style="color:var(--success);font-size:.82rem;margin:8px 0 0;display:none;">✓ Entry saved!</p>
       </div>
-      <div class="field"><label>Notes <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label><input type="text" id="sgAttEditNotes" placeholder="Optional" /></div>
+      <!-- History table -->
+      <div class="table-wrap" style="margin:0;">
+        <table>
+          <thead><tr><th>Date</th><th>Headcount</th><th>Notes</th><th>Actions</th></tr></thead>
+          <tbody id="grpAttTable"></tbody>
+        </table>
+        <div id="grpAttEmpty" class="empty" style="display:none;padding:24px 0;">
+          <p style="margin:0;color:var(--text-muted);">No entries yet — log your first meeting above.</p>
+        </div>
+      </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeSgAttEditModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="saveSgAttEdit()">Save Changes</button>
+      <button class="btn btn-ghost" onclick="closeGroupAttendanceModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Headcount entry edit modal -->
+<div class="modal-overlay" id="grpAttEditModal" onclick="if(event.target===this)closeGrpAttEditModal()">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header">
+      <h3>Edit Headcount Entry</h3>
+      <button class="modal-close" onclick="closeGrpAttEditModal()">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:14px;">
+      <input type="hidden" id="grpAttEditId" />
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="field"><label>Date</label><input type="date" id="grpAttEditDate" /></div>
+        <div class="field"><label>Headcount</label><input type="number" id="grpAttEditCount" min="0" /></div>
+      </div>
+      <div class="field"><label>Notes</label><input type="text" id="grpAttEditNotes" placeholder="Optional" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeGrpAttEditModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveGrpAttEdit()">Save Changes</button>
     </div>
   </div>
 </div>
@@ -1802,7 +1785,7 @@
 const ROLE_TABS = {
   admin:               ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','attendance','sermons','email','settings','users'],
   event_manager:       ['events','rsvps','sermons','email'],
-  small_group_leader:  ['groups','signups','attendance'],
+  small_group_leader:  ['groups','signups'],
 };
 const ROLE_LABELS = { admin:'Admin', event_manager:'Event Manager', small_group_leader:'Small Group Leader' };
 
@@ -1884,12 +1867,7 @@ function switchTab(tab) {
   else if(tab==='rsvps') renderRsvpsPanel();
   else if(tab==='prayer')  renderPrayerTable();
   else if(tab==='retreat') renderRetreatTable();
-  else if(tab==='attendance') {
-    const isLeader = window._userRole === 'small_group_leader';
-    document.getElementById('attWorshipSection').style.display = isLeader ? 'none' : '';
-    if (!isLeader) renderAttendanceTable();
-    renderGroupAttendanceTable();
-  }
+  else if(tab==='attendance') renderAttendanceTable();
   else if(tab==='sermons') renderSermonsTable();
   else if(tab==='email')    { loadCampaignHistory(); loadMailchimpTags(); }
   else if(tab==='settings') { loadBannerSettings(); loadSaveDatesSettings(); }
@@ -2100,6 +2078,7 @@ async function renderGroupsTable(){
       <td>${g.open?'<span class="badge badge-amber">Open</span>':'<span class="badge badge-red">Full</span>'}</td>
       <td><div class="td-actions">
         <button class="btn btn-ghost btn-sm" onclick="openGroupRoster(${g.id})">Members</button>
+        <button class="btn btn-ghost btn-sm" onclick="openGroupAttendanceModal(${g.id})">Attendance</button>
         <button class="btn btn-ghost btn-sm" onclick="editGroup(${g.id})">Edit</button>
         <button class="btn btn-secondary btn-sm" onclick="openGroupEmailModal(${g.id})">
           <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -4692,9 +4671,13 @@ function downloadRetreatCSV() {
    ATTENDANCE
 ══════════════════════════════════════════════════════════ */
 let _cachedAttendance = [];
+let _cachedGroupAttendance = [];
 
 async function renderAttendanceTable() {
-  _cachedAttendance = await SupaDB.adminGetAllAttendance();
+  [_cachedAttendance, _cachedGroupAttendance] = await Promise.all([
+    SupaDB.adminGetAllAttendance(),
+    SupaDB.adminGetAllGroupAttendance(),
+  ]);
   const tbody = document.getElementById('attendanceTable');
   const empty = document.getElementById('attendanceEmpty');
   if (!_cachedAttendance.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
@@ -4706,14 +4689,25 @@ async function renderAttendanceTable() {
     return new Date(y, m-1, day).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
   };
 
+  // Sum group headcounts for meetings within 6 days before (and including) each service date
+  const sgSumForDate = serviceDate => {
+    const end = new Date(serviceDate + 'T00:00:00');
+    const start = new Date(end.getTime() - 6 * 86400000);
+    return _cachedGroupAttendance
+      .filter(ga => { const d = new Date(ga.meetingDate + 'T00:00:00'); return d >= start && d <= end; })
+      .reduce((sum, ga) => sum + (ga.headcount || 0), 0);
+  };
+
   tbody.innerHTML = _cachedAttendance.map(r => {
-    const rate = (r.worshipCount && r.smallGroupCount)
-      ? Math.round(r.smallGroupCount / r.worshipCount * 100) + '%'
+    const sgCount = sgSumForDate(r.serviceDate);
+    const sgDisplay = sgCount > 0 ? sgCount.toLocaleString() : '–';
+    const rate = (r.worshipCount && sgCount)
+      ? Math.round(sgCount / r.worshipCount * 100) + '%'
       : '–';
     return `<tr>
       <td style="font-weight:600;">${fmt(r.serviceDate)}</td>
       <td>${r.worshipCount != null ? r.worshipCount.toLocaleString() : '–'}</td>
-      <td>${r.smallGroupCount != null ? r.smallGroupCount.toLocaleString() : '–'}</td>
+      <td>${sgDisplay}</td>
       <td><span style="background:rgba(188,122,30,.1);color:var(--primary);font-size:.8rem;font-weight:700;padding:2px 8px;border-radius:20px;">${rate}</span></td>
       <td style="color:var(--text-muted);font-size:.85rem;">${r.notes || ''}</td>
       <td><div class="td-actions">
@@ -4725,33 +4719,27 @@ async function renderAttendanceTable() {
 }
 
 async function addAttendanceEntry() {
-  const btn    = document.getElementById('attAddBtn');
-  const errEl  = document.getElementById('attAddError');
-  const okEl   = document.getElementById('attAddSuccess');
+  const btn   = document.getElementById('attAddBtn');
+  const errEl = document.getElementById('attAddError');
+  const okEl  = document.getElementById('attAddSuccess');
   errEl.style.display = 'none'; okEl.style.display = 'none';
 
   const date    = document.getElementById('attDate').value;
   const worship = document.getElementById('attWorship').value;
-  const sg      = document.getElementById('attSmallGroup').value;
   const notes   = document.getElementById('attNotes').value.trim();
 
-  if (!date) { errEl.textContent = 'Please select a date.'; errEl.style.display = ''; return; }
-  if (!worship && !sg) { errEl.textContent = 'Enter at least one attendance count.'; errEl.style.display = ''; return; }
+  if (!date)    { errEl.textContent = 'Please select a date.';              errEl.style.display = ''; return; }
+  if (!worship) { errEl.textContent = 'Please enter the worship headcount.'; errEl.style.display = ''; return; }
 
   btn.disabled = true;
-  const res = await SupaDB.adminAddAttendance({
-    serviceDate: date,
-    worshipCount: worship ? parseInt(worship) : null,
-    smallGroupCount: sg ? parseInt(sg) : null,
-    notes,
-  });
+  const res = await SupaDB.adminAddAttendance({ serviceDate: date, worshipCount: parseInt(worship), notes });
   btn.disabled = false;
 
   if (res.error) {
     errEl.textContent = res.error.includes('23505') ? 'An entry for this date already exists.' : res.error;
     errEl.style.display = ''; return;
   }
-  ['attDate','attWorship','attSmallGroup','attNotes'].forEach(id => document.getElementById(id).value = '');
+  ['attDate','attWorship','attNotes'].forEach(id => document.getElementById(id).value = '');
   okEl.style.display = '';
   setTimeout(() => okEl.style.display = 'none', 2500);
   renderAttendanceTable();
@@ -4760,25 +4748,22 @@ async function addAttendanceEntry() {
 function editAttEntry(id) {
   const r = _cachedAttendance.find(x => x.id === id);
   if (!r) return;
-  document.getElementById('attEditId').value           = id;
-  document.getElementById('attEditDate').value         = r.serviceDate;
-  document.getElementById('attEditWorship').value      = r.worshipCount  ?? '';
-  document.getElementById('attEditSmallGroup').value   = r.smallGroupCount ?? '';
-  document.getElementById('attEditNotes').value        = r.notes || '';
+  document.getElementById('attEditId').value      = id;
+  document.getElementById('attEditDate').value    = r.serviceDate;
+  document.getElementById('attEditWorship').value = r.worshipCount ?? '';
+  document.getElementById('attEditNotes').value   = r.notes || '';
   document.getElementById('attEditModal').classList.add('open');
 }
 function closeAttEditModal() { document.getElementById('attEditModal').classList.remove('open'); }
 
 async function saveAttEdit() {
-  const id     = document.getElementById('attEditId').value;
-  const date   = document.getElementById('attEditDate').value;
+  const id      = document.getElementById('attEditId').value;
+  const date    = document.getElementById('attEditDate').value;
   const worship = document.getElementById('attEditWorship').value;
-  const sg      = document.getElementById('attEditSmallGroup').value;
   const notes   = document.getElementById('attEditNotes').value.trim();
   const res = await SupaDB.adminUpdateAttendance(id, {
     serviceDate: date,
     worshipCount: worship !== '' ? parseInt(worship) : null,
-    smallGroupCount: sg !== '' ? parseInt(sg) : null,
     notes,
   });
   if (res.error) { alert('Error: ' + res.error); return; }
@@ -4792,104 +4777,99 @@ async function deleteAttEntry(id) {
   renderAttendanceTable();
 }
 
-/* ── SMALL GROUP HEADCOUNT ───────────────────────────────── */
-let _cachedGroupAttendance = [];
-let _cachedSgAttGroups = [];
+/* ── PER-GROUP HEADCOUNT ─────────────────────────────────── */
+let _grpAttGroupId = null, _grpAttGroupName = '';
 
-async function renderGroupAttendanceTable() {
-  const isLeader = window._userRole === 'small_group_leader';
-  _cachedSgAttGroups = await SupaDB.adminGetAllGroups();
-  const visibleGroups = isLeader
-    ? _cachedSgAttGroups.filter(g => window._myGroupIds.includes(g.id))
-    : _cachedSgAttGroups;
+async function openGroupAttendanceModal(groupId) {
+  const g = _cachedGroups.find(x => x.id === groupId);
+  _grpAttGroupId   = groupId;
+  _grpAttGroupName = g ? g.name : 'Group';
+  document.getElementById('groupAttendanceTitle').textContent = `${_grpAttGroupName} — Attendance`;
+  document.getElementById('grpAttDate').value  = '';
+  document.getElementById('grpAttCount').value = '';
+  document.getElementById('grpAttNotes').value = '';
+  document.getElementById('grpAttError').style.display   = 'none';
+  document.getElementById('grpAttSuccess').style.display = 'none';
+  document.getElementById('groupAttendanceModal').classList.add('open');
+  await renderGrpAttTable();
+}
+function closeGroupAttendanceModal() { document.getElementById('groupAttendanceModal').classList.remove('open'); }
 
-  // Populate group selector
-  const sel = document.getElementById('sgAttGroup');
-  sel.innerHTML = (!isLeader ? '<option value="">— Select group —</option>' : '')
-    + visibleGroups.map(g => `<option value="${g.id}" data-name="${g.name.replace(/"/g,'&quot;')}">${g.name}</option>`).join('');
-  if (isLeader && visibleGroups.length === 1) sel.value = String(visibleGroups[0].id);
-  sel.disabled = isLeader && visibleGroups.length <= 1;
-
-  // Load records
-  _cachedGroupAttendance = await SupaDB.adminGetAllGroupAttendance();
-  const records = isLeader
-    ? _cachedGroupAttendance.filter(r => window._myGroupIds.includes(r.groupId))
-    : _cachedGroupAttendance;
-
-  const tbody = document.getElementById('sgAttendanceTable');
-  const empty = document.getElementById('sgAttendanceEmpty');
+async function renderGrpAttTable() {
+  const all = await SupaDB.adminGetAllGroupAttendance();
+  _cachedGroupAttendance = all;
+  const records = all.filter(r => r.groupId === _grpAttGroupId || String(r.groupId) === String(_grpAttGroupId));
+  const tbody = document.getElementById('grpAttTable');
+  const empty = document.getElementById('grpAttEmpty');
   const fmt = d => { if(!d) return '–'; const [y,m,day]=d.split('-'); return new Date(y,m-1,day).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); };
   if (!records.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
   empty.style.display = 'none';
   tbody.innerHTML = records.map(r => `<tr>
-    <td style="font-weight:600;">${r.groupName}</td>
     <td>${fmt(r.meetingDate)}</td>
-    <td>${r.headcount}</td>
+    <td style="font-weight:600;">${r.headcount}</td>
     <td style="color:var(--text-muted);font-size:.85rem;">${r.notes || ''}</td>
     <td><div class="td-actions">
-      <button class="btn btn-ghost btn-sm" onclick="editSgAttEntry('${r.id}')">Edit</button>
-      <button class="btn btn-danger btn-sm" onclick="deleteSgAttEntry('${r.id}')">Delete</button>
+      <button class="btn btn-ghost btn-sm" onclick="editGrpAttEntry('${r.id}')">Edit</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteGrpAttEntry('${r.id}')">Delete</button>
     </div></td>
   </tr>`).join('');
 }
 
-async function addGroupAttendanceEntry() {
-  const btn   = document.getElementById('sgAttAddBtn');
-  const errEl = document.getElementById('sgAttError');
-  const okEl  = document.getElementById('sgAttSuccess');
+async function addGroupHeadcount() {
+  const btn   = document.getElementById('grpAttAddBtn');
+  const errEl = document.getElementById('grpAttError');
+  const okEl  = document.getElementById('grpAttSuccess');
   errEl.style.display = 'none'; okEl.style.display = 'none';
 
-  const sel       = document.getElementById('sgAttGroup');
-  const groupId   = sel.value;
-  const groupName = sel.options[sel.selectedIndex]?.dataset.name || sel.options[sel.selectedIndex]?.text || '';
-  const date      = document.getElementById('sgAttDate').value;
-  const count     = document.getElementById('sgAttCount').value;
-  const notes     = document.getElementById('sgAttNotes').value.trim();
+  const date  = document.getElementById('grpAttDate').value;
+  const count = document.getElementById('grpAttCount').value;
+  const notes = document.getElementById('grpAttNotes').value.trim();
 
-  if (!groupId)  { errEl.textContent = 'Please select a group.';      errEl.style.display = ''; return; }
-  if (!date)     { errEl.textContent = 'Please select a date.';        errEl.style.display = ''; return; }
-  if (!count && count !== '0') { errEl.textContent = 'Please enter a headcount.'; errEl.style.display = ''; return; }
+  if (!date)  { errEl.textContent = 'Please select a date.';        errEl.style.display = ''; return; }
+  if (count === '') { errEl.textContent = 'Please enter a headcount.'; errEl.style.display = ''; return; }
 
   btn.disabled = true;
-  const res = await SupaDB.adminAddGroupAttendance({ groupId, groupName, meetingDate: date, headcount: parseInt(count), notes });
+  const res = await SupaDB.adminAddGroupAttendance({
+    groupId: _grpAttGroupId, groupName: _grpAttGroupName,
+    meetingDate: date, headcount: parseInt(count), notes,
+  });
   btn.disabled = false;
 
   if (res.error) { errEl.textContent = res.error; errEl.style.display = ''; return; }
-  document.getElementById('sgAttDate').value  = '';
-  document.getElementById('sgAttCount').value = '';
-  document.getElementById('sgAttNotes').value = '';
+  document.getElementById('grpAttDate').value  = '';
+  document.getElementById('grpAttCount').value = '';
+  document.getElementById('grpAttNotes').value = '';
   okEl.style.display = '';
   setTimeout(() => okEl.style.display = 'none', 2500);
-  renderGroupAttendanceTable();
+  renderGrpAttTable();
 }
 
-function editSgAttEntry(id) {
+function editGrpAttEntry(id) {
   const r = _cachedGroupAttendance.find(x => x.id === id);
   if (!r) return;
-  document.getElementById('sgAttEditId').value        = id;
-  document.getElementById('sgAttEditGroupName').value = r.groupName;
-  document.getElementById('sgAttEditDate').value      = r.meetingDate;
-  document.getElementById('sgAttEditCount').value     = r.headcount;
-  document.getElementById('sgAttEditNotes').value     = r.notes || '';
-  document.getElementById('sgAttEditModal').classList.add('open');
+  document.getElementById('grpAttEditId').value    = id;
+  document.getElementById('grpAttEditDate').value  = r.meetingDate;
+  document.getElementById('grpAttEditCount').value = r.headcount;
+  document.getElementById('grpAttEditNotes').value = r.notes || '';
+  document.getElementById('grpAttEditModal').classList.add('open');
 }
-function closeSgAttEditModal() { document.getElementById('sgAttEditModal').classList.remove('open'); }
+function closeGrpAttEditModal() { document.getElementById('grpAttEditModal').classList.remove('open'); }
 
-async function saveSgAttEdit() {
-  const id    = document.getElementById('sgAttEditId').value;
-  const date  = document.getElementById('sgAttEditDate').value;
-  const count = document.getElementById('sgAttEditCount').value;
-  const notes = document.getElementById('sgAttEditNotes').value.trim();
+async function saveGrpAttEdit() {
+  const id    = document.getElementById('grpAttEditId').value;
+  const date  = document.getElementById('grpAttEditDate').value;
+  const count = document.getElementById('grpAttEditCount').value;
+  const notes = document.getElementById('grpAttEditNotes').value.trim();
   const res = await SupaDB.adminUpdateGroupAttendance(id, { meetingDate: date, headcount: parseInt(count), notes });
   if (res.error) { alert('Error: ' + res.error); return; }
-  closeSgAttEditModal();
-  renderGroupAttendanceTable();
+  closeGrpAttEditModal();
+  renderGrpAttTable();
 }
 
-async function deleteSgAttEntry(id) {
+async function deleteGrpAttEntry(id) {
   if (!confirm('Delete this headcount entry? This cannot be undone.')) return;
   await SupaDB.adminDeleteGroupAttendance(id);
-  renderGroupAttendanceTable();
+  renderGrpAttTable();
 }
 
 /* ── FORCE PASSWORD CHANGE ────────────────────────────────── */
