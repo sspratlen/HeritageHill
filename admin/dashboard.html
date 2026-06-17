@@ -335,9 +335,9 @@
       </div>
       <div class="signup-filter-bar">
         <label>Filter by Group:</label>
-        <select id="signupFilterGroup" onchange="renderSignupsPanel()"><option value="">All Groups</option></select>
+        <select id="signupFilterGroup" onchange="applySignupsFilter()"><option value="">All Groups</option></select>
         <label style="margin-left:8px;">Status:</label>
-        <select id="signupFilterStatus" onchange="renderSignupsPanel()">
+        <select id="signupFilterStatus" onchange="applySignupsFilter()">
           <option value="">All</option>
           <option value="new">New Only</option>
           <option value="contacted">Contacted Only</option>
@@ -2177,23 +2177,22 @@ async function renderSignupsPanel(){
   [_cachedSignups, _cachedSignupGroups] = await Promise.all([
     SupaDB.adminGetAllSignups(), SupaDB.adminGetAllGroups()
   ]);
-  // For leaders, pre-filter both lists to their own groups
+  // Populate filter dropdown once after data loads — don't touch it on filter changes
   const visibleGroups = isLeader ? _cachedSignupGroups.filter(g => window._myGroupIds.includes(g.id)) : _cachedSignupGroups;
-  // Populate filter dropdown — leaders only see their groups with no "All" option
   const sel=document.getElementById('signupFilterGroup');
-  const currentVal=sel.value;
   if (isLeader) {
     sel.innerHTML = visibleGroups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
     if (visibleGroups.length === 1) sel.value = String(visibleGroups[0].id);
-    else if (currentVal) sel.value = currentVal;
     sel.disabled = visibleGroups.length <= 1;
   } else {
     sel.innerHTML='<option value="">All Groups</option>'+_cachedSignupGroups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
     sel.disabled = false;
-    if(currentVal)sel.value=currentVal;
   }
-
-  const filterGroupId=sel.value;
+  applySignupsFilter();
+}
+function applySignupsFilter(){
+  const isLeader = window._userRole === 'small_group_leader';
+  const filterGroupId=document.getElementById('signupFilterGroup').value;
   const filterStatus=document.getElementById('signupFilterStatus').value;
   let signups=[..._cachedSignups];
   if (isLeader) signups=signups.filter(s=>window._myGroupIds.includes(s.groupId));
