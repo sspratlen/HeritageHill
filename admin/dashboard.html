@@ -1709,7 +1709,11 @@
     </div>
     <div class="modal-body">
       <div class="field" style="margin-bottom:16px;">
-        <label>To <span style="font-size:.78rem;color:var(--text-muted);font-weight:400;">— recipients pulled from group sign-ups. Edit as needed, one email per line or comma-separated. Sent via BCC so members don't see each other.</span></label>
+        <label>From</label>
+        <div id="groupEmailFrom" style="font-size:.88rem;color:var(--text);background:var(--bg-subtle,#f4f4f2);border:1px solid var(--border,#e4e4e4);border-radius:8px;padding:9px 12px;"></div>
+      </div>
+      <div class="field" style="margin-bottom:16px;">
+        <label>To <span style="font-size:.78rem;color:var(--text-muted);font-weight:400;">— recipients pulled from group sign-ups. Edit as needed, one email per line or comma-separated. Each person receives their own copy.</span></label>
         <textarea class="group-email-recipients" id="groupEmailTo" placeholder="member@example.com, another@example.com" oninput="updateGroupEmailCount()"></textarea>
       </div>
       <div class="field" style="margin-bottom:16px;">
@@ -1822,6 +1826,7 @@ function applyRoleVisibility() {
   window._currentUser = user;
   const roleData = await SupaDB.getUserRoleByEmail(user.email);
   window._userRole = roleData ? roleData.role : 'admin';
+  window._currentUserName = (roleData && roleData.displayName) ? roleData.displayName : '';
   // Force password change before loading dashboard
   if (roleData && roleData.forcePasswordChange) {
     await new Promise(resolve => {
@@ -4899,6 +4904,7 @@ function openAllLeadersEmailModal() {
   document.getElementById('groupEmailSubject').value = '';
   document.getElementById('groupEmailError').style.display = 'none';
   _groupEmailGroupId = null;
+  setGroupEmailFrom(window._currentUserName || 'Heritage Hill Church', window._currentUser && window._currentUser.email);
   updateGroupEmailCount();
   if (!_groupEmailQuill) {
     _groupEmailQuill = new Quill('#groupEmailEditor', {
@@ -4926,6 +4932,21 @@ function openAllLeadersEmailModal() {
 /* ── GROUP EMAIL ──────────────────────────────────────────── */
 let _groupEmailQuill = null;
 let _groupEmailGroupId = null;
+let _groupEmailFromName = 'Heritage Hill Church';
+let _groupEmailReplyTo = '';
+
+// Resend can only send from the verified domain, so the address is always
+// noreply@heritagehill.church; the chosen name + Reply-To make it "come from" the right person.
+function setGroupEmailFrom(name, replyTo) {
+  _groupEmailFromName = name || 'Heritage Hill Church';
+  _groupEmailReplyTo = (replyTo && replyTo.includes('@')) ? replyTo : '';
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const replyNote = _groupEmailReplyTo
+    ? ` &nbsp;·&nbsp; <span style="color:var(--text-muted);">replies go to ${esc(_groupEmailReplyTo)}</span>`
+    : '';
+  document.getElementById('groupEmailFrom').innerHTML =
+    `<strong>${esc(_groupEmailFromName)}</strong> &lt;noreply@heritagehill.church&gt;${replyNote}`;
+}
 
 async function openGroupEmailModal(groupId) {
   _groupEmailGroupId = groupId;
@@ -4933,6 +4954,7 @@ async function openGroupEmailModal(groupId) {
   document.getElementById('groupEmailTitle').textContent = group ? `Email — ${group.name}` : 'Email Group';
   document.getElementById('groupEmailSubject').value = '';
   document.getElementById('groupEmailError').style.display = 'none';
+  setGroupEmailFrom(group ? group.leader : 'Heritage Hill Church', group ? group.leaderEmail : '');
 
   // Pre-populate recipients from sign-ups for this group
   const signups = await SupaDB.adminGetSignupsByGroup(groupId);
@@ -4990,8 +5012,6 @@ async function sendGroupEmail() {
   const btn = document.getElementById('groupEmailSendBtn');
   btn.disabled = true; btn.innerHTML = 'Sending…';
 
-  const group = _cachedGroups.find(g => g.id === _groupEmailGroupId);
-
   try {
     const res = await fetch(SUPABASE_URL + '/functions/v1/send-group-email', {
       method: 'POST',
@@ -5000,8 +5020,8 @@ async function sendGroupEmail() {
         subject,
         htmlBody,
         recipients,
-        fromName: group ? group.leader : 'Heritage Hill Church',
-        replyTo: group ? (group.leaderEmail || '') : '',
+        fromName: _groupEmailFromName,
+        replyTo: _groupEmailReplyTo,
       }),
     });
     const json = await res.json();
