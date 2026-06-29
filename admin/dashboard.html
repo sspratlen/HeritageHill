@@ -4933,19 +4933,25 @@ function openAllLeadersEmailModal() {
 let _groupEmailQuill = null;
 let _groupEmailGroupId = null;
 let _groupEmailFromName = 'Heritage Hill Church';
+let _groupEmailFromEmail = 'noreply@heritagehill.church';
 let _groupEmailReplyTo = '';
 
-// Resend can only send from the verified domain, so the address is always
-// noreply@heritagehill.church; the chosen name + Reply-To make it "come from" the right person.
-function setGroupEmailFrom(name, replyTo) {
+// Resend sends only from the verified domain (heritagehill.church). If the sender's own
+// address is on that domain we send directly from it (From and replies match). Otherwise we
+// send from noreply@heritagehill.church and route replies to their real address.
+function setGroupEmailFrom(name, senderEmail) {
   _groupEmailFromName = name || 'Heritage Hill Church';
-  _groupEmailReplyTo = (replyTo && replyTo.includes('@')) ? replyTo : '';
+  const email = (senderEmail && senderEmail.includes('@')) ? senderEmail.trim() : '';
+  const onDomain = email.toLowerCase().endsWith('@heritagehill.church');
+  _groupEmailReplyTo = onDomain ? '' : email; // only needed when From can't be the sender
+  const fromEmail = onDomain ? email : 'noreply@heritagehill.church';
+  _groupEmailFromEmail = fromEmail;
   const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   const replyNote = _groupEmailReplyTo
     ? ` &nbsp;·&nbsp; <span style="color:var(--text-muted);">replies go to ${esc(_groupEmailReplyTo)}</span>`
     : '';
   document.getElementById('groupEmailFrom').innerHTML =
-    `<strong>${esc(_groupEmailFromName)}</strong> &lt;noreply@heritagehill.church&gt;${replyNote}`;
+    `<strong>${esc(_groupEmailFromName)}</strong> &lt;${esc(fromEmail)}&gt;${replyNote}`;
 }
 
 async function openGroupEmailModal(groupId) {
@@ -5021,6 +5027,7 @@ async function sendGroupEmail() {
         htmlBody,
         recipients,
         fromName: _groupEmailFromName,
+        fromEmail: _groupEmailFromEmail,
         replyTo: _groupEmailReplyTo,
       }),
     });

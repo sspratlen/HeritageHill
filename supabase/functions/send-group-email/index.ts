@@ -11,8 +11,6 @@ const CORS = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-const CHURCH_FALLBACK_EMAIL = 'heritagehillchurch@gmail.com'
-
 // Turn the Quill/wrapped HTML into a readable plain-text alternative so the message
 // is never HTML-only (HTML-only mail is penalized by spam filters).
 function htmlToText(html: string): string {
@@ -39,7 +37,7 @@ serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
   try {
-    const { subject, htmlBody, recipients, fromName, replyTo } = await req.json()
+    const { subject, htmlBody, recipients, fromName, fromEmail, replyTo } = await req.json()
 
     if (!subject || !htmlBody || !Array.isArray(recipients) || !recipients.length) {
       return new Response(JSON.stringify({ error: 'subject, htmlBody, and recipients are required' }), {
@@ -48,7 +46,17 @@ serve(async (req: Request) => {
     }
 
     const senderName = fromName || 'Heritage Hill Church'
-    const replyToEmail = (typeof replyTo === 'string' && replyTo.includes('@')) ? replyTo : CHURCH_FALLBACK_EMAIL
+
+    // From must be on the verified domain. Accept a caller-supplied @heritagehill.church
+    // address (e.g. an admin sending as themselves); otherwise send from noreply@.
+    const fromAddr = (typeof fromEmail === 'string' && fromEmail.toLowerCase().endsWith('@heritagehill.church'))
+      ? fromEmail.trim()
+      : 'noreply@heritagehill.church'
+
+    // Reply-To is only needed when replies should go somewhere other than the From address.
+    const replyToRaw = (typeof replyTo === 'string' && replyTo.includes('@')) ? replyTo.trim() : ''
+    const replyToEmail = replyToRaw && replyToRaw.toLowerCase() !== fromAddr.toLowerCase() ? replyToRaw : ''
+    const unsubEmail = replyToEmail || fromAddr
 
     // Light, personal-looking shell — a simple sender line and minimal footer, no heavy
     // marketing header/imagery (which pushes Gmail toward the Promotions/Updates tab).
@@ -85,14 +93,14 @@ serve(async (req: Request) => {
 
     const textBody = `${htmlToText(htmlBody)}\n\n—\nFrom ${senderName} · Heritage Hill Church\n6909 Cornhusker Rd, Papillion, NE 68133\nhttps://heritagehill.church`
 
-    const listUnsub = `<mailto:${replyToEmail}?subject=unsubscribe>`
+    const listUnsub = `<mailto:${unsubEmail}?subject=unsubscribe>`
 
     // One message per recipient (real To:, no BCC). Resend batch endpoint accepts up to 100/call.
     const valid = recipients.filter((r: unknown) => typeof r === 'string' && r.includes('@'))
     const messages = valid.map((to: string) => ({
-      from: `${senderName} <noreply@heritagehill.church>`,
+      from: `${senderName} <${fromAddr}>`,
       to: [to],
-      reply_to: replyToEmail,
+      ...(replyToEmail ? { reply_to: replyToEmail } : {}),
       subject,
       html: wrappedHtml,
       text: textBody,
