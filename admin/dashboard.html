@@ -5001,6 +5001,7 @@ async function sendGroupEmail() {
         htmlBody,
         recipients,
         fromName: group ? group.leader : 'Heritage Hill Church',
+        replyTo: group ? (group.leaderEmail || '') : '',
       }),
     });
     const json = await res.json();
