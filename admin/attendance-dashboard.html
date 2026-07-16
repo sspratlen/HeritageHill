@@ -284,8 +284,22 @@ let _trendChart, _rateChart;
 
 async function init() {
   try {
-    _allData = await SupaDB.adminGetAllAttendance();
+    let groupAttendance = [];
+    [_allData, groupAttendance] = await Promise.all([
+      SupaDB.adminGetAllAttendance(),
+      SupaDB.adminGetAllGroupAttendance().catch(() => []),
+    ]);
     _allData.sort((a, b) => a.serviceDate.localeCompare(b.serviceDate));
+
+    // Compute small group totals from group_attendance (7-day window ending on each service date)
+    _allData.forEach(r => {
+      const end   = new Date(r.serviceDate + 'T00:00:00');
+      const start = new Date(end.getTime() - 6 * 86400000);
+      const sum   = groupAttendance
+        .filter(ga => { const d = new Date(ga.meetingDate + 'T00:00:00'); return d >= start && d <= end; })
+        .reduce((s, ga) => s + (ga.headcount || 0), 0);
+      if (sum > 0) r.smallGroupCount = sum;
+    });
   } catch(err) {
     console.error('[Attendance] init error:', err);
     _allData = [];
