@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Growth Track | Heritage Hill Church</title>
+  <meta name="description" content="Take the next step at Heritage Hill Church — About Us, About You, and Get Involved." />
+  <link rel="icon" href="assets/logos/logo-icon-color-white.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ── Announcement Bar (content loaded dynamically from admin) ── -->
+<div id="announcementBar" class="announcement-bar" style="display:none"></div>
+
+
+<!-- ── Navigation ──────────────────────────────────────── -->
+<nav id="navbar" class="scrolled">
+  <div class="container nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="assets/logos/logo-left-full-white.png"
+           alt="Heritage Hill Church"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+      <span style="display:none; font-size:1.15rem; font-weight:700; color:var(--primary);">Heritage Hill</span>
+    </a>
+    <div class="nav-links">
+      <a href="about.html">About Us</a>
+      <a href="events.html">Events</a>
+      <a href="small-groups.html">Small Groups</a>
+      <a href="growth-track.html" class="active">Growth Track</a>
+      <a href="sermons.html">Watch</a>
+      <a href="give.html">Give</a>
+    </div>
+    <a href="admin/login.html" class="btn btn-ghost btn-sm">Login</a>
+    <a href="about.html#visit" class="btn btn-primary btn-sm nav-cta">Plan a Visit</a>
+    <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="nav-mobile" id="mobileNav">
+  <a href="about.html">About Us</a>
+  <a href="events.html">Events</a>
+  <a href="small-groups.html">Small Groups</a>
+  <a href="growth-track.html">Growth Track</a>
+  <a href="prayer.html">Prayer</a>
+  <a href="sermons.html">Watch</a>
+  <a href="give.html">Give</a>
+  <a href="admin/login.html" class="btn btn-ghost">Login</a>
+  <a href="about.html#visit" class="btn btn-primary">Plan a Visit</a>
+</div>
+
+<!-- ── Page Hero ───────────────────────────────────────── -->
+<div class="page-hero" style="padding-top:calc(var(--nav-h) + var(--bar-h));">
+  <div class="page-hero-bg" style="background-image:url('https://images.unsplash.com/photo-1523803326055-13445f07b90a?w=1400&q=80');"></div>
+  <div class="page-hero-overlay"></div>
+  <div class="container page-hero-content">
+    <h1>Growth Track</h1>
+    <p>Three simple steps to get connected, discover how you're wired, and find your place to serve.</p>
+  </div>
+</div>
+
+<!-- ── Filter + Group Grid ─────────────────────────────── -->
+<section class="section">
+  <div class="container">
+    <div id="gtEmpty" style="display:none; text-align:center; padding:60px 20px; color:var(--text-muted);">
+      <p>Registration isn't open yet — check back soon!</p>
+    </div>
+    <div id="gtGrid" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:24px;"></div>
+  </div>
+</section>
+
+<!-- ── Start a Group CTA ───────────────────────────────── -->
+<section class="section bg-soft">
+  <div class="container">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center;">
+      <div data-reveal>
+        <span class="section-label">Don't See Your Fit?</span>
+        <h2>Start a Group</h2>
+        <p style="margin:1rem 0 1.5rem;">Can't find a group that fits? We'd love to help you launch one. Whether it's around a hobby, a life stage, or a ministry passion — if you're willing to lead, we'll support you.</p>
+        <a href="lead-a-group.html" class="btn btn-primary btn-lg">Apply to Lead a Group</a>
+      </div>
+      <div data-reveal style="background:var(--bg); border-radius:var(--radius-lg); padding:36px; box-shadow:var(--shadow-md);">
+        <h3 style="margin-bottom:1.2rem;">Have a Question?</h3>
+        <form id="groupContactForm" onsubmit="handleGroupContact(event)">
+          <!-- Honeypot: hidden from real users, bots fill it -->
+          <div style="position:absolute;left:-9999px;height:0;overflow:hidden;" aria-hidden="true">
+            <input type="text" id="gcHoneypot" name="website" tabindex="-1" autocomplete="off" />
+          </div>
+          <input type="hidden" id="gcLoadedAt" />
+          <div style="margin-bottom:14px;">
+            <input type="text" placeholder="Your Name" required style="width:100%; padding:.65rem 1rem; border:1px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.9375rem; outline:none;" id="gcName" />
+          </div>
+          <div style="margin-bottom:14px;">
+            <input type="email" placeholder="Email Address" required style="width:100%; padding:.65rem 1rem; border:1px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.9375rem; outline:none;" id="gcEmail" />
+          </div>
+          <div style="margin-bottom:18px;">
+            <textarea placeholder="What are you looking for in a small group?" rows="3" style="width:100%; padding:.65rem 1rem; border:1px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.9375rem; outline:none; resize:vertical;" id="gcMsg"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">Send Message</button>
+        </form>
+        <p id="gcSuccess" style="display:none; color:green; margin-top:12px; font-weight:600;">✓ Thanks! We'll be in touch soon.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ─────────────────────────────────────────── -->
+<footer id="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <img src="assets/logos/logo-left-full-dark.png" alt="Heritage Hill Church" onerror="this.style.display='none'" />
+        </div>
+        <p>A Church of the Nazarene in Papillion, Nebraska. We're a community of Jesus followers — come as you are; you belong here.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Navigate</h5>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="events.html">Events</a></li>
+          <li><a href="small-groups.html">Small Groups</a></li>
+          <li><a href="prayer.html">Prayer</a></li>
+          <li><a href="sermons.html">Watch</a></li>
+          <li><a href="give.html">Give</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Ministries</h5>
+        <ul>
+          <li><a href="small-groups.html">Small Groups</a></li>
+          <li><a href="#">Children's Ministry</a></li>
+          <li><a href="#">Youth Ministry</a></li>
+          <li><a href="#">Women's Ministry</a></li>
+          <li><a href="#">Men's Ministry</a></li>
+        </ul>
+      </div>
+      <div class="footer-col footer-contact">
+        <h5>Contact Us</h5>
+        <p><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>6909 Cornhusker Rd, Papillion, NE 68133</p>
+        <p><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.73 8.7 19.79 19.79 0 01.67 4.1 2 2 0 012.63 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L7.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg><a href="tel:4023318900">(402) 331-8900</a></p>
+        <p><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Sun 10:30 AM</p>
+      </div>
+    </div>
+    <hr class="footer-divider" />
+    <div class="footer-bottom">
+      <p>&copy; <span id="footerYear"></span> Heritage Hill Church · Papillion, Nebraska</p>
+      <p><a href="admin/login.html" style="color:rgba(255,255,255,.2); font-size:.75rem;">Admin</a></p>
+    </div>
+  </div>
+</footer>
+
+<!-- ── Growth Track Registration Modal ───────────────────────────────── -->
+<div id="gtModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:999; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:#fff; border-radius:16px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.3);">
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:22px 24px 18px; border-bottom:1px solid #e4e4e4;">
+      <div>
+        <h3 style="font-size:1.1rem; margin-bottom:3px;">Register</h3>
+        <p id="gtPartDisplay" style="font-size:.85rem; color:var(--primary); font-weight:600;"></p>
+      </div>
+      <button onclick="closeGtModal()" style="width:32px; height:32px; border-radius:50%; background:#f4f4f2; border:none; cursor:pointer; font-size:1.1rem; color:#666; display:flex; align-items:center; justify-content:center;">✕</button>
+    </div>
+    <div style="padding:22px 24px;">
+      <div id="gtSuccess" style="display:none; text-align:center; padding:24px 0;">
+        <div style="font-size:2.5rem; margin-bottom:12px;">✅</div>
+        <h4 style="margin-bottom:8px; color:var(--text);">You're Registered!</h4>
+        <p style="color:var(--text-muted); font-size:.9rem;">We'll see you there.</p>
+      </div>
+      <form id="gtForm" onsubmit="handleGtSubmit(event)">
+        <input type="hidden" id="gtPart" />
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:.82rem; font-weight:600; margin-bottom:5px;">Full Name *</label>
+          <input type="text" id="gtName" required placeholder="Your full name"
+            style="width:100%; padding:.62rem .9rem; border:1.5px solid #e4e4e4; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.9rem; outline:none;" />
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:.82rem; font-weight:600; margin-bottom:5px;">Email Address *</label>
+          <input type="email" id="gtEmail" required placeholder="your@email.com"
+            style="width:100%; padding:.62rem .9rem; border:1.5px solid #e4e4e4; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.9rem; outline:none;" />
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:.82rem; font-weight:600; margin-bottom:5px;">Phone <span style="font-weight:400; color:#888;">(optional)</span></label>
+          <input type="tel" id="gtPhone" placeholder="(402) 555-1234"
+            style="width:100%; padding:.62rem .9rem; border:1.5px solid #e4e4e4; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.9rem; outline:none;" />
+        </div>
+        <div style="margin-bottom:20px;">
+          <label style="display:block; font-size:.82rem; font-weight:600; margin-bottom:5px;">Notes <span style="font-weight:400; color:#888;">(optional)</span></label>
+          <textarea id="gtNotes" rows="3" placeholder="Anything we should know?"
+            style="width:100%; padding:.62rem .9rem; border:1.5px solid #e4e4e4; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.9rem; outline:none; resize:vertical;"></textarea>
+        </div>
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+          <button type="button" onclick="closeGtModal()" style="padding:.55rem 1.2rem; border-radius:50px; border:2px solid #e4e4e4; background:transparent; font-family:'DM Sans',sans-serif; font-size:.875rem; font-weight:600; cursor:pointer; color:#666;">Cancel</button>
+          <button type="submit" class="btn btn-primary">Register</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Admin floating button -->
+<div class="admin-edit-bar" id="adminBar">
+  <a href="admin/dashboard.html?tab=growthtrack" class="admin-fab" title="Manage Growth Track">✏️</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/db.js"></script>
+<script src="js/main.js"></script>
+<script>
+  document.getElementById('footerYear').textContent = new Date().getFullYear();
+  isAdminLoggedIn().then(ok => { if (ok) document.getElementById('adminBar').classList.add('show'); });
+
+  let _gtParts = [];
+
+  function fmtDate(d) {
+    if (!d) return '';
+    const [y,m,day] = d.split('-');
+    return new Date(y, m-1, day).toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+  }
+
+  function renderGtCard(p) {
+    const meta = [fmtDate(p.sessionDate), p.sessionTime, p.location].filter(Boolean).join(' · ');
+    return `
+    <article class="card" data-reveal>
+      <div class="card-body">
+        <h3>${p.title}</h3>
+        ${meta ? `<div class="card-meta"><span>${meta}</span></div>` : ''}
+        <p style="font-size:.875rem;">${p.description}</p>
+        <div style="margin-top:14px; text-align:right;">
+          <button class="btn btn-primary btn-sm" onclick="openGtModal('${p.part}','${p.title.replace(/'/g,"\\'")}')">Register</button>
+        </div>
+      </div>
+    </article>`;
+  }
+
+  async function loadGrowthTrack() {
+    _gtParts = await SupaDB.getPublishedGrowthTrackParts();
+    const grid = document.getElementById('gtGrid');
+    const empty = document.getElementById('gtEmpty');
+    if (!_gtParts.length) { grid.innerHTML = ''; empty.style.display = ''; return; }
+    empty.style.display = 'none';
+    grid.innerHTML = _gtParts.map(renderGtCard).join('');
+  }
+  loadGrowthTrack();
+
+  // Stamp load time so we can reject instant (bot) submissions
+  document.getElementById('gcLoadedAt').value = Date.now();
+
+  async function handleGroupContact(e) {
+    e.preventDefault();
+    // Honeypot: bots fill this hidden field, humans never see it
+    if (document.getElementById('gcHoneypot').value) return;
+    // Time check: real humans take more than 2 seconds to fill a form
+    if (Date.now() - parseInt(document.getElementById('gcLoadedAt').value || '0') < 2000) return;
+
+    const name  = document.getElementById('gcName').value.trim();
+    const email = document.getElementById('gcEmail').value.trim();
+    const msg   = document.getElementById('gcMsg').value.trim();
+    const btn   = e.submitter || document.querySelector('#groupContactForm button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+
+    const result = await SupaDB.submitContactMessage({
+      name, email, message: msg, source: 'Small Groups – Have a Question',
+      honeypot: document.getElementById('gcHoneypot').value,
+    });
+
+    if (btn) { btn.disabled = false; btn.textContent = 'Send Message'; }
+    if (result.error) {
+      alert('Something went wrong. Please try again or email us directly.');
+      return;
+    }
+    document.getElementById('groupContactForm').style.display = 'none';
+    document.getElementById('gcSuccess').style.display = 'block';
+  }
+
+  async function openGtModal(part, title) {
+    document.getElementById('gtPart').value = part;
+    document.getElementById('gtPartDisplay').textContent = title;
+    document.getElementById('gtForm').reset();
+    document.getElementById('gtForm').style.display = '';
+    document.getElementById('gtSuccess').style.display = 'none';
+
+    // Best-effort pre-fill from an active session; never blocks the form opening.
+    try {
+      const user = await SupaDB.getUser();
+      if (user) {
+        const profile = await SupaDB.getMyProfile();
+        document.getElementById('gtName').value = profile ? profile.name : '';
+        document.getElementById('gtEmail').value = profile ? profile.email : user.email;
+        document.getElementById('gtPhone').value = profile ? profile.phone : '';
+      }
+    } catch (e) { /* not logged in or no profile — leave form blank */ }
+
+    document.getElementById('gtModal').style.display = 'flex';
+  }
+
+  function closeGtModal() {
+    document.getElementById('gtModal').style.display = 'none';
+  }
+
+  async function handleGtSubmit(e) {
+    e.preventDefault();
+    const part = document.getElementById('gtPart').value;
+    const p = _gtParts.find(x => x.part === part);
+    const reg = {
+      part, sessionDate: p ? p.sessionDate : null, sessionTime: p ? p.sessionTime : '',
+      name: document.getElementById('gtName').value.trim(),
+      email: document.getElementById('gtEmail').value.trim(),
+      phone: document.getElementById('gtPhone').value.trim(),
+      notes: document.getElementById('gtNotes').value.trim(),
+    };
+    const result = await SupaDB.submitGrowthTrackRegistration(reg);
+    if (result.error) {
+      alert('Sorry, there was an error submitting your registration. Please try again or email us directly.');
+      return;
+    }
+    document.getElementById('gtForm').style.display = 'none';
+    document.getElementById('gtSuccess').style.display = '';
+    setTimeout(closeGtModal, 2800);
+  }
+
+  document.getElementById('gtModal').addEventListener('click', function(e) {
+    if (e.target === this) closeGtModal();
+  });
+</script>
+<script src="js/banner.js"></script>
+</body>
+</html>
