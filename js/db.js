@@ -160,6 +160,20 @@ function sermonToDb(s) {
   return o;
 }
 
+function memberProfileFromDb(r) {
+  return {
+    userId: r.user_id, name: r.name, email: r.email, phone: r.phone || '',
+    groupId: r.group_id, yearsAttending: r.years_attending || '',
+    status: r.status, shareWithLeader: !!r.share_with_leader, createdAt: r.created_at,
+  };
+}
+function attemptFromDb(r) {
+  return {
+    id: r.id, userId: r.user_id, assessmentType: r.assessment_type,
+    answers: r.answers, scores: r.scores, result: r.result, completedAt: r.completed_at,
+  };
+}
+
 /* ── Helper ─────────────────────────────────────────────────── */
 function db() { return window._supabase; }
 
@@ -829,6 +843,137 @@ window.SupaDB = {
       if (error) throw error;
       return { ok: true };
     } catch(e) { console.error('[SupaDB] adminDeleteUserRole:', e.message); return { error: e.message }; }
+  },
+
+/* ── Member Profiles & Assessments ──────────────────────── */
+  async signUpMember(email, password, meta) {
+    // meta: { name, phone, groupId, yearsAttending } stored in auth user_metadata;
+    // my-profile.html lazily creates the member_profiles row from it.
+    if (!db()) return { error: 'Not configured' };
+    const { data, error } = await db().auth.signUp({
+      email, password,
+      options: { data: {
+        name: meta.name || '', phone: meta.phone || '',
+        group_id: meta.groupId || null, years_attending: meta.yearsAttending || '',
+      } },
+    });
+    if (error) return { error: error.message };
+    return { user: data.user, session: data.session };
+  },
+  async getMyProfile() {
+    if (!db()) return null;
+    const { data: { user } } = await db().auth.getUser();
+    if (!user) return null;
+    const { data, error } = await db().from('member_profiles')
+      .select('*').eq('user_id', user.id).maybeSingle();
+    if (error) { console.error('[SupaDB] getMyProfile:', error.message); return null; }
+    return data ? memberProfileFromDb(data) : null;
+  },
+  async createMyProfile() {
+    // Builds the row from the auth user's metadata (registration) or email (staff).
+    if (!db()) return { error: 'Not configured' };
+    const { data: { user } } = await db().auth.getUser();
+    if (!user) return { error: 'Not signed in' };
+    const m = user.user_metadata || {};
+    const { error } = await db().from('member_profiles').insert({
+      user_id: user.id,
+      name: m.name || user.email.split('@')[0],
+      email: user.email.toLowerCase(),
+      phone: m.phone || '',
+      group_id: m.group_id || null,
+      years_attending: m.years_attending || '',
+    });
+    if (error) return { error: error.message };
+    return { success: true };
+  },
+  async updateMyProfile({ name, phone, groupId, yearsAttending, shareWithLeader }) {
+    if (!db()) return { error: 'Not configured' };
+    const { data: { user } } = await db().auth.getUser();
+    if (!user) return { error: 'Not signed in' };
+    const { error } = await db().from('member_profiles').update({
+      name, phone: phone || '', group_id: groupId || null,
+      years_attending: yearsAttending || '', share_with_leader: !!shareWithLeader,
+    }).eq('user_id', user.id);
+    if (error) return { error: error.message };
+    return { success: true };
+  },
+  async adminGetAllMemberProfiles() {
+    if (!db()) return [];
+    const { data, error } = await db().from('member_profiles')
+      .select('*').order('created_at', { ascending: false });
+    if (error) { console.error('[SupaDB] adminGetAllMemberProfiles:', error.message); return []; }
+    return (data || []).map(memberProfileFromDb);
+  },
+  async adminSetMemberStatus(userId, status) {
+    if (!db()) return { error: 'Not configured' };
+    const { error } = await db().from('member_profiles')
+      .update({ status }).eq('user_id', userId);
+    if (error) return { error: error.message };
+    return { success: true };
+  },
+  async adminDeleteMember(userId) {
+    // Deletes the auth user via edge function; member_profiles row cascades.
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const { data: { session } } = await db().auth.getSession();
+      const res = await fetch(SUPABASE_URL + '/functions/v1/admin-create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + (session ? session.access_token : ''),
+          'apikey': SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ action: 'delete', userId }),
+      });
+      const json = await res.json();
+      if (!res.ok || json.error) return { error: json.error || ('HTTP ' + res.status) };
+      return { success: true };
+    } catch (e) { return { error: e.message }; }
+  },
+  async getAssessmentContent() {
+    if (!db()) return [];
+    const { data, error } = await db().from('assessment_content')
+      .select('*').order('sort', { ascending: true });
+    if (error) { console.error('[SupaDB] getAssessmentContent:', error.message); return []; }
+    return (data || []).map(r => ({
+      id: r.id, kind: r.kind, code: r.code, sort: r.sort, text: r.text, extra: r.extra || {},
+    }));
+  },
+  async addAssessmentAttempt({ assessmentType, answers, scores, result }) {
+    if (!db()) return { error: 'Not configured' };
+    const { data: { user } } = await db().auth.getUser();
+    if (!user) return { error: 'Not signed in' };
+    const { error } = await db().from('assessment_attempts').insert({
+      user_id: user.id, assessment_type: assessmentType,
+      answers, scores, result,
+    });
+    if (error) return { error: error.message };
+    return { success: true };
+  },
+  async getMyAttempts() {
+    if (!db()) return [];
+    const { data: { user } } = await db().auth.getUser();
+    if (!user) return [];
+    const { data, error } = await db().from('assessment_attempts')
+      .select('*').eq('user_id', user.id).order('completed_at', { ascending: false });
+    if (error) { console.error('[SupaDB] getMyAttempts:', error.message); return []; }
+    return (data || []).map(attemptFromDb);
+  },
+  async getVisibleAttempts() {
+    // RLS scopes rows: admins see all, leaders see shared group members, members see own.
+    if (!db()) return [];
+    const { data, error } = await db().from('assessment_attempts')
+      .select('*').order('completed_at', { ascending: false });
+    if (error) { console.error('[SupaDB] getVisibleAttempts:', error.message); return []; }
+    return (data || []).map(attemptFromDb);
+  },
+  async getVisibleMemberProfiles() {
+    // Same idea for leaders (RLS returns shared members of their groups).
+    if (!db()) return [];
+    const { data, error } = await db().from('member_profiles')
+      .select('*').order('name', { ascending: true });
+    if (error) { console.error('[SupaDB] getVisibleMemberProfiles:', error.message); return []; }
+    return (data || []).map(memberProfileFromDb);
   },
 
 /* ── YouTube (via Supabase Edge Function) ───────────────── */
