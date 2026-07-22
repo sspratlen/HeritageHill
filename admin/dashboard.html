@@ -1375,6 +1375,47 @@
   </div>
 </div>
 
+<!-- GROWTH TRACK ROSTER MODAL -->
+<div class="modal-overlay" id="gtRosterModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 id="gtRosterTitle">Registrants</h3>
+      <button class="modal-close" onclick="closeGtRoster()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px;">
+        <h4 style="font-size:.95rem;font-weight:700;margin-bottom:16px;">Add a Registrant</h4>
+        <div class="form-row" style="margin-bottom:12px;">
+          <div class="field"><label>Name *</label><input id="gtrName" type="text" placeholder="Full name" /></div>
+          <div class="field"><label>Email *</label><input id="gtrEmail" type="email" placeholder="email@example.com" /></div>
+        </div>
+        <div class="form-row" style="margin-bottom:12px;">
+          <div class="field"><label>Phone <span style="font-size:.75rem;color:var(--text-muted);font-weight:400;">(optional)</span></label><input id="gtrPhone" type="tel" placeholder="(402) 555-1234" /></div>
+          <div class="field"><label>Notes <span style="font-size:.75rem;color:var(--text-muted);font-weight:400;">(optional)</span></label><input id="gtrNotes" type="text" placeholder="Optional note" /></div>
+        </div>
+        <div style="text-align:right;">
+          <button class="btn btn-primary btn-sm" onclick="addGtRegistrant()">Add Registrant</button>
+        </div>
+        <p id="gtrError" style="color:var(--danger);font-size:.82rem;margin:8px 0 0;display:none;"></p>
+      </div>
+      <div class="table-wrap" style="margin:0;">
+        <table>
+          <thead><tr><th>Name</th><th>Contact</th><th>Notes</th><th>Registered</th><th>Actions</th></tr></thead>
+          <tbody id="gtRosterTable"></tbody>
+        </table>
+        <div id="gtRosterEmpty" class="empty" style="display:none;padding:24px 0;">
+          <p style="margin:0;color:var(--text-muted);">No registrants yet for this session.</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="exportGtRosterCsv()">Export CSV</button>
+      <div style="flex:1;"></div>
+      <button class="btn btn-ghost" onclick="closeGtRoster()">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- APPLICATION DETAIL MODAL -->
 <div class="modal-overlay" id="appDetailModal">
   <div class="modal modal-lg">
@@ -5105,6 +5146,91 @@ async function saveGtPart() {
   showToast('Growth Track part saved');
   closeGtPartModal();
   renderGrowthTrackTab();
+}
+
+let _gtRosterPart = null, _gtRosterRows = [];
+
+async function openGtRoster(part) {
+  const p = _gtPartsAdmin.find(x => x.part === part);
+  if (!p) return;
+  _gtRosterPart = p;
+  document.getElementById('gtRosterTitle').textContent = (p.title || GT_LABELS[part]) + ' — Registrants';
+  document.getElementById('gtrName').value = '';
+  document.getElementById('gtrEmail').value = '';
+  document.getElementById('gtrPhone').value = '';
+  document.getElementById('gtrNotes').value = '';
+  document.getElementById('gtrError').style.display = 'none';
+  await loadGtRoster();
+  document.getElementById('gtRosterModal').classList.add('open');
+}
+function closeGtRoster() { document.getElementById('gtRosterModal').classList.remove('open'); }
+
+async function loadGtRoster() {
+  const all = await SupaDB.adminGetGrowthTrackRegistrations(_gtRosterPart.part);
+  // "Current" roster = registrations whose snapshot matches the part's live date/time.
+  _gtRosterRows = all.filter(r =>
+    r.sessionDate === _gtRosterPart.sessionDate && r.sessionTime === _gtRosterPart.sessionTime);
+  const tbody = document.getElementById('gtRosterTable'), empty = document.getElementById('gtRosterEmpty');
+  if (!_gtRosterRows.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = _gtRosterRows.map(r => `
+    <tr>
+      <td><strong>${escapeHtml(r.name)}</strong>${r.addedByAdmin ? ' <span class="badge badge-gray">manual</span>' : ''}</td>
+      <td>${escapeHtml(r.email)}${r.phone ? '<br><span style="font-size:.8rem;color:var(--text-muted);">' + escapeHtml(r.phone) + '</span>' : ''}</td>
+      <td>${escapeHtml(r.notes)}</td>
+      <td>${new Date(r.createdAt).toLocaleDateString()}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteGtRegistrant(${r.id})">Remove</button></td>
+    </tr>`).join('');
+}
+
+async function addGtRegistrant() {
+  const name = document.getElementById('gtrName').value.trim();
+  const email = document.getElementById('gtrEmail').value.trim();
+  const err = document.getElementById('gtrError');
+  if (!name || !email) {
+    err.textContent = 'Name and email are required.';
+    err.style.display = '';
+    return;
+  }
+  err.style.display = 'none';
+  const result = await SupaDB.adminAddGrowthTrackRegistration({
+    part: _gtRosterPart.part, sessionDate: _gtRosterPart.sessionDate, sessionTime: _gtRosterPart.sessionTime,
+    name, email, phone: document.getElementById('gtrPhone').value.trim(),
+    notes: document.getElementById('gtrNotes').value.trim(),
+  });
+  if (result.error) { err.textContent = result.error; err.style.display = ''; return; }
+  document.getElementById('gtrName').value = '';
+  document.getElementById('gtrEmail').value = '';
+  document.getElementById('gtrPhone').value = '';
+  document.getElementById('gtrNotes').value = '';
+  showToast('Registrant added');
+  await loadGtRoster();
+}
+
+async function deleteGtRegistrant(id) {
+  if (!confirm('Remove this registrant?')) return;
+  const result = await SupaDB.adminDeleteGrowthTrackRegistration(id);
+  if (result.error) { showToast(result.error, true); return; }
+  await loadGtRoster();
+}
+
+function csvSafeGt(v) {
+  const s = String(v);
+  return /^[=+\-@]/.test(s) ? "'" + s : s;
+}
+
+function exportGtRosterCsv() {
+  const headers = ['Name','Email','Phone','Notes','Added By Admin','Registered'];
+  const rows = _gtRosterRows.map(r => [
+    r.name, r.email, r.phone, r.notes, r.addedByAdmin ? 'yes' : 'no',
+    new Date(r.createdAt).toLocaleDateString(),
+  ]);
+  const csv = [headers, ...rows].map(r =>
+    r.map(v => `"${csvSafeGt(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = (_gtRosterPart.part) + '-registrants.csv';
+  a.click();
 }
 
 async function renderGrpAttTable() {
