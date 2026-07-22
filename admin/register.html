@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Member Registration | Heritage Hill Church</title>
+  <link rel="icon" href="../assets/logos/logo-icon-color-white.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #BC7A1E;
+      --primary-dark: #9A6118;
+      --dark: #0D0F14;
+      --border: #E4E4E4;
+      --bg-soft: #F7F7F5;
+      --text: #1C1C1E;
+      --text-muted: #6B6B6B;
+      --error: #ef4444;
+    }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--dark);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .login-wrap {
+      width: 100%;
+      max-width: 420px;
+    }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .login-logo img {
+      height: 52px;
+
+    }
+    .login-logo span {
+      display: block;
+      color: rgba(255,255,255,.6);
+      font-size: .875rem;
+      margin-top: 8px;
+      letter-spacing: .05em;
+    }
+    .login-card {
+      background: #fff;
+      border-radius: 18px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.4);
+    }
+    .login-card h2 { font-size: 1.4rem; color: var(--text); margin-bottom: .35rem; }
+    .login-card p { font-size: .9rem; color: var(--text-muted); margin-bottom: 28px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block;
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: .7rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .9375rem;
+      outline: none;
+      transition: border-color .2s;
+      background: #fff;
+    }
+    .form-group input:focus,
+    .form-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(188,122,30,.15); }
+    .btn-login {
+      width: 100%;
+      padding: .8rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, transform .15s;
+      margin-top: 8px;
+    }
+    .btn-login:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-login:active { transform: none; }
+    .error-msg {
+      background: rgba(239,68,68,.08);
+      border: 1px solid rgba(239,68,68,.3);
+      color: var(--error);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: .875rem;
+      margin-top: 14px;
+      display: none;
+    }
+    .error-msg.show { display: block; }
+    .back-link {
+      display: block;
+      text-align: center;
+      color: rgba(255,255,255,.4);
+      font-size: .85rem;
+      margin-top: 20px;
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .back-link:hover { color: rgba(255,255,255,.7); }
+    .hint {
+      margin-top: 18px;
+      padding: 12px;
+      background: var(--bg-soft);
+      border-radius: 8px;
+      font-size: .8rem;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .hint strong { color: var(--text); }
+    .forgot-link {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .85rem;
+      cursor: pointer;
+      padding: 0;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .forgot-link:hover { color: var(--primary-dark); }
+    .success-msg {
+      background: rgba(34,197,94,.08);
+      border: 1px solid rgba(34,197,94,.3);
+      color: #16a34a;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: .875rem;
+      margin-top: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-wrap">
+  <div class="login-logo">
+    <img src="../assets/logos/logo-left-full-dark.png"
+         alt="Heritage Hill Church"
+         onerror="this.style.display='none'; this.nextElementSibling.style.color='#fff'; this.nextElementSibling.style.fontWeight='700'; this.nextElementSibling.style.fontSize='1.4rem';" />
+    <span>Member Registration</span>
+  </div>
+  <div class="login-card" id="registerCard">
+    <h2>Create Your Profile</h2>
+    <p>Register to take the personality and spiritual gifts assessments.</p>
+    <form id="regForm" onsubmit="handleRegister(event)">
+      <div class="form-group"><label for="regName">Full Name</label>
+        <input type="text" id="regName" required /></div>
+      <div class="form-group"><label for="regEmail">Email Address</label>
+        <input type="email" id="regEmail" autocomplete="email" required /></div>
+      <div class="form-group"><label for="regPhone">Phone (optional)</label>
+        <input type="tel" id="regPhone" /></div>
+      <div class="form-group"><label for="regGroup">Small Group (optional)</label>
+        <select id="regGroup"><option value="">— Not in a group yet —</option></select></div>
+      <div class="form-group"><label for="regYears">How long have you attended Heritage Hill?</label>
+        <select id="regYears">
+          <option value="">— Select —</option>
+          <option>Less than 1 year</option><option>1–3 years</option>
+          <option>3–5 years</option><option>More than 5 years</option>
+        </select></div>
+      <div class="form-group"><label for="regPassword">Password</label>
+        <input type="password" id="regPassword" placeholder="At least 8 characters" autocomplete="new-password" required /></div>
+      <button type="submit" class="btn-login" id="regBtn">Create Account</button>
+      <div class="error-msg" id="regError"></div>
+    </form>
+    <div style="text-align:center; margin-top:14px;">
+      <a href="login.html" class="forgot-link" style="text-decoration:underline;">Already have an account? Sign in</a>
+    </div>
+  </div>
+  <!-- Shown when email confirmation is required -->
+  <div class="login-card" id="confirmCard" style="display:none;">
+    <h2>Check Your Email</h2>
+    <p style="margin-bottom:0;">We sent a confirmation link to <strong id="confirmEmail"></strong>. Click it, then sign in to take your assessments.</p>
+  </div>
+  <a href="../index.html" class="back-link">← Back to Heritage Hill Website</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../js/supabase-client.js"></script>
+<script src="../js/db.js"></script>
+<script>
+  (async () => {
+    const groups = await SupaDB.getPublishedGroups();
+    const sel = document.getElementById('regGroup');
+    groups.forEach(g => {
+      const o = document.createElement('option');
+      o.value = g.id; o.textContent = g.name;
+      sel.appendChild(o);
+    });
+  })();
+
+  async function handleRegister(e) {
+    e.preventDefault();
+    const btn = document.getElementById('regBtn');
+    const err = document.getElementById('regError');
+    err.classList.remove('show');
+    const pw = document.getElementById('regPassword').value;
+    if (pw.length < 8) {
+      err.textContent = 'Password must be at least 8 characters.';
+      err.classList.add('show'); return;
+    }
+    btn.textContent = 'Creating…'; btn.disabled = true;
+    const email = document.getElementById('regEmail').value.trim();
+    const { session, error } = await SupaDB.signUpMember(email, pw, {
+      name: document.getElementById('regName').value.trim(),
+      phone: document.getElementById('regPhone').value.trim(),
+      groupId: document.getElementById('regGroup').value || null,
+      yearsAttending: document.getElementById('regYears').value,
+    });
+    if (error) {
+      err.textContent = /already|registered/i.test(error)
+        ? 'An account with this email already exists — sign in instead.' : error;
+      err.classList.add('show');
+      btn.textContent = 'Create Account'; btn.disabled = false;
+      return;
+    }
+    if (session) { window.location.href = 'my-profile.html'; }
+    else {
+      document.getElementById('registerCard').style.display = 'none';
+      document.getElementById('confirmEmail').textContent = email;
+      document.getElementById('confirmCard').style.display = 'block';
+    }
+  }
+</script>
+</body>
+</html>
