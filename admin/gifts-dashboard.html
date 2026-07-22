@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gifts & Personality Analytics | Heritage Hill Church Admin</title>
+  <link rel="icon" href="../assets/logos/logo-icon-color-white.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #BC7A1E; --primary-light: rgba(188,122,30,.1);
+      --secondary: #155CA2;
+      --bg: #F4F4F2; --bg-card: #fff;
+      --text: #1C1C1E; --text-muted: #6B6B6B;
+      --border: #E4E4E4;
+      --success: #16a34a; --danger: #ef4444;
+      --radius: 12px; --shadow: 0 2px 14px rgba(0,0,0,.07);
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── Top bar ── */
+    .topbar {
+      background: #111318;
+      padding: 0 28px;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 16px; }
+    .topbar-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255,255,255,.6);
+      text-decoration: none;
+      font-size: .85rem;
+      font-weight: 500;
+      transition: color .2s;
+    }
+    .topbar-back:hover { color: #fff; }
+    .topbar-title { color: #fff; font-size: 1rem; font-weight: 700; }
+    .topbar-badge { font-size: .78rem; background: rgba(188,122,30,.2); color: #e8a84a; border-radius: 50px; padding: 3px 10px; font-weight: 600; }
+
+    /* ── Page ── */
+    .page { max-width: 1200px; margin: 0 auto; padding: 28px 24px 48px; }
+
+    /* ── Stat cards ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px 22px;
+    }
+    .stat-label { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin-bottom: 6px; }
+    .stat-value { font-size: 2rem; font-weight: 800; color: var(--text); line-height: 1; }
+    .stat-sub   { font-size: .8rem; color: var(--text-muted); margin-top: 4px; }
+    .stat-trend-up   { color: var(--success); font-weight: 700; }
+    .stat-trend-down { color: var(--danger);  font-weight: 700; }
+
+    /* ── Chart cards ── */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .chart-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+    .chart-title {
+      font-size: .95rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .chart-title span { color: var(--text-muted); font-size: .8rem; font-weight: 500; }
+    .chart-wrap { position: relative; height: 280px; }
+
+    /* ── Range picker ── */
+    .range-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .range-btn {
+      padding: 6px 14px;
+      border-radius: 50px;
+      border: 1.5px solid var(--border);
+      background: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .82rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all .2s;
+    }
+    .range-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+    /* ── Table card ── */
+    .table-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .table-header {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+      font-size: .95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: var(--bg); }
+    th { padding: 11px 16px; text-align: left; font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    td { padding: 13px 16px; border-bottom: 1px solid var(--border); font-size: .88rem; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(0,0,0,.015); }
+    .pill { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: .75rem; font-weight: 700; }
+    .pill-amber { background: rgba(188,122,30,.12); color: #92400e; }
+    .pill-up    { background: rgba(22,163,74,.1);   color: #15803d; }
+    .pill-down  { background: rgba(239,68,68,.1);   color: #b91c1c; }
+
+    /* ── Empty / loading ── */
+    .loading { text-align: center; padding: 60px 24px; color: var(--text-muted); }
+    .btn-export {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 7px 14px; border-radius: 50px;
+      background: var(--secondary); color: #fff;
+      font-family: 'DM Sans', sans-serif; font-size: .8rem; font-weight: 600;
+      border: none; cursor: pointer; text-decoration: none; transition: filter .2s;
+    }
+    .btn-export:hover { filter: brightness(.9); }
+
+    @media (max-width: 760px) {
+      .charts-grid { grid-template-columns: 1fr; }
+      .stats-grid  { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div class="topbar-left">
+    <a href="dashboard.html?tab=people" class="topbar-back">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Dashboard
+    </a>
+    <span style="color:rgba(255,255,255,.2);">|</span>
+    <span class="topbar-title">Gifts & Personality Analytics</span>
+  </div>
+  <span class="topbar-badge">Admin</span>
+</div>
+
+<div class="page" id="pageContent" style="display:none;">
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">Approved Members</div><div class="stat-value" id="statMembers">–</div></div>
+    <div class="stat-card"><div class="stat-label">Tests Completed</div><div class="stat-value" id="statTests">–</div><div class="stat-sub" id="statTestsSub"></div></div>
+    <div class="stat-card"><div class="stat-label">Most Common Gift</div><div class="stat-value" id="statTopGift" style="font-size:1.2rem;">–</div></div>
+    <div class="stat-card"><div class="stat-label">Most Common Personality</div><div class="stat-value" id="statTopDisc">–</div></div>
+  </div>
+  <div class="charts-grid">
+    <div class="chart-card"><div class="chart-title">Gift Distribution <span>members with gift in top 3</span></div>
+      <div class="chart-wrap" style="height:520px;"><canvas id="giftChart"></canvas></div></div>
+    <div>
+      <div class="chart-card" style="margin-bottom:20px;"><div class="chart-title">Personality Types</div>
+        <div class="chart-wrap" style="height:200px;"><canvas id="discDonut"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">Least Represented Gifts</div><div id="gapList"></div></div>
+    </div>
+  </div>
+  <div class="chart-card" style="margin-bottom:24px;"><div class="chart-title">Personality Blends</div>
+    <div class="chart-wrap"><canvas id="blendChart"></canvas></div></div>
+  <div class="chart-card" style="margin-bottom:24px;">
+    <div class="chart-title">Ministry Coverage <span>members gifted for each ministry</span></div>
+    <div class="chart-wrap"><canvas id="ministryChart"></canvas></div></div>
+  <div class="chart-card">
+    <div class="chart-title">Group Breakdown
+      <select id="grpSelect" onchange="renderGroupBreakdown()"></select></div>
+    <div id="groupBreakdown"></div>
+  </div>
+  <div style="text-align:right; margin-top:16px;">
+    <button class="btn-export" onclick="exportCsv()">Export CSV</button>
+  </div>
+</div>
+
+<div class="loading" id="loadingMsg">Loading…</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="../js/supabase-client.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/assessments.js"></script>
+<script>
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
+let _profiles = [], _latest = {}, _content = null, _groups = [];
+
+/* ── Auth guard + boot ── */
+(async () => {
+  try {
+    const user = await SupaDB.getUser();
+    if (!user) { window.location.href = 'login.html'; return; }
+    const roleData = await SupaDB.getUserRoleByEmail(user.email);
+    if (!roleData || roleData.role !== 'admin') { window.location.href = 'dashboard.html'; return; }
+    await init();
+  } catch(err) {
+    document.getElementById('loadingMsg').textContent = 'Error loading page: ' + err.message;
+  }
+})();
+
+async function init() {
+  const [profiles, attempts, contentRows, groups] = await Promise.all([
+    SupaDB.adminGetAllMemberProfiles(), SupaDB.getVisibleAttempts(),
+    SupaDB.getAssessmentContent(), SupaDB.adminGetAllGroups(),
+  ]);
+  _profiles = profiles.filter(p => p.status === 'approved');
+  _content = Assessments.splitContent(contentRows);
+  _groups = groups;
+  const byUser = {};
+  attempts.forEach(a => {
+    byUser[a.userId] = byUser[a.userId] || {};
+    if (!byUser[a.userId][a.assessmentType]) byUser[a.userId][a.assessmentType] = a;
+  });
+  _latest = byUser;
+  document.getElementById('loadingMsg').style.display = 'none';
+  document.getElementById('pageContent').style.display = '';
+  render();
+}
+
+function approvedLatest(type) {
+  return _profiles.map(p => (_latest[p.userId] || {})[type]).filter(Boolean);
+}
+function giftNames(a) { try { const n = JSON.parse(a.result); return Array.isArray(n) ? n : []; } catch(e) { return []; } }
+
+function render() {
+  const discs = approvedLatest('disc'), giftsA = approvedLatest('gifts');
+
+  document.getElementById('statMembers').textContent = _profiles.length;
+  const tested = _profiles.filter(p => _latest[p.userId] && (_latest[p.userId].disc || _latest[p.userId].gifts)).length;
+  document.getElementById('statTests').textContent = discs.length + giftsA.length;
+  document.getElementById('statTestsSub').textContent =
+    _profiles.length ? Math.round(tested / _profiles.length * 100) + '% of members tested' : '';
+
+  const giftCounts = {};
+  _content.gifts.forEach(g => { giftCounts[g.extra.name || g.code] = 0; });
+  giftsA.forEach(a => giftNames(a).forEach(n => { if (n in giftCounts) giftCounts[n]++; }));
+  const sortedGifts = Object.entries(giftCounts).sort((a, b) => b[1] - a[1]);
+  document.getElementById('statTopGift').textContent = sortedGifts.length && sortedGifts[0][1] ? sortedGifts[0][0] : '–';
+  new Chart(document.getElementById('giftChart'), {
+    type: 'bar',
+    data: { labels: sortedGifts.map(x => x[0]),
+      datasets: [{ data: sortedGifts.map(x => x[1]), backgroundColor: '#BC7A1E' }] },
+    options: { indexAxis: 'y', plugins: { legend: { display: false } },
+      scales: { x: { ticks: { precision: 0 } } }, maintainAspectRatio: false },
+  });
+  document.getElementById('gapList').innerHTML = sortedGifts.slice(-5).reverse().map(([n, c]) =>
+    `<div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border); font-size:.88rem;">
+      <span>${n}</span><strong>${c}</strong></div>`).join('');
+
+  const primary = { D: 0, I: 0, S: 0, C: 0 }, blends = {};
+  discs.forEach(a => { primary[a.result[0]]++; blends[a.result] = (blends[a.result] || 0) + 1; });
+  const topDisc = Object.entries(primary).sort((a, b) => b[1] - a[1])[0];
+  document.getElementById('statTopDisc').textContent = topDisc && topDisc[1] ? topDisc[0] : '–';
+  new Chart(document.getElementById('discDonut'), {
+    type: 'doughnut',
+    data: { labels: ['D','I','S','C'], datasets: [{ data: ['D','I','S','C'].map(k => primary[k]),
+      backgroundColor: ['#BC7A1E','#155CA2','#16a34a','#6B6B6B'] }] },
+    options: { maintainAspectRatio: false },
+  });
+  const blendCodes = _content.discBlends.map(b => b.code).filter(c => c.length === 2);
+  new Chart(document.getElementById('blendChart'), {
+    type: 'bar',
+    data: { labels: blendCodes, datasets: [{ data: blendCodes.map(c => blends[c] || 0), backgroundColor: '#155CA2' }] },
+    options: { plugins: { legend: { display: false } }, scales: { y: { ticks: { precision: 0 } } }, maintainAspectRatio: false },
+  });
+
+  const ministryMembers = {};
+  _content.gifts.forEach(g => (g.extra.ministries || []).forEach(m => { ministryMembers[m] = new Set(); }));
+  _profiles.forEach(p => {
+    const a = (_latest[p.userId] || {}).gifts;
+    if (!a) return;
+    giftNames(a).forEach(n => {
+      const g = _content.gifts.find(x => x.extra.name === n);
+      (g && g.extra.ministries || []).forEach(m => ministryMembers[m].add(p.userId));
+    });
+  });
+  const mEntries = Object.entries(ministryMembers).map(([m, s]) => [m, s.size]).sort((a, b) => b[1] - a[1]);
+  new Chart(document.getElementById('ministryChart'), {
+    type: 'bar',
+    data: { labels: mEntries.map(x => x[0]), datasets: [{ data: mEntries.map(x => x[1]), backgroundColor: '#BC7A1E' }] },
+    options: { plugins: { legend: { display: false } }, scales: { y: { ticks: { precision: 0 } } }, maintainAspectRatio: false },
+  });
+
+  document.getElementById('grpSelect').innerHTML =
+    _groups.map(g => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('');
+  renderGroupBreakdown();
+}
+
+function renderGroupBreakdown() {
+  const gid = document.getElementById('grpSelect').value;
+  const members = _profiles.filter(p => String(p.groupId) === String(gid));
+  if (!members.length) {
+    document.getElementById('groupBreakdown').innerHTML =
+      '<p style="color:var(--text-muted); padding:16px;">No approved members in this group yet.</p>';
+    return;
+  }
+  document.getElementById('groupBreakdown').innerHTML = `<table><thead><tr>
+    <th>Name</th><th>Personality</th><th>Top Gifts</th></tr></thead><tbody>` +
+    members.map(p => {
+      const d = (_latest[p.userId] || {}).disc, g = (_latest[p.userId] || {}).gifts;
+      return `<tr><td>${escapeHtml(p.name)}</td><td>${d ? escapeHtml(d.result) : '–'}</td>
+        <td>${g ? giftNames(g).map(escapeHtml).join(', ') : '–'}</td></tr>`;
+    }).join('') + '</tbody></table>';
+}
+
+function exportCsv() {
+  const headers = ['Name','Email','Group','Personality','Top Gifts','Share w/ Leader'];
+  const rows = _profiles.map(p => {
+    const d = (_latest[p.userId] || {}).disc, g = (_latest[p.userId] || {}).gifts;
+    const grp = _groups.find(x => String(x.id) === String(p.groupId));
+    return [p.name, p.email, grp ? grp.name : '', d ? d.result : '',
+      g ? giftNames(g).join('; ') : '', p.shareWithLeader ? 'yes' : 'no'];
+  });
+  const csv = [headers, ...rows].map(r =>
+    r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = 'gifts-personality.csv';
+  a.click();
+}
+</script>
+</body>
+</html>
