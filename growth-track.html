@@ -72,41 +72,6 @@
   </div>
 </section>
 
-<!-- ── Start a Group CTA ───────────────────────────────── -->
-<section class="section bg-soft">
-  <div class="container">
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center;">
-      <div data-reveal>
-        <span class="section-label">Don't See Your Fit?</span>
-        <h2>Start a Group</h2>
-        <p style="margin:1rem 0 1.5rem;">Can't find a group that fits? We'd love to help you launch one. Whether it's around a hobby, a life stage, or a ministry passion — if you're willing to lead, we'll support you.</p>
-        <a href="lead-a-group.html" class="btn btn-primary btn-lg">Apply to Lead a Group</a>
-      </div>
-      <div data-reveal style="background:var(--bg); border-radius:var(--radius-lg); padding:36px; box-shadow:var(--shadow-md);">
-        <h3 style="margin-bottom:1.2rem;">Have a Question?</h3>
-        <form id="groupContactForm" onsubmit="handleGroupContact(event)">
-          <!-- Honeypot: hidden from real users, bots fill it -->
-          <div style="position:absolute;left:-9999px;height:0;overflow:hidden;" aria-hidden="true">
-            <input type="text" id="gcHoneypot" name="website" tabindex="-1" autocomplete="off" />
-          </div>
-          <input type="hidden" id="gcLoadedAt" />
-          <div style="margin-bottom:14px;">
-            <input type="text" placeholder="Your Name" required style="width:100%; padding:.65rem 1rem; border:1px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.9375rem; outline:none;" id="gcName" />
-          </div>
-          <div style="margin-bottom:14px;">
-            <input type="email" placeholder="Email Address" required style="width:100%; padding:.65rem 1rem; border:1px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.9375rem; outline:none;" id="gcEmail" />
-          </div>
-          <div style="margin-bottom:18px;">
-            <textarea placeholder="What are you looking for in a small group?" rows="3" style="width:100%; padding:.65rem 1rem; border:1px solid var(--border); border-radius:8px; font-family:'DM Sans',sans-serif; font-size:.9375rem; outline:none; resize:vertical;" id="gcMsg"></textarea>
-          </div>
-          <button type="submit" class="btn btn-primary" style="width:100%;">Send Message</button>
-        </form>
-        <p id="gcSuccess" style="display:none; color:green; margin-top:12px; font-weight:600;">✓ Thanks! We'll be in touch soon.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- ── Footer ─────────────────────────────────────────── -->
 <footer id="footer">
   <div class="container">
@@ -246,36 +211,6 @@
     grid.innerHTML = _gtParts.map(renderGtCard).join('');
   }
   loadGrowthTrack();
-
-  // Stamp load time so we can reject instant (bot) submissions
-  document.getElementById('gcLoadedAt').value = Date.now();
-
-  async function handleGroupContact(e) {
-    e.preventDefault();
-    // Honeypot: bots fill this hidden field, humans never see it
-    if (document.getElementById('gcHoneypot').value) return;
-    // Time check: real humans take more than 2 seconds to fill a form
-    if (Date.now() - parseInt(document.getElementById('gcLoadedAt').value || '0') < 2000) return;
-
-    const name  = document.getElementById('gcName').value.trim();
-    const email = document.getElementById('gcEmail').value.trim();
-    const msg   = document.getElementById('gcMsg').value.trim();
-    const btn   = e.submitter || document.querySelector('#groupContactForm button[type="submit"]');
-    if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
-
-    const result = await SupaDB.submitContactMessage({
-      name, email, message: msg, source: 'Small Groups – Have a Question',
-      honeypot: document.getElementById('gcHoneypot').value,
-    });
-
-    if (btn) { btn.disabled = false; btn.textContent = 'Send Message'; }
-    if (result.error) {
-      alert('Something went wrong. Please try again or email us directly.');
-      return;
-    }
-    document.getElementById('groupContactForm').style.display = 'none';
-    document.getElementById('gcSuccess').style.display = 'block';
-  }
 
   async function openGtModal(part, title) {
     document.getElementById('gtPart').value = part;
