@@ -4866,7 +4866,16 @@ function escapeHtml(s) {
   }[c]));
 }
 
-let _pplProfiles = [], _pplLatest = {}; // _pplLatest[userId] = {disc, gifts}
+let _pplProfiles = [], _pplLatest = {}, _pplGifts = []; // _pplLatest[userId] = {disc, gifts}
+
+function recommendedMinistries(names) {
+  const set = new Set();
+  (names || []).forEach(n => {
+    const g = _pplGifts.find(x => (x.extra && x.extra.name) === n);
+    (g && g.extra.ministries || []).forEach(m => set.add(m));
+  });
+  return [...set];
+}
 
 function latestByUser(attempts) {
   const map = {};
@@ -4905,6 +4914,7 @@ async function renderPeoplePanel() {
   gsel.innerHTML = '<option value="">All Groups</option>' +
     groups.map(g => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('');
   const gifts = content.filter(c => c.kind === 'gift');
+  _pplGifts = gifts;
   document.getElementById('pplGiftFilter').innerHTML = '<option value="">All Gifts</option>' +
     gifts.map(g => `<option>${escapeHtml((g.extra && g.extra.name) || g.code)}</option>`).join('');
 
@@ -4974,6 +4984,7 @@ function openMemberModal(userId) {
   const p = _pplProfiles.find(x => x.userId === userId);
   if (!p) return;
   const d = (_pplLatest[userId] || {}).disc, g = (_pplLatest[userId] || {}).gifts;
+  const rec = g ? recommendedMinistries(giftNames(g)) : [];
   document.getElementById('mmName').textContent = p.name;
   document.getElementById('mmBody').innerHTML = `
     <p style="font-size:.9rem;">${escapeHtml(p.email)}${p.phone ? ' · ' + escapeHtml(p.phone) : ''}<br>
@@ -4989,7 +5000,11 @@ function openMemberModal(userId) {
       <div style="columns:2; font-size:.82rem;">${Object.entries(g.scores)
         .sort((a,b) => b[1]-a[1]).map(([c,s]) => `<div>${escapeHtml(c)}: ${escapeHtml(s)}</div>`).join('')}</div>
       <p style="font-size:.8rem; color:var(--text-muted);">Taken ${new Date(g.completedAt).toLocaleDateString()}</p>`
-      : '<p style="color:var(--text-muted);">Not taken yet.</p>'}`;
+      : '<p style="color:var(--text-muted);">Not taken yet.</p>'}
+    <h4 style="margin:16px 0 8px;">Recommended Ministries</h4>
+    ${!g ? '<p style="color:var(--text-muted); font-size:.85rem;">Take the gifts assessment to see recommendations.</p>'
+      : rec.length ? rec.map(m => `<span class="badge badge-amber" style="margin:0 6px 6px 0;">${escapeHtml(m)}</span>`).join('')
+      : '<p style="color:var(--text-muted); font-size:.85rem;">No ministry matches yet — add ministry mappings to each gift in Supabase.</p>'}`;
   document.getElementById('memberModal').classList.add('open');
 }
 function closeMemberModal() { document.getElementById('memberModal').classList.remove('open'); }

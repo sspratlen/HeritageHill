@@ -195,10 +195,14 @@
   <div class="chart-card" style="margin-bottom:24px;">
     <div class="chart-title">Ministry Coverage <span>members gifted for each ministry</span></div>
     <div class="chart-wrap"><canvas id="ministryChart"></canvas></div></div>
-  <div class="chart-card">
+  <div class="chart-card" style="margin-bottom:24px;">
     <div class="chart-title">Group Breakdown
       <select id="grpSelect" onchange="renderGroupBreakdown()"></select></div>
     <div id="groupBreakdown"></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Members Not Yet in a Group <span>gift-based ministry suggestions for outreach</span></div>
+    <div id="unplacedList"></div>
   </div>
   <div style="text-align:right; margin-top:16px;">
     <button class="btn-export" onclick="exportCsv()">Export CSV</button>
@@ -257,6 +261,14 @@ function approvedLatest(type) {
   return _profiles.map(p => (_latest[p.userId] || {})[type]).filter(Boolean);
 }
 function giftNames(a) { try { const n = JSON.parse(a.result); return Array.isArray(n) ? n : []; } catch(e) { return []; } }
+function recommendedMinistries(names) {
+  const set = new Set();
+  (names || []).forEach(n => {
+    const g = _content.gifts.find(x => x.extra.name === n);
+    (g && g.extra.ministries || []).forEach(m => set.add(m));
+  });
+  return [...set];
+}
 
 function render() {
   const discs = approvedLatest('disc'), giftsA = approvedLatest('gifts');
@@ -320,6 +332,7 @@ function render() {
   document.getElementById('grpSelect').innerHTML =
     _groups.map(g => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('');
   renderGroupBreakdown();
+  renderUnplaced();
 }
 
 function renderGroupBreakdown() {
@@ -339,18 +352,38 @@ function renderGroupBreakdown() {
     }).join('') + '</tbody></table>';
 }
 
+function renderUnplaced() {
+  const unplaced = _profiles.filter(p => !p.groupId);
+  if (!unplaced.length) {
+    document.getElementById('unplacedList').innerHTML =
+      '<p style="color:var(--text-muted); padding:16px;">Every approved member is in a group.</p>';
+    return;
+  }
+  document.getElementById('unplacedList').innerHTML = `<table><thead><tr>
+    <th>Name</th><th>Top Gifts</th><th>Recommended Ministries</th></tr></thead><tbody>` +
+    unplaced.map(p => {
+      const g = (_latest[p.userId] || {}).gifts;
+      const names = g ? giftNames(g) : [];
+      const rec = recommendedMinistries(names);
+      return `<tr><td>${escapeHtml(p.name)}</td>
+        <td>${names.length ? names.map(escapeHtml).join(', ') : '<span style="color:var(--text-muted);">not tested</span>'}</td>
+        <td>${rec.length ? rec.map(escapeHtml).join(', ') : '<span style="color:var(--text-muted);">—</span>'}</td></tr>`;
+    }).join('') + '</tbody></table>';
+}
+
 function csvSafe(v) {
   const s = String(v);
   return /^[=+\-@]/.test(s) ? "'" + s : s;
 }
 
 function exportCsv() {
-  const headers = ['Name','Email','Group','Personality','Top Gifts','Share w/ Leader'];
+  const headers = ['Name','Email','Group','Personality','Top Gifts','Recommended Ministries','Share w/ Leader'];
   const rows = _profiles.map(p => {
     const d = (_latest[p.userId] || {}).disc, g = (_latest[p.userId] || {}).gifts;
     const grp = _groups.find(x => String(x.id) === String(p.groupId));
+    const names = g ? giftNames(g) : [];
     return [p.name, p.email, grp ? grp.name : '', d ? d.result : '',
-      g ? giftNames(g).join('; ') : '', p.shareWithLeader ? 'yes' : 'no'];
+      names.join('; '), recommendedMinistries(names).join('; '), p.shareWithLeader ? 'yes' : 'no'];
   });
   const csv = [headers, ...rows].map(r =>
     r.map(v => `"${csvSafe(v).replace(/"/g, '""')}"`).join(',')).join('\n');
