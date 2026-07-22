@@ -16,18 +16,50 @@ serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
   try {
-    const { email } = await req.json()
-    if (!email) {
-      return new Response(JSON.stringify({ error: 'Email is required' }), {
-        status: 400, headers: { ...CORS, 'Content-Type': 'application/json' },
-      })
-    }
+    const body = await req.json()
+    const { email, action, userId } = body
 
     const admin = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
       { auth: { autoRefreshToken: false, persistSession: false } }
     )
+
+    if (action === 'delete') {
+      // Verify the CALLER is an admin (delete is destructive; create/reset was
+      // already exposed, but deletion must be gated).
+      const authHeader = req.headers.get('Authorization') || ''
+      const jwt = authHeader.replace(/^Bearer\s+/i, '')
+      const { data: caller, error: callerErr } = await admin.auth.getUser(jwt)
+      if (callerErr || !caller?.user?.email) {
+        return new Response(JSON.stringify({ error: 'Not authenticated' }), {
+          status: 401, headers: { ...CORS, 'Content-Type': 'application/json' },
+        })
+      }
+      const { data: roleRow } = await admin.from('user_roles')
+        .select('role').eq('email', caller.user.email.toLowerCase()).maybeSingle()
+      if (!roleRow || roleRow.role !== 'admin') {
+        return new Response(JSON.stringify({ error: 'Admins only' }), {
+          status: 403, headers: { ...CORS, 'Content-Type': 'application/json' },
+        })
+      }
+      if (!userId) {
+        return new Response(JSON.stringify({ error: 'userId required' }), {
+          status: 400, headers: { ...CORS, 'Content-Type': 'application/json' },
+        })
+      }
+      const { error: delErr } = await admin.auth.admin.deleteUser(userId)
+      if (delErr) throw delErr
+      return new Response(JSON.stringify({ ok: true, action: 'deleted' }), {
+        headers: { ...CORS, 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (!email) {
+      return new Response(JSON.stringify({ error: 'Email is required' }), {
+        status: 400, headers: { ...CORS, 'Content-Type': 'application/json' },
+      })
+    }
 
     // Try to create the user first
     const { data: created, error: createErr } = await admin.auth.admin.createUser({
