@@ -4898,7 +4898,7 @@ async function renderPeoplePanel() {
         <span style="color:var(--text-muted); font-size:.82rem;">
           ${escapeHtml(groupName(p.groupId))} · registered ${new Date(p.createdAt).toLocaleDateString()}</span></div>
       <button class="btn btn-primary btn-sm" onclick="approveMember('${p.userId}')">Approve</button>
-      <button class="btn btn-danger btn-sm" onclick="deleteMember('${p.userId}','${p.name.replace(/'/g,"\\'")}')">Delete</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteMember('${p.userId}','${escapeHtml(p.name).replace(/'/g,"\\'")}')">Delete</button>
     </div>`).join('');
 
   const gsel = document.getElementById('pplGroupFilter');
