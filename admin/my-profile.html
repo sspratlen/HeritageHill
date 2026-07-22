@@ -140,8 +140,8 @@ function renderResult(type, attempts) {
       <div style="margin:14px 0;">
         ${['D','I','S','C'].map(k => `
           <div class="score-row"><strong style="width:16px;">${k}</strong>
-            <div class="bar"><div style="width:${(latest.scores[k] / 25) * 100}%"></div></div>
-            <span>${latest.scores[k]}</span></div>`).join('')}
+            <div class="bar"><div style="width:${(Number(latest.scores[k]) || 0) / 25 * 100}%"></div></div>
+            <span>${escapeHtml(latest.scores[k])}</span></div>`).join('')}
       </div>
       ${primary ? `<p style="font-size:.9rem;margin-bottom:10px;">${primary.text}</p>` : ''}
       ${blend && blend !== primary ? `<p style="font-size:.9rem;">${blend.text}</p>` : ''}
