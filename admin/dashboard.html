@@ -1902,7 +1902,7 @@ function applyRoleVisibility() {
       const n = ps.filter(p => p.status === 'pending').length;
       const b = document.getElementById('peopleBadge');
       if (n) { b.style.display = ''; b.textContent = n; }
-    });
+    }).catch(() => {});
   }
 })();
 
@@ -4898,7 +4898,7 @@ async function renderPeoplePanel() {
         <span style="color:var(--text-muted); font-size:.82rem;">
           ${escapeHtml(groupName(p.groupId))} · registered ${new Date(p.createdAt).toLocaleDateString()}</span></div>
       <button class="btn btn-primary btn-sm" onclick="approveMember('${p.userId}')">Approve</button>
-      <button class="btn btn-danger btn-sm" onclick="deleteMember('${p.userId}','${escapeHtml(p.name).replace(/'/g,"\\'")}')">Delete</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteMember('${p.userId}')">Delete</button>
     </div>`).join('');
 
   const gsel = document.getElementById('pplGroupFilter');
@@ -4960,7 +4960,9 @@ async function approveMember(userId) {
   renderPeoplePanel();
 }
 
-async function deleteMember(userId, name) {
+async function deleteMember(userId) {
+  const p = _pplProfiles.find(x => x.userId === userId);
+  const name = p ? p.name : 'this member';
   if (!confirm(`Delete ${name}'s account entirely? This cannot be undone.`)) return;
   const r = await SupaDB.adminDeleteMember(userId);
   if (r.error) { showToast(r.error, true); return; }
@@ -4979,13 +4981,13 @@ function openMemberModal(userId) {
       ${p.shareWithLeader ? 'shares with leader' : 'not shared with leader'}</p>
     <h4 style="margin:16px 0 8px;">Personality</h4>
     ${d ? `<strong style="font-size:1.2rem;">${escapeHtml(d.result)}</strong>
-      ${['D','I','S','C'].map(k => `<div style="font-size:.85rem;">${k}: ${d.scores[k]}</div>`).join('')}
+      ${['D','I','S','C'].map(k => `<div style="font-size:.85rem;">${k}: ${escapeHtml(d.scores[k])}</div>`).join('')}
       <p style="font-size:.8rem; color:var(--text-muted);">Taken ${new Date(d.completedAt).toLocaleDateString()}</p>`
       : '<p style="color:var(--text-muted);">Not taken yet.</p>'}
     <h4 style="margin:16px 0 8px;">Spiritual Gifts</h4>
     ${g ? `<p><strong>${giftNames(g).map(escapeHtml).join(', ')}</strong></p>
       <div style="columns:2; font-size:.82rem;">${Object.entries(g.scores)
-        .sort((a,b) => b[1]-a[1]).map(([c,s]) => `<div>${escapeHtml(c)}: ${s}</div>`).join('')}</div>
+        .sort((a,b) => b[1]-a[1]).map(([c,s]) => `<div>${escapeHtml(c)}: ${escapeHtml(s)}</div>`).join('')}</div>
       <p style="font-size:.8rem; color:var(--text-muted);">Taken ${new Date(g.completedAt).toLocaleDateString()}</p>`
       : '<p style="color:var(--text-muted);">Not taken yet.</p>'}`;
   document.getElementById('memberModal').classList.add('open');
