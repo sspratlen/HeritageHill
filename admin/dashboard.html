@@ -233,6 +233,14 @@
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       Attendance
     </a>
+    <a onclick="switchTab('people')" id="sidePeople" data-tab="people">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Members <span id="peopleBadge" style="display:none; background:#BC7A1E; color:#fff; border-radius:10px; font-size:.7rem; padding:1px 7px; margin-left:auto;">0</span>
+    </a>
+    <a onclick="switchTab('mygroup')" id="sideMygroup" data-tab="mygroup">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+      My Group
+    </a>
     <div class="nav-section" id="navSectionMedia" style="margin-top:8px;">Media</div>
     <a onclick="switchTab('sermons')" id="sideSermons" data-tab="sermons">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
@@ -1089,6 +1097,36 @@
       </div>
     </div>
 
+    <!-- PEOPLE (admin) -->
+    <div class="tab-panel" id="panelPeople">
+      <div style="display:flex; gap:10px; justify-content:flex-end; margin-bottom:14px;">
+        <a href="gifts-dashboard.html" class="btn btn-secondary btn-sm">📊 Analytics</a>
+      </div>
+      <div id="pendingMembersBox" style="display:none; margin-bottom:20px;">
+        <h3 style="font-size:.95rem; margin-bottom:10px;">Pending Approval</h3>
+        <div id="pendingMembersList"></div>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+        <input id="pplSearch" placeholder="Search name or email…" oninput="applyPeopleFilter()"
+               style="flex:1; min-width:180px; padding:8px 12px; border:1.5px solid var(--border); border-radius:8px;" />
+        <select id="pplGiftFilter" onchange="applyPeopleFilter()"><option value="">All Gifts</option></select>
+        <select id="pplDiscFilter" onchange="applyPeopleFilter()">
+          <option value="">All Personalities</option>
+          <option value="D">D</option><option value="I">I</option><option value="S">S</option><option value="C">C</option>
+        </select>
+        <select id="pplGroupFilter" onchange="applyPeopleFilter()"><option value="">All Groups</option></select>
+      </div>
+      <div id="peopleTableWrap"></div>
+    </div>
+
+    <!-- MY GROUP (small group leader) -->
+    <div class="tab-panel" id="panelMygroup">
+      <p style="font-size:.85rem; color:var(--text-muted); margin-bottom:14px;">
+        Members of your groups who chose to share their assessment results with you.
+      </p>
+      <div id="myGroupTableWrap"></div>
+    </div>
+
   </div>
 </div>
 
@@ -1608,6 +1646,15 @@
   </div>
 </div>
 
+<!-- Member detail modal (assessment results) -->
+<div class="modal-overlay" id="memberModal" onclick="if(event.target===this)closeMemberModal()">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-header"><h3 id="mmName"></h3>
+      <button class="modal-close" onclick="closeMemberModal()">✕</button></div>
+    <div class="modal-body" id="mmBody"></div>
+  </div>
+</div>
+
 <!-- Headcount entry edit modal -->
 <div class="modal-overlay" id="grpAttEditModal" onclick="if(event.target===this)closeGrpAttEditModal()">
   <div class="modal" style="max-width:400px;">
@@ -1789,9 +1836,9 @@
 <script>
 // Role-based access map
 const ROLE_TABS = {
-  admin:               ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','attendance','sermons','email','settings','users'],
+  admin:               ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','attendance','sermons','email','settings','users','people'],
   event_manager:       ['events','rsvps','sermons','email'],
-  small_group_leader:  ['groups','signups'],
+  small_group_leader:  ['groups','signups','mygroup'],
 };
 const ROLE_LABELS = { admin:'Admin', event_manager:'Event Manager', small_group_leader:'Small Group Leader' };
 
@@ -1850,9 +1897,16 @@ function applyRoleVisibility() {
   const startTab = (urlTab && allowed.includes(urlTab)) ? urlTab : allowed[0];
   switchTab(startTab);
   if (window._userRole === 'admin') updateStats();
+  if (window._userRole === 'admin') {
+    SupaDB.adminGetAllMemberProfiles().then(ps => {
+      const n = ps.filter(p => p.status === 'pending').length;
+      const b = document.getElementById('peopleBadge');
+      if (n) { b.style.display = ''; b.textContent = n; }
+    });
+  }
 })();
 
-const ALL_TABS = ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','attendance','sermons','email','settings','users'];
+const ALL_TABS = ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','attendance','sermons','email','settings','users','people','mygroup'];
 function switchTab(tab) {
   // Block access to tabs the current role doesn't have
   const allowed = ROLE_TABS[window._userRole] || ROLE_TABS.admin;
@@ -1865,7 +1919,7 @@ function switchTab(tab) {
   const c = tab[0].toUpperCase()+tab.slice(1);
   const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
   if(p) p.classList.add('active'); if(s) s.classList.add('active');
-  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings',users:'User Permissions'};
+  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings',users:'User Permissions',people:'Members & Assessments',mygroup:'My Group'};
   document.getElementById('topbarTitle').textContent = titles[tab]||tab;
   if(tab==='events') renderEventsTable();
   else if(tab==='groups') renderGroupsTable();
@@ -1880,6 +1934,8 @@ function switchTab(tab) {
   else if(tab==='email')    { loadCampaignHistory(); loadMailchimpTags(); }
   else if(tab==='settings') { loadBannerSettings(); loadSaveDatesSettings(); }
   else if(tab==='users') renderUsersTable();
+  else if(tab==='people')  renderPeoplePanel();
+  else if(tab==='mygroup') renderMyGroupPanel();
 }
 
 async function updateStats() {
@@ -4802,6 +4858,151 @@ async function openGroupAttendanceModal(groupId) {
   await renderGrpAttTable();
 }
 function closeGroupAttendanceModal() { document.getElementById('groupAttendanceModal').classList.remove('open'); }
+
+/* ── PEOPLE (members & assessments) ─────────────────────────── */
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
+let _pplProfiles = [], _pplLatest = {}; // _pplLatest[userId] = {disc, gifts}
+
+function latestByUser(attempts) {
+  const map = {};
+  attempts.forEach(a => {
+    map[a.userId] = map[a.userId] || {};
+    if (!map[a.userId][a.assessmentType]) map[a.userId][a.assessmentType] = a; // list is newest-first
+  });
+  return map;
+}
+function giftNames(a) { try { const n = JSON.parse(a.result); return Array.isArray(n) ? n : []; } catch(e) { return []; } }
+
+async function renderPeoplePanel() {
+  const [profiles, attempts, groups, content] = await Promise.all([
+    SupaDB.adminGetAllMemberProfiles(), SupaDB.getVisibleAttempts(),
+    SupaDB.adminGetAllGroups(), SupaDB.getAssessmentContent(),
+  ]);
+  _pplProfiles = profiles; _pplLatest = latestByUser(attempts);
+  window._pplGroups = groups;
+
+  const pending = profiles.filter(p => p.status === 'pending');
+  const badge = document.getElementById('peopleBadge');
+  badge.style.display = pending.length ? '' : 'none';
+  badge.textContent = pending.length;
+  const box = document.getElementById('pendingMembersBox');
+  box.style.display = pending.length ? '' : 'none';
+  document.getElementById('pendingMembersList').innerHTML = pending.map(p => `
+    <div style="display:flex; align-items:center; gap:12px; padding:10px 12px; background:#fff7ea; border:1px solid rgba(188,122,30,.3); border-radius:10px; margin-bottom:8px;">
+      <div style="flex:1;"><strong>${escapeHtml(p.name)}</strong> · ${escapeHtml(p.email)}
+        <span style="color:var(--text-muted); font-size:.82rem;">
+          ${escapeHtml(groupName(p.groupId))} · registered ${new Date(p.createdAt).toLocaleDateString()}</span></div>
+      <button class="btn btn-primary btn-sm" onclick="approveMember('${p.userId}')">Approve</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteMember('${p.userId}','${p.name.replace(/'/g,"\\'")}')">Delete</button>
+    </div>`).join('');
+
+  const gsel = document.getElementById('pplGroupFilter');
+  gsel.innerHTML = '<option value="">All Groups</option>' +
+    groups.map(g => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('');
+  const gifts = content.filter(c => c.kind === 'gift');
+  document.getElementById('pplGiftFilter').innerHTML = '<option value="">All Gifts</option>' +
+    gifts.map(g => `<option>${escapeHtml((g.extra && g.extra.name) || g.code)}</option>`).join('');
+
+  applyPeopleFilter();
+}
+
+function groupName(id) {
+  const g = (window._pplGroups || []).find(x => String(x.id) === String(id));
+  return g ? g.name : '—';
+}
+
+function applyPeopleFilter() {
+  const q = document.getElementById('pplSearch').value.toLowerCase();
+  const gift = document.getElementById('pplGiftFilter').value;
+  const disc = document.getElementById('pplDiscFilter').value;
+  const grp  = document.getElementById('pplGroupFilter').value;
+  let rows = _pplProfiles.filter(p => p.status === 'approved');
+  if (q) rows = rows.filter(p => p.name.toLowerCase().includes(q) || p.email.toLowerCase().includes(q));
+  if (grp) rows = rows.filter(p => String(p.groupId) === String(grp));
+  if (disc) rows = rows.filter(p => {
+    const a = (_pplLatest[p.userId] || {}).disc;
+    return a && a.result[0] === disc;
+  });
+  if (gift) rows = rows.filter(p => {
+    const a = (_pplLatest[p.userId] || {}).gifts;
+    return a && giftNames(a).includes(gift);
+  });
+  document.getElementById('peopleTableWrap').innerHTML = memberTable(rows);
+}
+
+function memberTable(rows) {
+  if (!rows.length) return '<p style="color:var(--text-muted); padding:20px;">No members match.</p>';
+  return `<table><thead><tr>
+    <th>Name</th><th>Group</th><th>Personality</th><th>Top Gifts</th><th>Last Test</th><th></th>
+  </tr></thead><tbody>${rows.map(p => {
+    const d = (_pplLatest[p.userId] || {}).disc, g = (_pplLatest[p.userId] || {}).gifts;
+    const last = [d, g].filter(Boolean).map(a => a.completedAt).sort().pop();
+    return `<tr>
+      <td><strong>${escapeHtml(p.name)}</strong><br><span style="font-size:.8rem; color:var(--text-muted);">${escapeHtml(p.email)}</span></td>
+      <td>${escapeHtml(groupName(p.groupId))}</td>
+      <td>${d ? escapeHtml(d.result) : '—'}</td>
+      <td>${g ? giftNames(g).slice(0,3).map(escapeHtml).join(', ') : '—'}</td>
+      <td>${last ? new Date(last).toLocaleDateString() : '—'}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="openMemberModal('${p.userId}')">View</button></td>
+    </tr>`;
+  }).join('')}</tbody></table>`;
+}
+
+async function approveMember(userId) {
+  const r = await SupaDB.adminSetMemberStatus(userId, 'approved');
+  if (r.error) { showToast(r.error, true); return; }
+  showToast('Member approved');
+  renderPeoplePanel();
+}
+
+async function deleteMember(userId, name) {
+  if (!confirm(`Delete ${name}'s account entirely? This cannot be undone.`)) return;
+  const r = await SupaDB.adminDeleteMember(userId);
+  if (r.error) { showToast(r.error, true); return; }
+  showToast('Member deleted');
+  renderPeoplePanel();
+}
+
+function openMemberModal(userId) {
+  const p = _pplProfiles.find(x => x.userId === userId);
+  if (!p) return;
+  const d = (_pplLatest[userId] || {}).disc, g = (_pplLatest[userId] || {}).gifts;
+  document.getElementById('mmName').textContent = p.name;
+  document.getElementById('mmBody').innerHTML = `
+    <p style="font-size:.9rem;">${escapeHtml(p.email)}${p.phone ? ' · ' + escapeHtml(p.phone) : ''}<br>
+      ${escapeHtml(groupName(p.groupId))} · ${escapeHtml(p.yearsAttending || 'tenure not set')} ·
+      ${p.shareWithLeader ? 'shares with leader' : 'not shared with leader'}</p>
+    <h4 style="margin:16px 0 8px;">Personality</h4>
+    ${d ? `<strong style="font-size:1.2rem;">${escapeHtml(d.result)}</strong>
+      ${['D','I','S','C'].map(k => `<div style="font-size:.85rem;">${k}: ${d.scores[k]}</div>`).join('')}
+      <p style="font-size:.8rem; color:var(--text-muted);">Taken ${new Date(d.completedAt).toLocaleDateString()}</p>`
+      : '<p style="color:var(--text-muted);">Not taken yet.</p>'}
+    <h4 style="margin:16px 0 8px;">Spiritual Gifts</h4>
+    ${g ? `<p><strong>${giftNames(g).map(escapeHtml).join(', ')}</strong></p>
+      <div style="columns:2; font-size:.82rem;">${Object.entries(g.scores)
+        .sort((a,b) => b[1]-a[1]).map(([c,s]) => `<div>${escapeHtml(c)}: ${s}</div>`).join('')}</div>
+      <p style="font-size:.8rem; color:var(--text-muted);">Taken ${new Date(g.completedAt).toLocaleDateString()}</p>`
+      : '<p style="color:var(--text-muted);">Not taken yet.</p>'}`;
+  document.getElementById('memberModal').classList.add('open');
+}
+function closeMemberModal() { document.getElementById('memberModal').classList.remove('open'); }
+
+/* MY GROUP (leader view — RLS already scopes the data) */
+async function renderMyGroupPanel() {
+  const [profiles, attempts] = await Promise.all([
+    SupaDB.getVisibleMemberProfiles(), SupaDB.getVisibleAttempts(),
+  ]);
+  const me = (window._currentUser && window._currentUser.id) || '';
+  _pplProfiles = profiles.filter(p => p.userId !== me);
+  _pplLatest = latestByUser(attempts);
+  window._pplGroups = window._myGroups || [];
+  document.getElementById('myGroupTableWrap').innerHTML = memberTable(_pplProfiles);
+}
 
 async function renderGrpAttTable() {
   const all = await SupaDB.adminGetAllGroupAttendance();
