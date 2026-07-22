@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Profile | Heritage Hill Church</title>
+  <link rel="icon" href="../assets/logos/logo-icon-color-white.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/portal.css" />
+</head>
+<body>
+
+<div class="portal-topbar">
+  <span class="bar-title">My Profile — Heritage Hill</span>
+  <div class="bar-actions">
+    <a href="dashboard.html" id="dashLink" style="display:none;">Dashboard</a>
+    <a href="../index.html">Website</a>
+    <button onclick="signOut()">Sign Out</button>
+  </div>
+</div>
+
+<div class="portal-page">
+  <div id="pendingBanner" class="banner-pending" style="display:none;">
+    Your profile is awaiting approval from church staff. You can take your
+    assessments now — results will appear to staff once you're approved.
+  </div>
+
+  <div class="portal-card" id="profileCard">
+    <h2>My Information</h2>
+    <p class="sub">Keep your contact info and group up to date.</p>
+    <div class="form-group"><label>Full Name</label><input id="pfName" /></div>
+    <div class="form-group"><label>Email</label><input id="pfEmail" disabled /></div>
+    <div class="form-group"><label>Phone</label><input id="pfPhone" /></div>
+    <div class="form-group"><label>Small Group</label><select id="pfGroup"></select></div>
+    <div class="form-group"><label>How long at Heritage Hill?</label>
+      <select id="pfYears">
+        <option value="">— Select —</option>
+        <option>Less than 1 year</option><option>1–3 years</option>
+        <option>3–5 years</option><option>More than 5 years</option>
+      </select></div>
+    <div class="toggle-row" style="margin:18px 0;">
+      <div><strong>Share my results with my group leader</strong>
+        <div class="sub" style="margin:0;">Your leader can see your personality and gifts to help you find your place.</div></div>
+      <input type="checkbox" id="pfShare" style="width:22px;height:22px;" />
+    </div>
+    <button class="btn-primary" onclick="saveProfile()">Save Changes</button>
+    <div class="msg-success" id="pfSaved">Saved.</div>
+    <div class="msg-error" id="pfError"></div>
+  </div>
+
+  <div class="portal-card" id="discCard">
+    <h2>Personality Assessment</h2>
+    <p class="sub">20 questions · about 3 minutes</p>
+    <div id="discResult"></div>
+    <a href="test-personality.html" class="btn-primary" id="discCta">Take the Assessment</a>
+  </div>
+
+  <div class="portal-card" id="giftsCard">
+    <h2>Spiritual Gifts Assessment</h2>
+    <p class="sub">72 questions · about 6 minutes</p>
+    <div id="giftsResult"></div>
+    <a href="test-gifts.html" class="btn-primary" id="giftsCta">Take the Assessment</a>
+  </div>
+
+  <div class="portal-card">
+    <h2>Change Password</h2>
+    <div class="form-group"><label>New Password</label><input type="password" id="pwNew" /></div>
+    <div class="form-group"><label>Confirm</label><input type="password" id="pwConfirm" /></div>
+    <button class="btn-primary" onclick="changePassword()">Update Password</button>
+    <div class="msg-success" id="pwSaved">Password updated.</div>
+    <div class="msg-error" id="pwError"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../js/supabase-client.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/assessments.js"></script>
+<script>
+let _profile = null, _content = null;
+
+(async () => {
+  const user = await SupaDB.getUser();
+  if (!user) { window.location.href = 'login.html?next=my-profile.html'; return; }
+
+  // Staff get a Dashboard link in the topbar
+  const roleData = await SupaDB.getUserRoleByEmail(user.email);
+  if (roleData) document.getElementById('dashLink').style.display = '';
+
+  // Lazy-create profile (covers both fresh registrations and existing staff)
+  _profile = await SupaDB.getMyProfile();
+  if (!_profile) {
+    const r = await SupaDB.createMyProfile();
+    if (!r.error) _profile = await SupaDB.getMyProfile();
+  }
+  if (!_profile) { alert('Could not load your profile. Please try again.'); return; }
+
+  if (_profile.status === 'pending' && !roleData)
+    document.getElementById('pendingBanner').style.display = '';
+
+  // Fill form
+  document.getElementById('pfName').value  = _profile.name;
+  document.getElementById('pfEmail').value = _profile.email;
+  document.getElementById('pfPhone').value = _profile.phone;
+  document.getElementById('pfYears').value = _profile.yearsAttending || '';
+  document.getElementById('pfShare').checked = _profile.shareWithLeader;
+  const groups = await SupaDB.getPublishedGroups();
+  const sel = document.getElementById('pfGroup');
+  sel.innerHTML = '<option value="">— Not in a group —</option>' +
+    groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+  sel.value = _profile.groupId || '';
+
+  // Results
+  const [attempts, content] = await Promise.all([
+    SupaDB.getMyAttempts(), SupaDB.getAssessmentContent(),
+  ]);
+  _content = Assessments.splitContent(content);
+  renderResult('disc',  attempts.filter(a => a.assessmentType === 'disc'));
+  renderResult('gifts', attempts.filter(a => a.assessmentType === 'gifts'));
+})();
+
+function renderResult(type, attempts) {
+  const box = document.getElementById(type === 'disc' ? 'discResult' : 'giftsResult');
+  const cta = document.getElementById(type === 'disc' ? 'discCta' : 'giftsCta');
+  if (!attempts.length) return;
+  cta.textContent = 'Retake';
+  const latest = attempts[0];
+  if (type === 'disc') {
+    const blend = _content.discBlends.find(b => b.code === latest.result);
+    const primary = _content.discBlends.find(b => b.code === latest.result[0]);
+    box.innerHTML = `
+      <div class="result-badge">${latest.result}</div>
+      <div style="margin:14px 0;">
+        ${['D','I','S','C'].map(k => `
+          <div class="score-row"><strong style="width:16px;">${k}</strong>
+            <div class="bar"><div style="width:${(latest.scores[k] / 25) * 100}%"></div></div>
+            <span>${latest.scores[k]}</span></div>`).join('')}
+      </div>
+      ${primary ? `<p style="font-size:.9rem;margin-bottom:10px;">${primary.text}</p>` : ''}
+      ${blend && blend !== primary ? `<p style="font-size:.9rem;">${blend.text}</p>` : ''}
+      <p class="sub" style="margin-top:10px;">Taken ${new Date(latest.completedAt).toLocaleDateString()}
+        ${attempts.length > 1 ? `· ${attempts.length} attempts` : ''}</p>`;
+  } else {
+    const names = JSON.parse(latest.result);
+    box.innerHTML = `
+      <div>${names.map(n => `<span class="gift-pill">${n}</span>`).join('')}</div>
+      <div style="margin:14px 0;">${names.map(n => {
+        const g = _content.gifts.find(x => (x.extra && x.extra.name) === n);
+        if (!g) return '';
+        const min = (g.extra.ministries || []).join(', ');
+        return `<div style="margin-bottom:12px;"><strong>${n}</strong>
+          <p style="font-size:.88rem;">${g.text}</p>
+          <p class="sub" style="margin:2px 0 0;">${g.extra.scriptures || ''}</p>
+          ${min ? `<p class="sub" style="margin:2px 0 0;">Serve here: ${min}</p>` : ''}</div>`;
+      }).join('')}</div>
+      <p class="sub">Taken ${new Date(latest.completedAt).toLocaleDateString()}
+        ${attempts.length > 1 ? `· ${attempts.length} attempts` : ''}</p>`;
+  }
+}
+
+async function saveProfile() {
+  const r = await SupaDB.updateMyProfile({
+    name: document.getElementById('pfName').value.trim(),
+    phone: document.getElementById('pfPhone').value.trim(),
+    groupId: document.getElementById('pfGroup').value || null,
+    yearsAttending: document.getElementById('pfYears').value,
+    shareWithLeader: document.getElementById('pfShare').checked,
+  });
+  const ok = document.getElementById('pfSaved'), err = document.getElementById('pfError');
+  ok.classList.toggle('show', !r.error);
+  err.classList.toggle('show', !!r.error);
+  if (r.error) err.textContent = r.error;
+  setTimeout(() => ok.classList.remove('show'), 2500);
+}
+
+async function changePassword() {
+  const pw = document.getElementById('pwNew').value;
+  const err = document.getElementById('pwError'), ok = document.getElementById('pwSaved');
+  err.classList.remove('show'); ok.classList.remove('show');
+  if (pw.length < 8) { err.textContent = 'At least 8 characters.'; err.classList.add('show'); return; }
+  if (pw !== document.getElementById('pwConfirm').value) {
+    err.textContent = 'Passwords do not match.'; err.classList.add('show'); return;
+  }
+  try {
+    await SupaDB.updatePassword(pw);
+    ok.classList.add('show');
+    document.getElementById('pwNew').value = ''; document.getElementById('pwConfirm').value = '';
+  } catch (e) {
+    err.textContent = (e && e.message) || 'Could not update password.';
+    err.classList.add('show');
+  }
+}
+
+async function signOut() { await SupaDB.signOut(); window.location.href = 'login.html'; }
+</script>
+</body>
+</html>
