@@ -204,6 +204,10 @@
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
       Small Groups
     </a>
+    <a onclick="switchTab('growthtrack')" id="sideGrowthtrack" data-tab="growthtrack">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      Growth Track
+    </a>
     <div class="nav-section" id="navSectionPeople" style="margin-top:8px;">People</div>
     <a onclick="switchTab('signups')" id="sideSignups" data-tab="signups">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
@@ -1127,6 +1131,11 @@
       <div id="myGroupTableWrap"></div>
     </div>
 
+    <!-- GROWTH TRACK -->
+    <div class="tab-panel" id="panelGrowthtrack">
+      <div id="gtCards" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:16px;"></div>
+    </div>
+
   </div>
 </div>
 
@@ -1290,6 +1299,28 @@
       <div class="form-row full" style="margin-top:4px;"><div class="field checkbox"><input type="checkbox" id="grOpen" checked /><label for="grOpen">Group is open / accepting new members</label></div></div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeGroupModal()">Cancel</button><button class="btn btn-primary" onclick="saveGroup()">Save Group</button></div>
+  </div>
+</div>
+
+<!-- GROWTH TRACK PART EDIT MODAL -->
+<div class="modal-overlay" id="gtPartModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="gtPartModalTitle">Edit Part</h3><button class="modal-close" onclick="closeGtPartModal()">✕</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="gtpId" />
+      <div class="publish-toggle-row">
+        <div><div class="ptlabel">Published</div><div class="ptsub">Visible to the public on the Growth Track page</div></div>
+        <label class="toggle-switch"><input type="checkbox" id="gtpPublished" /><span class="toggle-slider"></span></label>
+      </div>
+      <div class="form-row full"><div class="field"><label>Title *</label><input type="text" id="gtpTitle" placeholder="e.g. About Us" /></div></div>
+      <div class="form-row full"><div class="field"><label>Description *</label><textarea id="gtpDescription" placeholder="Describe this part of the Growth Track…"></textarea></div></div>
+      <div class="form-row">
+        <div class="field"><label>Date</label><input type="date" id="gtpDate" /></div>
+        <div class="field"><label>Time</label><input type="text" id="gtpTime" placeholder="e.g. 9:00 AM" /></div>
+      </div>
+      <div class="form-row full"><div class="field"><label>Location</label><input type="text" id="gtpLocation" placeholder="e.g. Heritage Hill Main Campus" /></div></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeGtPartModal()">Cancel</button><button class="btn btn-primary" onclick="saveGtPart()">Save</button></div>
   </div>
 </div>
 
@@ -1836,7 +1867,7 @@
 <script>
 // Role-based access map
 const ROLE_TABS = {
-  admin:               ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','attendance','sermons','email','settings','users','people'],
+  admin:               ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','attendance','sermons','email','settings','users','people','growthtrack'],
   event_manager:       ['events','rsvps','sermons','email'],
   small_group_leader:  ['groups','signups','mygroup'],
 };
@@ -1906,7 +1937,7 @@ function applyRoleVisibility() {
   }
 })();
 
-const ALL_TABS = ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','attendance','sermons','email','settings','users','people','mygroup'];
+const ALL_TABS = ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','attendance','sermons','email','settings','users','people','mygroup','growthtrack'];
 function switchTab(tab) {
   // Block access to tabs the current role doesn't have
   const allowed = ROLE_TABS[window._userRole] || ROLE_TABS.admin;
@@ -1919,7 +1950,7 @@ function switchTab(tab) {
   const c = tab[0].toUpperCase()+tab.slice(1);
   const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
   if(p) p.classList.add('active'); if(s) s.classList.add('active');
-  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings',users:'User Permissions',people:'Members & Assessments',mygroup:'My Group'};
+  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings',users:'User Permissions',people:'Members & Assessments',mygroup:'My Group',growthtrack:'Growth Track'};
   document.getElementById('topbarTitle').textContent = titles[tab]||tab;
   if(tab==='events') renderEventsTable();
   else if(tab==='groups') renderGroupsTable();
@@ -1936,6 +1967,7 @@ function switchTab(tab) {
   else if(tab==='users') renderUsersTable();
   else if(tab==='people')  renderPeoplePanel();
   else if(tab==='mygroup') renderMyGroupPanel();
+  else if(tab==='growthtrack') renderGrowthTrackTab();
 }
 
 async function updateStats() {
@@ -5019,6 +5051,60 @@ async function renderMyGroupPanel() {
   _pplLatest = latestByUser(attempts);
   window._pplGroups = window._myGroups || [];
   document.getElementById('myGroupTableWrap').innerHTML = memberTable(_pplProfiles);
+}
+
+/* GROWTH TRACK */
+let _gtPartsAdmin = [];
+const GT_LABELS = { about_us: 'About Us', about_you: 'About You', get_involved: 'Get Involved' };
+
+async function renderGrowthTrackTab() {
+  _gtPartsAdmin = await SupaDB.adminGetAllGrowthTrackParts();
+  document.getElementById('gtCards').innerHTML = _gtPartsAdmin.map(p => `
+    <div class="chart-card" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+        <h3 style="font-size:1.05rem;">${escapeHtml(p.title || GT_LABELS[p.part])}</h3>
+        ${p.published?'<span class="badge badge-green">Published</span>':'<span class="badge badge-gray">Draft</span>'}
+      </div>
+      <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px;">
+        ${p.sessionDate ? new Date(p.sessionDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : 'No date set'}
+        ${p.sessionTime ? ' · ' + escapeHtml(p.sessionTime) : ''}${p.location ? ' · ' + escapeHtml(p.location) : ''}
+      </p>
+      <div class="td-actions">
+        <button class="btn btn-secondary btn-sm" onclick="openGtPartModal('${p.part}')">Edit</button>
+        <button class="btn btn-primary btn-sm" onclick="openGtRoster('${p.part}')">Registrants</button>
+      </div>
+    </div>`).join('');
+}
+
+function openGtPartModal(part) {
+  const p = _gtPartsAdmin.find(x => x.part === part);
+  if (!p) return;
+  document.getElementById('gtPartModalTitle').textContent = 'Edit ' + (p.title || GT_LABELS[part]);
+  document.getElementById('gtpId').value = p.id;
+  document.getElementById('gtpPublished').checked = p.published;
+  document.getElementById('gtpTitle').value = p.title || '';
+  document.getElementById('gtpDescription').value = p.description || '';
+  document.getElementById('gtpDate').value = p.sessionDate || '';
+  document.getElementById('gtpTime').value = p.sessionTime || '';
+  document.getElementById('gtpLocation').value = p.location || '';
+  document.getElementById('gtPartModal').classList.add('open');
+}
+function closeGtPartModal() { document.getElementById('gtPartModal').classList.remove('open'); }
+
+async function saveGtPart() {
+  const id = document.getElementById('gtpId').value;
+  const result = await SupaDB.adminUpdateGrowthTrackPart(id, {
+    title: document.getElementById('gtpTitle').value.trim(),
+    description: document.getElementById('gtpDescription').value.trim(),
+    sessionDate: document.getElementById('gtpDate').value || null,
+    sessionTime: document.getElementById('gtpTime').value.trim(),
+    location: document.getElementById('gtpLocation').value.trim(),
+    published: document.getElementById('gtpPublished').checked,
+  });
+  if (result.error) { showToast(result.error, true); return; }
+  showToast('Growth Track part saved');
+  closeGtPartModal();
+  renderGrowthTrackTab();
 }
 
 async function renderGrpAttTable() {
