@@ -339,6 +339,11 @@ function renderGroupBreakdown() {
     }).join('') + '</tbody></table>';
 }
 
+function csvSafe(v) {
+  const s = String(v);
+  return /^[=+\-@]/.test(s) ? "'" + s : s;
+}
+
 function exportCsv() {
   const headers = ['Name','Email','Group','Personality','Top Gifts','Share w/ Leader'];
   const rows = _profiles.map(p => {
@@ -348,7 +353,7 @@ function exportCsv() {
       g ? giftNames(g).join('; ') : '', p.shareWithLeader ? 'yes' : 'no'];
   });
   const csv = [headers, ...rows].map(r =>
-    r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+    r.map(v => `"${csvSafe(v).replace(/"/g, '""')}"`).join(',')).join('\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
   a.download = 'gifts-personality.csv';
