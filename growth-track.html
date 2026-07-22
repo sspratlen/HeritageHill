@@ -191,16 +191,22 @@
     return new Date(y, m-1, day).toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
   }
 
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
+  }
+
   function renderGtCard(p) {
     const meta = [fmtDate(p.sessionDate), p.sessionTime, p.location].filter(Boolean).join(' · ');
     return `
     <article class="card" data-reveal>
       <div class="card-body">
-        <h3>${p.title}</h3>
-        ${meta ? `<div class="card-meta"><span>${meta}</span></div>` : ''}
-        <p style="font-size:.875rem;">${p.description}</p>
+        <h3>${escapeHtml(p.title)}</h3>
+        ${meta ? `<div class="card-meta"><span>${escapeHtml(meta)}</span></div>` : ''}
+        <p style="font-size:.875rem;">${escapeHtml(p.description)}</p>
         <div style="margin-top:14px; text-align:right;">
-          <button class="btn btn-primary btn-sm" onclick="openGtModal('${p.part}','${p.title.replace(/'/g,"\\'")}')">Register</button>
+          <button class="btn btn-primary btn-sm" onclick="openGtModal('${p.part}')">Register</button>
         </div>
       </div>
     </article>`;
@@ -216,9 +222,10 @@
   }
   loadGrowthTrack();
 
-  async function openGtModal(part, title) {
+  async function openGtModal(part) {
+    const p = _gtParts.find(x => x.part === part);
     document.getElementById('gtPart').value = part;
-    document.getElementById('gtPartDisplay').textContent = title;
+    document.getElementById('gtPartDisplay').textContent = p ? p.title : '';
     document.getElementById('gtForm').reset();
     document.getElementById('gtForm').style.display = '';
     document.getElementById('gtSuccess').style.display = 'none';
