@@ -66,9 +66,12 @@ People tab → member appears in roster/analytics. Rejected/spam accounts delete
 **`member_profiles`** — one row per person. `user_id` (PK, FK auth.users), `name`,
 `email`, `phone`, `group_id` (FK groups, nullable), `years_attending`, `status`
 (`pending`/`approved`), `share_with_leader` (bool, default false), `created_at`.
-Separate from `user_roles`, which stays the role table; a `member` row in
-`user_roles` is created at registration so existing role plumbing works unchanged.
-Existing staff/leaders get profile rows lazily on first My Profile visit.
+Separate from `user_roles`, which stays the staff-only role table. Members get NO
+`user_roles` row (allowing client inserts there would be a privilege-escalation
+hole, and it would flood the User Permissions panel). Login routing instead checks:
+staff role found in `user_roles` → dashboard; otherwise → My Profile. All users
+(members and staff alike) get a `member_profiles` row lazily on first My Profile
+visit, built from auth metadata captured at registration.
 
 **`assessment_attempts`** — one row per completed test. `id`, `user_id`,
 `assessment_type` (`disc`/`gifts`), `answers` (JSONB, raw responses), `scores`
