@@ -120,6 +120,12 @@ let _profile = null, _content = null;
   renderResult('gifts', attempts.filter(a => a.assessmentType === 'gifts'));
 })();
 
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
 function renderResult(type, attempts) {
   const box = document.getElementById(type === 'disc' ? 'discResult' : 'giftsResult');
   const cta = document.getElementById(type === 'disc' ? 'discCta' : 'giftsCta');
@@ -130,7 +136,7 @@ function renderResult(type, attempts) {
     const blend = _content.discBlends.find(b => b.code === latest.result);
     const primary = _content.discBlends.find(b => b.code === latest.result[0]);
     box.innerHTML = `
-      <div class="result-badge">${latest.result}</div>
+      <div class="result-badge">${escapeHtml(latest.result)}</div>
       <div style="margin:14px 0;">
         ${['D','I','S','C'].map(k => `
           <div class="score-row"><strong style="width:16px;">${k}</strong>
@@ -142,14 +148,16 @@ function renderResult(type, attempts) {
       <p class="sub" style="margin-top:10px;">Taken ${new Date(latest.completedAt).toLocaleDateString()}
         ${attempts.length > 1 ? `· ${attempts.length} attempts` : ''}</p>`;
   } else {
-    const names = JSON.parse(latest.result);
+    let names;
+    try { names = JSON.parse(latest.result); if (!Array.isArray(names)) throw new Error('not array'); }
+    catch (e) { box.innerHTML = '<p class="sub">Could not display this result.</p>'; return; }
     box.innerHTML = `
-      <div>${names.map(n => `<span class="gift-pill">${n}</span>`).join('')}</div>
+      <div>${names.map(n => `<span class="gift-pill">${escapeHtml(n)}</span>`).join('')}</div>
       <div style="margin:14px 0;">${names.map(n => {
         const g = _content.gifts.find(x => (x.extra && x.extra.name) === n);
         if (!g) return '';
         const min = (g.extra.ministries || []).join(', ');
-        return `<div style="margin-bottom:12px;"><strong>${n}</strong>
+        return `<div style="margin-bottom:12px;"><strong>${escapeHtml(n)}</strong>
           <p style="font-size:.88rem;">${g.text}</p>
           <p class="sub" style="margin:2px 0 0;">${g.extra.scriptures || ''}</p>
           ${min ? `<p class="sub" style="margin:2px 0 0;">Serve here: ${min}</p>` : ''}</div>`;
