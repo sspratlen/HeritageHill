@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spiritual Gifts Assessment | Heritage Hill Church</title>
+  <link rel="icon" href="../assets/logos/logo-icon-color-white.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/portal.css" />
+</head>
+<body>
+
+<div class="portal-topbar">
+  <a href="my-profile.html">← My Profile</a>
+  <span class="bar-title">Spiritual Gifts Assessment</span>
+  <div></div>
+</div>
+
+<div class="portal-page">
+  <div class="progress-wrap">
+    <div class="progress-bar"><div></div></div>
+    <div class="progress-label" id="progressLabel">0 answered</div>
+  </div>
+  <div class="portal-card">
+    <div id="qList"></div>
+    <div style="text-align:center; padding: 24px 0;">
+      <button class="btn-primary" id="submitBtn" onclick="submitTest()" disabled>See My Results</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../js/supabase-client.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/assessments.js"></script>
+<script>
+const TEST = {
+  type: 'gifts',
+  contentKind: 'gift_question',
+  scale: [[1,'Almost Never'],[2,'Sometimes'],[3,'Almost Always']],
+  draftKey: 'hh_draft_gifts',
+};
+
+let _questions = [], _gifts = [], _blends = [];
+
+(async () => {
+  const user = await SupaDB.getUser();
+  if (!user) { window.location.href = 'login.html?next=' + location.pathname.split('/').pop(); return; }
+  const content = Assessments.splitContent(await SupaDB.getAssessmentContent());
+  _questions = TEST.type === 'disc' ? content.discQuestions : content.giftQuestions;
+  _gifts = content.gifts; _blends = content.discBlends;
+  if (!_questions.length) {
+    document.getElementById('qList').innerHTML =
+      '<p style="padding:20px;">The assessment isn\'t set up yet — please check back soon.</p>';
+    return;
+  }
+  const draft = JSON.parse(localStorage.getItem(TEST.draftKey) || '{}');
+  document.getElementById('qList').innerHTML = _questions.map((q, i) => `
+    <div class="q-block" id="qb${q.id}">
+      <div class="q-text">${i + 1}. ${q.text}</div>
+      <div class="q-scale">${TEST.scale.map(([v, label]) => `
+        <label><input type="radio" name="q${q.id}" value="${v}"
+          ${draft[q.id] == v ? 'checked' : ''} onchange="onAnswer()" /><span>${label}</span></label>`).join('')}
+      </div>
+    </div>`).join('');
+  onAnswer();
+})();
+
+function collectAnswers() {
+  const answers = {};
+  _questions.forEach(q => {
+    const sel = document.querySelector(`input[name="q${q.id}"]:checked`);
+    if (sel) answers[q.id] = Number(sel.value);
+  });
+  return answers;
+}
+
+function onAnswer() {
+  const answers = collectAnswers();
+  localStorage.setItem(TEST.draftKey, JSON.stringify(answers));
+  const done = Object.keys(answers).length, total = _questions.length;
+  document.querySelector('.progress-bar > div').style.width = (done / total * 100) + '%';
+  document.getElementById('progressLabel').textContent = `${done} of ${total} answered`;
+  document.getElementById('submitBtn').disabled = done < total;
+}
+
+async function submitTest() {
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const answers = collectAnswers();
+  let scores, result;
+  if (TEST.type === 'disc') {
+    const r = Assessments.scoreDisc(answers, _questions);
+    scores = r.totals; result = r.result;
+  } else {
+    const r = Assessments.scoreGifts(answers, _questions, _gifts);
+    scores = r.totals; result = JSON.stringify(r.result);
+  }
+  const saved = await SupaDB.addAssessmentAttempt({
+    assessmentType: TEST.type, answers, scores, result,
+  });
+  if (saved.error) {
+    alert('Could not save: ' + saved.error);
+    btn.disabled = false; btn.textContent = 'See My Results';
+    return;
+  }
+  localStorage.removeItem(TEST.draftKey);
+  window.location.href = 'my-profile.html';
+}
+</script>
+</body>
+</html>
