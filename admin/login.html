@@ -262,10 +262,17 @@
     // Normal flow: redirect if already logged in
     const user = await SupaDB.getUser();
     if (user) {
-      const redirect = new URLSearchParams(window.location.search).get('next') || 'dashboard.html';
-      window.location.href = redirect;
+      await routeAfterLogin();
     }
   })();
+
+  async function routeAfterLogin() {
+    const explicit = new URLSearchParams(window.location.search).get('next');
+    if (explicit) { window.location.href = explicit; return; }
+    const user = await SupaDB.getUser();
+    const roleData = user ? await SupaDB.getUserRoleByEmail(user.email) : null;
+    window.location.href = roleData ? 'dashboard.html' : 'my-profile.html';
+  }
 
   // ── Normal sign-in ──
   async function handleLogin(e) {
@@ -288,8 +295,7 @@
       document.getElementById('password').value = '';
       document.getElementById('password').focus();
     } else {
-      const redirect = new URLSearchParams(window.location.search).get('next') || 'dashboard.html';
-      window.location.href = redirect;
+      await routeAfterLogin();
     }
   }
 

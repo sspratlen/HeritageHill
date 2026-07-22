@@ -268,6 +268,8 @@
   <div class="topbar">
     <h1 id="topbarTitle">Events</h1>
     <div style="display:flex;align-items:center;gap:12px;">
+      <a href="my-profile.html" title="My Profile & Assessments"
+         style="color:var(--text-muted); font-size:.85rem; text-decoration:none; margin-right:10px;">My Profile</a>
       <span class="admin-badge" id="roleBadge">Admin</span>
       <button onclick="openProfileModal()" title="My Profile" style="background:none;border:1.5px solid var(--border);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);transition:border-color .15s,color .15s;" onmouseenter="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'" onmouseleave="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
@@ -1825,7 +1827,8 @@ function applyRoleVisibility() {
   if (!user) { window.location.href = 'login.html?next=dashboard.html'; return; }
   window._currentUser = user;
   const roleData = await SupaDB.getUserRoleByEmail(user.email);
-  window._userRole = roleData ? roleData.role : 'admin';
+  if (!roleData) { window.location.href = 'my-profile.html'; return; }
+  window._userRole = roleData.role;
   window._currentUserName = (roleData && roleData.displayName) ? roleData.displayName : '';
   // Force password change before loading dashboard
   if (roleData && roleData.forcePasswordChange) {
