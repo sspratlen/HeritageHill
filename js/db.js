@@ -70,6 +70,28 @@ function groupToDb(g) {
   return o;
 }
 
+function growthTrackPartFromDb(r) {
+  return {
+    id: r.id, part: r.part, title: r.title, description: r.description || '',
+    sessionDate: r.session_date, sessionTime: r.session_time || '',
+    location: r.location || '', published: !!r.published,
+  };
+}
+function growthTrackPartToDb(p) {
+  return {
+    title: p.title, description: p.description || '',
+    session_date: p.sessionDate || null, session_time: p.sessionTime || '',
+    location: p.location || '', published: !!p.published,
+  };
+}
+function growthTrackRegistrationFromDb(r) {
+  return {
+    id: r.id, part: r.part, sessionDate: r.session_date, sessionTime: r.session_time || '',
+    name: r.name, email: r.email, phone: r.phone || '', notes: r.notes || '',
+    addedByAdmin: !!r.added_by_admin, createdAt: r.created_at,
+  };
+}
+
 function signupFromDb(r) {
   return {
     id: r.id, groupId: r.group_id, groupName: r.group_name,
@@ -248,6 +270,28 @@ window.SupaDB = {
     } catch(e) { console.error('[SupaDB] getGroupById:', e.message); return null; }
   },
 
+  /* ── PUBLIC: Growth Track ───────────────────────────────── */
+  async getPublishedGrowthTrackParts() {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('growth_track_parts').select('*')
+        .eq('published', true).order('part');
+      if (error) throw error;
+      return (data || []).map(growthTrackPartFromDb);
+    } catch(e) { console.error('[SupaDB] getPublishedGrowthTrackParts:', e.message); return []; }
+  },
+  async submitGrowthTrackRegistration(reg) {
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const { error } = await db().from('growth_track_registrations').insert({
+        part: reg.part, session_date: reg.sessionDate || null, session_time: reg.sessionTime || '',
+        name: reg.name, email: reg.email, phone: reg.phone || '', notes: reg.notes || '',
+      });
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] submitGrowthTrackRegistration:', e.message); return { error: e.message }; }
+  },
+
   /* ── PUBLIC: Sermons ────────────────────────────────────── */
   async getPublishedSermons() {
     if (!db()) return [];
@@ -333,6 +377,54 @@ window.SupaDB = {
       const { error } = await db().from('groups').delete().eq('id', id);
       if (error) throw error;
     } catch(e) { console.error('[SupaDB] deleteGroup:', e.message); }
+  },
+
+  /* ── ADMIN: Growth Track ─────────────────────────────────── */
+  async adminGetAllGrowthTrackParts() {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('growth_track_parts').select('*').order('part');
+      if (error) throw error;
+      return (data || []).map(growthTrackPartFromDb);
+    } catch(e) { console.error('[SupaDB] adminGetAllGrowthTrackParts:', e.message); return []; }
+  },
+  async adminUpdateGrowthTrackPart(id, p) {
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const { error } = await db().from('growth_track_parts')
+        .update(growthTrackPartToDb(p)).eq('id', id);
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] adminUpdateGrowthTrackPart:', e.message); return { error: e.message }; }
+  },
+  async adminGetGrowthTrackRegistrations(part) {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('growth_track_registrations')
+        .select('*').eq('part', part).order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(growthTrackRegistrationFromDb);
+    } catch(e) { console.error('[SupaDB] adminGetGrowthTrackRegistrations:', e.message); return []; }
+  },
+  async adminAddGrowthTrackRegistration(reg) {
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const { error } = await db().from('growth_track_registrations').insert({
+        part: reg.part, session_date: reg.sessionDate || null, session_time: reg.sessionTime || '',
+        name: reg.name, email: reg.email, phone: reg.phone || '', notes: reg.notes || '',
+        added_by_admin: true,
+      });
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] adminAddGrowthTrackRegistration:', e.message); return { error: e.message }; }
+  },
+  async adminDeleteGrowthTrackRegistration(id) {
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const { error } = await db().from('growth_track_registrations').delete().eq('id', id);
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] adminDeleteGrowthTrackRegistration:', e.message); return { error: e.message }; }
   },
 
   /* ── ADMIN: Signups ─────────────────────────────────────── */
