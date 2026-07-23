@@ -1103,22 +1103,28 @@
 
     <!-- PEOPLE (admin) -->
     <div class="tab-panel" id="panelPeople">
-      <div style="display:flex; gap:10px; justify-content:flex-end; margin-bottom:14px;">
-        <a href="gifts-dashboard.html" class="btn btn-secondary btn-sm">📊 Analytics</a>
+      <div class="action-bar">
+        <h2>Members &amp; Assessments</h2>
+        <a href="gifts-dashboard.html" class="btn btn-secondary">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Analytics
+        </a>
       </div>
       <div id="pendingMembersBox" style="display:none; margin-bottom:20px;">
         <h3 style="font-size:.95rem; margin-bottom:10px;">Pending Approval</h3>
         <div id="pendingMembersList"></div>
       </div>
-      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
         <input id="pplSearch" placeholder="Search name or email…" oninput="applyPeopleFilter()"
-               style="flex:1; min-width:180px; padding:8px 12px; border:1.5px solid var(--border); border-radius:8px;" />
-        <select id="pplGiftFilter" onchange="applyPeopleFilter()"><option value="">All Gifts</option></select>
-        <select id="pplDiscFilter" onchange="applyPeopleFilter()">
+               style="flex:1;min-width:180px;padding:.55rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;" />
+        <select id="pplGiftFilter" onchange="applyPeopleFilter()"
+                style="padding:.55rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;background:#fff;"><option value="">All Gifts</option></select>
+        <select id="pplDiscFilter" onchange="applyPeopleFilter()"
+                style="padding:.55rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;background:#fff;">
           <option value="">All Personalities</option>
           <option value="D">D</option><option value="I">I</option><option value="S">S</option><option value="C">C</option>
         </select>
-        <select id="pplGroupFilter" onchange="applyPeopleFilter()"><option value="">All Groups</option></select>
+        <select id="pplGroupFilter" onchange="applyPeopleFilter()"
+                style="padding:.55rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;background:#fff;"><option value="">All Groups</option></select>
       </div>
       <div id="peopleTableWrap"></div>
     </div>
@@ -1133,6 +1139,9 @@
 
     <!-- GROWTH TRACK -->
     <div class="tab-panel" id="panelGrowthtrack">
+      <div class="action-bar">
+        <h2>Growth Track</h2>
+      </div>
       <div id="gtCards" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:16px;"></div>
     </div>
 
