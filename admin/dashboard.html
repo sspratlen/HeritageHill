@@ -2275,7 +2275,7 @@ function closeGroupRoster() {
 async function renderGroupRoster() {
   const container = document.getElementById('rosterList');
   container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:.9rem;">Loading…</div>';
-  const members = await SupaDB.adminGetSignupsByGroup(_rosterGroupId);
+  const members = await SupaDB.adminGetGroupMembers(_rosterGroupId);
   if (!members.length) {
     container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:.9rem;">No members yet — add the first one above.</div>';
     return;
@@ -2284,15 +2284,15 @@ async function renderGroupRoster() {
     <h4 style="font-size:.95rem;font-weight:700;margin-bottom:12px;">Current Members (${members.length})</h4>
     <div class="table-wrap" style="margin:0;">
       <table>
-        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Note</th><th>Added</th><th></th></tr></thead>
+        <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Note</th><th>Joined</th><th></th></tr></thead>
         <tbody>
           ${members.map(m => `
             <tr>
-              <td><strong>${m.name}</strong></td>
-              <td><a href="mailto:${m.email}" style="color:var(--primary);">${m.email}</a></td>
-              <td>${m.phone || '—'}</td>
-              <td style="font-size:.82rem;color:var(--text-muted);">${m.message || '—'}</td>
-              <td style="font-size:.82rem;color:var(--text-muted);">${new Date(m.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
+              <td><strong>${escapeHtml(m.name)}</strong></td>
+              <td><a href="mailto:${escapeHtml(m.email)}" style="color:var(--primary);">${escapeHtml(m.email)}</a></td>
+              <td>${escapeHtml(m.phone || '—')}</td>
+              <td style="font-size:.82rem;color:var(--text-muted);">${escapeHtml(m.notes || '—')}</td>
+              <td style="font-size:.82rem;color:var(--text-muted);">${new Date(m.joinedAt+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
               <td><button class="btn btn-danger btn-sm" onclick="removeGroupMember(${m.id})">Remove</button></td>
             </tr>`).join('')}
         </tbody>
@@ -2316,12 +2316,8 @@ async function saveGroupMember() {
   const group = _cachedGroups.find(g => g.id === _rosterGroupId);
   if (!group) return;
 
-  const result = await SupaDB.submitSignup({
-    groupId:     group.id,
-    groupName:   group.name,
-    leaderName:  group.leader,
-    leaderEmail: group.leaderEmail || '',
-    name, email, phone, message: note,
+  const result = await SupaDB.adminAddGroupMember({
+    groupId: group.id, name, email, phone, notes: note,
   });
 
   if (result?.error) { errEl.textContent = result.error; errEl.style.display = ''; return; }
@@ -2334,9 +2330,9 @@ async function saveGroupMember() {
   await renderGroupRoster();
 }
 
-async function removeGroupMember(signupId) {
+async function removeGroupMember(membershipId) {
   if (!confirm('Remove this member from the group?')) return;
-  await SupaDB.deleteSignup(signupId);
+  await SupaDB.adminRemoveGroupMember(membershipId);
   showToast('Member removed.');
   await renderGroupRoster();
 }
