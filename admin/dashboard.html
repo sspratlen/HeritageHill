@@ -4928,15 +4928,6 @@ function escapeHtml(s) {
 
 let _pplProfiles = [], _pplLatest = {}, _pplGifts = []; // _pplLatest[userId] = {disc, gifts}
 
-function recommendedMinistries(names) {
-  const set = new Set();
-  (names || []).forEach(n => {
-    const g = _pplGifts.find(x => (x.extra && x.extra.name) === n);
-    (g && g.extra.ministries || []).forEach(m => set.add(m));
-  });
-  return [...set];
-}
-
 function latestByUser(attempts) {
   const map = {};
   attempts.forEach(a => {
