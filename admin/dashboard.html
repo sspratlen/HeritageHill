@@ -5175,7 +5175,11 @@ async function loadGtRoster() {
       <td>${escapeHtml(r.email)}${r.phone ? '<br><span style="font-size:.8rem;color:var(--text-muted);">' + escapeHtml(r.phone) + '</span>' : ''}</td>
       <td>${escapeHtml(r.notes)}</td>
       <td>${new Date(r.createdAt).toLocaleDateString()}</td>
-      <td style="text-align:center;"><input type="checkbox" ${r.attended?'checked':''} onchange="toggleGtAttended(${r.id}, this.checked)" /></td>
+      <td style="text-align:center;">
+        <input type="checkbox" ${r.attended ? 'checked' : ''} title="Mark as attended"
+          onchange="toggleGtAttended(${r.id}, this.checked)"
+          style="width:16px;height:16px;cursor:pointer;accent-color:var(--primary);" />
+      </td>
       <td><button class="btn btn-danger btn-sm" onclick="deleteGtRegistrant(${r.id})">Remove</button></td>
     </tr>`).join('');
 }
