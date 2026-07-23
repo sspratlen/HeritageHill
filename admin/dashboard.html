@@ -5007,6 +5007,7 @@ function applyPeopleFilter() {
 
 function memberTable(rows) {
   if (!rows.length) return '<p style="color:var(--text-muted); padding:20px;">No members match.</p>';
+  const isAdmin = window._userRole === 'admin';
   return `<table><thead><tr>
     <th>Name</th><th>Group</th><th>Personality</th><th>Top Gifts</th><th>Last Test</th><th></th>
   </tr></thead><tbody>${rows.map(p => {
@@ -5018,7 +5019,7 @@ function memberTable(rows) {
       <td>${d ? escapeHtml(d.result) : '—'}</td>
       <td>${g ? giftNames(g).slice(0,3).map(escapeHtml).join(', ') : '—'}</td>
       <td>${last ? new Date(last).toLocaleDateString() : '—'}</td>
-      <td><a class="btn btn-secondary btn-sm" href="member-dashboard.html?id=${encodeURIComponent(p.userId)}">View</a></td>
+      <td>${isAdmin ? `<a class="btn btn-secondary btn-sm" href="member-dashboard.html?id=${encodeURIComponent(p.userId)}">View</a>` : ''}</td>
     </tr>`;
   }).join('')}</tbody></table>`;
 }
