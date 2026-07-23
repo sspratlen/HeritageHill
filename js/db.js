@@ -89,6 +89,15 @@ function growthTrackRegistrationFromDb(r) {
     id: r.id, part: r.part, sessionDate: r.session_date, sessionTime: r.session_time || '',
     name: r.name, email: r.email, phone: r.phone || '', notes: r.notes || '',
     addedByAdmin: !!r.added_by_admin, createdAt: r.created_at,
+    userId: r.user_id, attended: !!r.attended,
+  };
+}
+
+function groupMembershipFromDb(r) {
+  return {
+    id: r.id, groupId: r.group_id, userId: r.user_id, name: r.name,
+    email: r.email, phone: r.phone || '', joinedAt: r.joined_at,
+    leftAt: r.left_at, notes: r.notes || '',
   };
 }
 
@@ -286,10 +295,20 @@ window.SupaDB = {
       const { error } = await db().from('growth_track_registrations').insert({
         part: reg.part, session_date: reg.sessionDate || null, session_time: reg.sessionTime || '',
         name: reg.name, email: reg.email, phone: reg.phone || '', notes: reg.notes || '',
+        user_id: reg.userId || null,
       });
       if (error) throw error;
       return { ok: true };
     } catch(e) { console.error('[SupaDB] submitGrowthTrackRegistration:', e.message); return { error: e.message }; }
+  },
+  async adminFindMemberByEmail(email) {
+    if (!db() || !email) return null;
+    try {
+      const { data, error } = await db().from('member_profiles')
+        .select('*').eq('email', email.toLowerCase()).eq('status', 'approved').maybeSingle();
+      if (error) throw error;
+      return data ? { userId: data.user_id } : null;
+    } catch(e) { console.error('[SupaDB] adminFindMemberByEmail:', e.message); return null; }
   },
 
   /* ── PUBLIC: Sermons ────────────────────────────────────── */
@@ -409,14 +428,72 @@ window.SupaDB = {
   async adminAddGrowthTrackRegistration(reg) {
     if (!db()) return { error: 'Not configured' };
     try {
+      const match = await this.adminFindMemberByEmail(reg.email);
       const { error } = await db().from('growth_track_registrations').insert({
         part: reg.part, session_date: reg.sessionDate || null, session_time: reg.sessionTime || '',
         name: reg.name, email: reg.email, phone: reg.phone || '', notes: reg.notes || '',
-        added_by_admin: true,
+        added_by_admin: true, user_id: match ? match.userId : null,
       });
       if (error) throw error;
       return { ok: true };
     } catch(e) { console.error('[SupaDB] adminAddGrowthTrackRegistration:', e.message); return { error: e.message }; }
+  },
+  async adminSetGtAttended(id, attended) {
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const { error } = await db().from('growth_track_registrations')
+        .update({ attended: !!attended }).eq('id', id);
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] adminSetGtAttended:', e.message); return { error: e.message }; }
+  },
+  async getGrowthTrackRegistrationsForUser(userId) {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('growth_track_registrations')
+        .select('*').eq('user_id', userId).order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(growthTrackRegistrationFromDb);
+    } catch(e) { console.error('[SupaDB] getGrowthTrackRegistrationsForUser:', e.message); return []; }
+  },
+  async adminGetGroupMembers(groupId) {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('group_memberships')
+        .select('*').eq('group_id', groupId).is('left_at', null).order('joined_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(groupMembershipFromDb);
+    } catch(e) { console.error('[SupaDB] adminGetGroupMembers:', e.message); return []; }
+  },
+  async adminAddGroupMember(m) {
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const match = await this.adminFindMemberByEmail(m.email);
+      const { error } = await db().from('group_memberships').insert({
+        group_id: m.groupId, name: m.name, email: m.email, phone: m.phone || '',
+        notes: m.notes || '', user_id: match ? match.userId : null,
+      });
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] adminAddGroupMember:', e.message); return { error: e.message }; }
+  },
+  async adminRemoveGroupMember(id) {
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const { error } = await db().from('group_memberships')
+        .update({ left_at: new Date().toISOString().slice(0, 10) }).eq('id', id);
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] adminRemoveGroupMember:', e.message); return { error: e.message }; }
+  },
+  async getGroupMembershipsForUser(userId) {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('group_memberships')
+        .select('*').eq('user_id', userId).order('joined_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(groupMembershipFromDb);
+    } catch(e) { console.error('[SupaDB] getGroupMembershipsForUser:', e.message); return []; }
   },
   async adminDeleteGrowthTrackRegistration(id) {
     if (!db()) return { error: 'Not configured' };
