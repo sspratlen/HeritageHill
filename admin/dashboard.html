@@ -1719,12 +1719,6 @@
 </div>
 
 <!-- Member detail modal (assessment results) -->
-<div class="modal-overlay" id="memberModal" onclick="if(event.target===this)closeMemberModal()">
-  <div class="modal" style="max-width:640px;">
-    <div class="modal-header"><h3 id="mmName"></h3>
-      <button class="modal-close" onclick="closeMemberModal()">✕</button></div>
-    <div class="modal-body" id="mmBody"></div>
-  </div>
 </div>
 
 <!-- Headcount entry edit modal -->
@@ -5027,7 +5021,7 @@ function memberTable(rows) {
       <td>${d ? escapeHtml(d.result) : '—'}</td>
       <td>${g ? giftNames(g).slice(0,3).map(escapeHtml).join(', ') : '—'}</td>
       <td>${last ? new Date(last).toLocaleDateString() : '—'}</td>
-      <td><button class="btn btn-secondary btn-sm" onclick="openMemberModal('${p.userId}')">View</button></td>
+      <td><a class="btn btn-secondary btn-sm" href="member-dashboard.html?id=${encodeURIComponent(p.userId)}">View</a></td>
     </tr>`;
   }).join('')}</tbody></table>`;
 }
@@ -5049,34 +5043,6 @@ async function deleteMember(userId) {
   renderPeoplePanel();
 }
 
-function openMemberModal(userId) {
-  const p = _pplProfiles.find(x => x.userId === userId);
-  if (!p) return;
-  const d = (_pplLatest[userId] || {}).disc, g = (_pplLatest[userId] || {}).gifts;
-  const rec = g ? recommendedMinistries(giftNames(g)) : [];
-  document.getElementById('mmName').textContent = p.name;
-  document.getElementById('mmBody').innerHTML = `
-    <p style="font-size:.9rem;">${escapeHtml(p.email)}${p.phone ? ' · ' + escapeHtml(p.phone) : ''}<br>
-      ${escapeHtml(groupName(p.groupId))} · ${escapeHtml(p.yearsAttending || 'tenure not set')} ·
-      ${p.shareWithLeader ? 'shares with leader' : 'not shared with leader'}</p>
-    <h4 style="margin:16px 0 8px;">Personality</h4>
-    ${d ? `<strong style="font-size:1.2rem;">${escapeHtml(d.result)}</strong>
-      ${['D','I','S','C'].map(k => `<div style="font-size:.85rem;">${k}: ${escapeHtml(d.scores[k])}</div>`).join('')}
-      <p style="font-size:.8rem; color:var(--text-muted);">Taken ${new Date(d.completedAt).toLocaleDateString()}</p>`
-      : '<p style="color:var(--text-muted);">Not taken yet.</p>'}
-    <h4 style="margin:16px 0 8px;">Spiritual Gifts</h4>
-    ${g ? `<p><strong>${giftNames(g).map(escapeHtml).join(', ')}</strong></p>
-      <div style="columns:2; font-size:.82rem;">${Object.entries(g.scores)
-        .sort((a,b) => b[1]-a[1]).map(([c,s]) => `<div>${escapeHtml(c)}: ${escapeHtml(s)}</div>`).join('')}</div>
-      <p style="font-size:.8rem; color:var(--text-muted);">Taken ${new Date(g.completedAt).toLocaleDateString()}</p>`
-      : '<p style="color:var(--text-muted);">Not taken yet.</p>'}
-    <h4 style="margin:16px 0 8px;">Recommended Ministries</h4>
-    ${!g ? '<p style="color:var(--text-muted); font-size:.85rem;">Take the gifts assessment to see recommendations.</p>'
-      : rec.length ? rec.map(m => `<span class="badge badge-amber" style="margin:0 6px 6px 0;">${escapeHtml(m)}</span>`).join('')
-      : '<p style="color:var(--text-muted); font-size:.85rem;">No ministry matches yet — add ministry mappings to each gift in Supabase.</p>'}`;
-  document.getElementById('memberModal').classList.add('open');
-}
-function closeMemberModal() { document.getElementById('memberModal').classList.remove('open'); }
 
 /* MY GROUP (leader view — RLS already scopes the data) */
 async function renderMyGroupPanel() {
