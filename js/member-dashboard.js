@@ -36,7 +36,9 @@ const MemberDashboard = {
 
   // Renders a small group history table into containerEl.
   // memberships: result of SupaDB.getGroupMembershipsForUser(userId)
-  // groups: result of SupaDB.adminGetAllGroups() (for name lookup)
+  // groups: for name lookup — SupaDB.adminGetAllGroups() (admin caller) or
+  // SupaDB.getPublishedGroups() (member's own page); a group unpublished
+  // since a past membership falls back to "Unknown Group" in the latter case.
   renderGroupHistory(containerEl, memberships, groups) {
     if (!memberships.length) {
       containerEl.innerHTML = '<p style="color:var(--text-muted);font-size:.9rem;">No group history yet.</p>';

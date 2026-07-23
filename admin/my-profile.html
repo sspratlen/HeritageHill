@@ -125,16 +125,15 @@ let _profile = null, _content = null;
   sel.value = _profile.groupId || '';
 
   // Results
-  const [attempts, content, gtRegs, memberships, allGroups] = await Promise.all([
+  const [attempts, content, gtRegs, memberships] = await Promise.all([
     SupaDB.getMyAttempts(), SupaDB.getAssessmentContent(),
     SupaDB.getGrowthTrackRegistrationsForUser(user.id), SupaDB.getGroupMembershipsForUser(user.id),
-    SupaDB.getPublishedGroups(),
   ]);
   _content = Assessments.splitContent(content);
   renderResult('disc',  attempts.filter(a => a.assessmentType === 'disc'));
   renderResult('gifts', attempts.filter(a => a.assessmentType === 'gifts'));
   MemberDashboard.renderGrowthTrackProgress(document.getElementById('gtProgressBox'), gtRegs);
-  MemberDashboard.renderGroupHistory(document.getElementById('groupHistoryBox'), memberships, allGroups);
+  MemberDashboard.renderGroupHistory(document.getElementById('groupHistoryBox'), memberships, groups);
 })();
 
 function escapeHtml(s) {
