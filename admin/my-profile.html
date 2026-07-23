@@ -64,6 +64,18 @@
   </div>
 
   <div class="portal-card">
+    <h2>Growth Track</h2>
+    <p class="sub">Your progress through About Us, About You, and Get Involved.</p>
+    <div id="gtProgressBox"></div>
+  </div>
+
+  <div class="portal-card">
+    <h2>Small Group History</h2>
+    <p class="sub">Groups you've been part of at Heritage Hill.</p>
+    <div id="groupHistoryBox"></div>
+  </div>
+
+  <div class="portal-card">
     <h2>Change Password</h2>
     <div class="form-group"><label>New Password</label><input type="password" id="pwNew" /></div>
     <div class="form-group"><label>Confirm</label><input type="password" id="pwConfirm" /></div>
@@ -77,6 +89,7 @@
 <script src="../js/supabase-client.js"></script>
 <script src="../js/db.js"></script>
 <script src="../js/assessments.js"></script>
+<script src="../js/member-dashboard.js"></script>
 <script>
 let _profile = null, _content = null;
 
@@ -112,12 +125,16 @@ let _profile = null, _content = null;
   sel.value = _profile.groupId || '';
 
   // Results
-  const [attempts, content] = await Promise.all([
+  const [attempts, content, gtRegs, memberships, allGroups] = await Promise.all([
     SupaDB.getMyAttempts(), SupaDB.getAssessmentContent(),
+    SupaDB.getGrowthTrackRegistrationsForUser(user.id), SupaDB.getGroupMembershipsForUser(user.id),
+    SupaDB.getPublishedGroups(),
   ]);
   _content = Assessments.splitContent(content);
   renderResult('disc',  attempts.filter(a => a.assessmentType === 'disc'));
   renderResult('gifts', attempts.filter(a => a.assessmentType === 'gifts'));
+  MemberDashboard.renderGrowthTrackProgress(document.getElementById('gtProgressBox'), gtRegs);
+  MemberDashboard.renderGroupHistory(document.getElementById('groupHistoryBox'), memberships, allGroups);
 })();
 
 function escapeHtml(s) {

@@ -92,3 +92,5 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .score-row .bar > div { height: 100%; background: var(--primary); }
 .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 @media (max-width: 560px) { .q-scale label { min-width: 30%; } }
+.gt-progress-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:.9rem; }
+.gt-progress-row:last-child { border-bottom:none; }
