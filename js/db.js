@@ -480,8 +480,10 @@ window.SupaDB = {
   async adminRemoveGroupMember(id) {
     if (!db()) return { error: 'Not configured' };
     try {
+      const now = new Date();
+      const localToday = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
       const { error } = await db().from('group_memberships')
-        .update({ left_at: new Date().toISOString().slice(0, 10) }).eq('id', id);
+        .update({ left_at: localToday }).eq('id', id);
       if (error) throw error;
       return { ok: true };
     } catch(e) { console.error('[SupaDB] adminRemoveGroupMember:', e.message); return { error: e.message }; }
