@@ -51,23 +51,12 @@
     .page { max-width: 1200px; margin: 0 auto; padding: 28px 24px 48px; }
 
     /* ── Stat cards ── */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px;
-      margin-bottom: 28px;
-    }
     .stat-card {
       background: var(--bg-card);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       padding: 20px 22px;
     }
-    .stat-label { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin-bottom: 6px; }
-    .stat-value { font-size: 2rem; font-weight: 800; color: var(--text); line-height: 1; }
-    .stat-sub   { font-size: .8rem; color: var(--text-muted); margin-top: 4px; }
-    .stat-trend-up   { color: var(--success); font-weight: 700; }
-    .stat-trend-down { color: var(--danger);  font-weight: 700; }
 
     /* ── Chart cards ── */
     .charts-grid {
@@ -91,19 +80,11 @@
       justify-content: space-between;
     }
     .chart-title span { color: var(--text-muted); font-size: .8rem; font-weight: 500; }
-    .chart-wrap { position: relative; height: 280px; }
 
     .gt-progress-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:.9rem; }
     .gt-progress-row:last-child { border-bottom:none; }
 
-    /* ── Range picker ── */
-    .range-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-    }
+    /* ── Cycle buttons ── */
     .range-btn {
       padding: 6px 14px;
       border-radius: 50px;
@@ -118,32 +99,13 @@
     }
     .range-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
 
-    /* ── Table card ── */
-    .table-card {
-      background: var(--bg-card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-    .table-header {
-      padding: 18px 22px;
-      border-bottom: 1px solid var(--border);
-      font-size: .95rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
+    /* ── Tables (used by group history) ── */
     table { width: 100%; border-collapse: collapse; }
     thead tr { background: var(--bg); }
     th { padding: 11px 16px; text-align: left; font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); border-bottom: 1px solid var(--border); }
     td { padding: 13px 16px; border-bottom: 1px solid var(--border); font-size: .88rem; }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: rgba(0,0,0,.015); }
-    .pill { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: .75rem; font-weight: 700; }
-    .pill-amber { background: rgba(188,122,30,.12); color: #92400e; }
-    .pill-up    { background: rgba(22,163,74,.1);   color: #15803d; }
-    .pill-down  { background: rgba(239,68,68,.1);   color: #b91c1c; }
 
     .badge { display: inline-block; padding: 3px 9px; border-radius: 50px; font-size: .73rem; font-weight: 600; }
     .badge-green { background: rgba(22,163,74,.1); color: #16a34a; }
@@ -151,18 +113,9 @@
 
     /* ── Empty / loading ── */
     .loading { text-align: center; padding: 60px 24px; color: var(--text-muted); }
-    .btn-export {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 7px 14px; border-radius: 50px;
-      background: var(--secondary); color: #fff;
-      font-family: 'DM Sans', sans-serif; font-size: .8rem; font-weight: 600;
-      border: none; cursor: pointer; text-decoration: none; transition: filter .2s;
-    }
-    .btn-export:hover { filter: brightness(.9); }
 
     @media (max-width: 760px) {
       .charts-grid { grid-template-columns: 1fr; }
-      .stats-grid  { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
@@ -234,7 +187,7 @@ function escapeHtml(s) {
   }[c]));
 }
 
-let _allMembers = [], _currentIndex = -1, _content = null, _groups = [];
+let _allMembers = [], _currentIndex = -1, _content = null, _groups = [], _allAttempts = [];
 
 (async () => {
   try {
@@ -243,12 +196,14 @@ let _allMembers = [], _currentIndex = -1, _content = null, _groups = [];
     const roleData = await SupaDB.getUserRoleByEmail(user.email);
     if (!roleData || roleData.role !== 'admin') { window.location.href = 'dashboard.html'; return; }
 
-    const [profiles, contentRows, groups] = await Promise.all([
+    const [profiles, contentRows, groups, attempts] = await Promise.all([
       SupaDB.adminGetAllMemberProfiles(), SupaDB.getAssessmentContent(), SupaDB.adminGetAllGroups(),
+      SupaDB.getVisibleAttempts(),
     ]);
     _allMembers = profiles.filter(p => p.status === 'approved').sort((a, b) => a.name.localeCompare(b.name));
     _content = Assessments.splitContent(contentRows);
     _groups = groups;
+    _allAttempts = attempts;
 
     const startId = new URLSearchParams(window.location.search).get('id');
     _currentIndex = Math.max(0, _allMembers.findIndex(p => p.userId === startId));
@@ -310,12 +265,12 @@ async function loadCurrentMember() {
   document.getElementById('mdContact').textContent =
     `${p.email}${p.phone ? ' · ' + p.phone : ''} · ${groupName(p.groupId)} · ${p.yearsAttending || 'tenure not set'}`;
 
-  const [attempts, gtRegs, memberships] = await Promise.all([
-    SupaDB.getVisibleAttempts(), SupaDB.getGrowthTrackRegistrationsForUser(p.userId),
+  const [gtRegs, memberships] = await Promise.all([
+    SupaDB.getGrowthTrackRegistrationsForUser(p.userId),
     SupaDB.getGroupMembershipsForUser(p.userId),
   ]);
-  const d = attempts.find(a => a.userId === p.userId && a.assessmentType === 'disc');
-  const g = attempts.find(a => a.userId === p.userId && a.assessmentType === 'gifts');
+  const d = _allAttempts.find(a => a.userId === p.userId && a.assessmentType === 'disc');
+  const g = _allAttempts.find(a => a.userId === p.userId && a.assessmentType === 'gifts');
 
   MemberDashboard.renderGrowthTrackProgress(document.getElementById('mdGtProgress'), gtRegs);
   MemberDashboard.renderGroupHistory(document.getElementById('mdGroupHistory'), memberships, _groups);
