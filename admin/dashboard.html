@@ -1400,7 +1400,7 @@
       </div>
       <div class="table-wrap" style="margin:0;">
         <table>
-          <thead><tr><th>Name</th><th>Contact</th><th>Notes</th><th>Registered</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Name</th><th>Contact</th><th>Notes</th><th>Registered</th><th>Attended</th><th>Actions</th></tr></thead>
           <tbody id="gtRosterTable"></tbody>
         </table>
         <div id="gtRosterEmpty" class="empty" style="display:none;padding:24px 0;">
@@ -5175,8 +5175,14 @@ async function loadGtRoster() {
       <td>${escapeHtml(r.email)}${r.phone ? '<br><span style="font-size:.8rem;color:var(--text-muted);">' + escapeHtml(r.phone) + '</span>' : ''}</td>
       <td>${escapeHtml(r.notes)}</td>
       <td>${new Date(r.createdAt).toLocaleDateString()}</td>
+      <td style="text-align:center;"><input type="checkbox" ${r.attended?'checked':''} onchange="toggleGtAttended(${r.id}, this.checked)" /></td>
       <td><button class="btn btn-danger btn-sm" onclick="deleteGtRegistrant(${r.id})">Remove</button></td>
     </tr>`).join('');
+}
+
+async function toggleGtAttended(id, attended) {
+  const result = await SupaDB.adminSetGtAttended(id, attended);
+  if (result.error) { showToast(result.error, true); await loadGtRoster(); }
 }
 
 async function addGtRegistrant() {

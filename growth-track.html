@@ -252,12 +252,15 @@
     e.preventDefault();
     const part = document.getElementById('gtPart').value;
     const p = _gtParts.find(x => x.part === part);
+    let userId = null;
+    try { const user = await SupaDB.getUser(); if (user) userId = user.id; } catch (err) { /* not logged in */ }
     const reg = {
       part, sessionDate: p ? p.sessionDate : null, sessionTime: p ? p.sessionTime : '',
       name: document.getElementById('gtName').value.trim(),
       email: document.getElementById('gtEmail').value.trim(),
       phone: document.getElementById('gtPhone').value.trim(),
       notes: document.getElementById('gtNotes').value.trim(),
+      userId,
     };
     const result = await SupaDB.submitGrowthTrackRegistration(reg);
     if (result.error) {
