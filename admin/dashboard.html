@@ -1105,9 +1105,12 @@
     <div class="tab-panel" id="panelPeople">
       <div class="action-bar">
         <h2>Members &amp; Assessments</h2>
-        <a href="gifts-dashboard.html" class="btn btn-secondary">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Analytics
-        </a>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-secondary" id="bulkRegisterBtn" onclick="bulkRegisterLeadersAttendees()">Register Leaders &amp; Attendees</button>
+          <a href="gifts-dashboard.html" class="btn btn-secondary">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Analytics
+          </a>
+        </div>
       </div>
       <div id="pendingMembersBox" style="display:none; margin-bottom:20px;">
         <h3 style="font-size:.95rem; margin-bottom:10px;">Pending Approval</h3>
@@ -2345,11 +2348,16 @@ async function saveGroup(){
   const desc=document.getElementById('grDescription').value.trim();
   if(!name||!lead||!time||!loc||!desc){showToast('Please fill in all required fields.',true);return;}
   let image=document.getElementById('grImageFinal').value.trim()||document.getElementById('grImageUrl').value.trim()||'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80';
-  const newGr={id:id?parseInt(id):undefined,published:document.getElementById('grPublished').checked,name,leader:lead,leaderEmail:document.getElementById('grLeaderEmail').value.trim(),day:document.getElementById('grDay').value,time,location:loc,type:document.getElementById('grType').value,audience:document.getElementById('grAudience').value,description:desc,image,open:document.getElementById('grOpen').checked};
+  const leaderEmail=document.getElementById('grLeaderEmail').value.trim();
+  const newGr={id:id?parseInt(id):undefined,published:document.getElementById('grPublished').checked,name,leader:lead,leaderEmail,day:document.getElementById('grDay').value,time,location:loc,type:document.getElementById('grType').value,audience:document.getElementById('grAudience').value,description:desc,image,open:document.getElementById('grOpen').checked};
   const result = await SupaDB.saveGroup(newGr);
   if(result.error){showToast('Error saving group: '+result.error,true);return;}
   closeGroupModal();renderGroupsTable();updateStats();
   showToast(id?'Group updated!':'Group added!');
+  if (leaderEmail) {
+    const savedId = result.data ? result.data.id : (id ? parseInt(id) : null);
+    SupaDB.adminProvisionMember({ name: lead, email: leaderEmail, phone: '', groupId: savedId }).catch(() => {});
+  }
 }
 
 let _activeImgTab='url';
@@ -4946,6 +4954,44 @@ function latestByUser(attempts) {
   return map;
 }
 function giftNames(a) { try { const n = JSON.parse(a.result); return Array.isArray(n) ? n : []; } catch(e) { return []; } }
+
+async function bulkRegisterLeadersAttendees() {
+  if (!confirm('Register all current small group leaders and attendees as site members? This creates login accounts (password HHTemp!) for anyone who doesn\'t already have one.')) return;
+  const btn = document.getElementById('bulkRegisterBtn');
+  btn.disabled = true; btn.textContent = 'Working…';
+  try {
+    const [groups, allMembers] = await Promise.all([
+      SupaDB.adminGetAllGroups(), SupaDB.adminGetAllCurrentGroupMembers(),
+    ]);
+    const candidates = new Map();
+    groups.forEach(g => {
+      const email = (g.leaderEmail || '').trim().toLowerCase();
+      if (!email) return;
+      candidates.set(email, { name: g.leader || email, email, phone: '', groupId: g.id, isLeader: true });
+    });
+    allMembers.forEach(m => {
+      const email = (m.email || '').trim().toLowerCase();
+      if (!email) return;
+      const existing = candidates.get(email);
+      if (existing && existing.isLeader) return;
+      if (!existing) candidates.set(email, { name: m.name, email, phone: m.phone, groupId: m.groupId, isLeader: false });
+    });
+
+    let created = 0, skipped = 0, failed = 0;
+    for (const c of candidates.values()) {
+      const result = await SupaDB.adminProvisionMember(c);
+      if (result.created) created++;
+      else if (result.skipped) skipped++;
+      else failed++;
+    }
+    showToast(`Done: ${created} created, ${skipped} already had accounts, ${failed} failed.`);
+    renderPeoplePanel();
+  } catch(e) {
+    showToast('Error: ' + e.message, true);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Register Leaders & Attendees';
+  }
+}
 
 async function renderPeoplePanel() {
   const [profiles, attempts, groups, content] = await Promise.all([
