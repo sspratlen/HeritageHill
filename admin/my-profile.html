@@ -49,6 +49,23 @@
     <div class="msg-error" id="pfError"></div>
   </div>
 
+  <div class="portal-card">
+    <h2>Profile Photo</h2>
+    <p class="sub">Shown next to your name across the site.</p>
+    <div style="display:flex; align-items:center; gap:16px; margin-bottom:14px;">
+      <div id="avatarPreview" style="width:80px; height:80px; border-radius:50%; background:#F4F4F2; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;"></div>
+      <div>
+        <input type="file" id="avatarFile" accept="image/*" onchange="handleAvatarFile(this)" style="display:none;" />
+        <button type="button" class="btn-primary" onclick="document.getElementById('avatarFile').click()">Choose Photo</button>
+        <button type="button" class="btn-ghost" onclick="saveAvatar()" id="avatarSaveBtn" style="display:none; margin-left:8px;">Save Photo</button>
+        <br />
+        <button type="button" class="btn-ghost" onclick="removeAvatar()" id="avatarRemoveBtn" style="margin-top:8px; display:none;">Remove Photo</button>
+      </div>
+    </div>
+    <div class="msg-success" id="avatarSaved">Saved.</div>
+    <div class="msg-error" id="avatarError"></div>
+  </div>
+
   <div class="portal-card" id="discCard">
     <h2>Personality Assessment</h2>
     <p class="sub">20 questions · about 3 minutes</p>
@@ -118,6 +135,8 @@ let _profile = null, _content = null;
   document.getElementById('pfPhone').value = _profile.phone;
   document.getElementById('pfYears').value = _profile.yearsAttending || '';
   document.getElementById('pfShare').checked = _profile.shareWithLeader;
+  renderAvatarPreview(_profile.avatarUrl);
+  if (_profile.avatarUrl) document.getElementById('avatarRemoveBtn').style.display = '';
   const groups = await SupaDB.getPublishedGroups();
   const sel = document.getElementById('pfGroup');
   sel.innerHTML = '<option value="">— Not in a group —</option>' +
@@ -214,6 +233,65 @@ async function changePassword() {
     err.textContent = (e && e.message) || 'Could not update password.';
     err.classList.add('show');
   }
+}
+
+let _pendingAvatarUrl = null;
+
+function renderAvatarPreview(avatarUrl) {
+  const box = document.getElementById('avatarPreview');
+  if (avatarUrl) {
+    box.innerHTML = `<img src="${avatarUrl}" alt="Profile" style="width:100%;height:100%;object-fit:cover;" />`;
+  } else {
+    box.innerHTML = `<svg width="36" height="36" fill="none" stroke="#6B6B6B" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`;
+  }
+}
+
+function handleAvatarFile(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const SIZE = 160;
+      const side = Math.min(img.width, img.height);
+      const sx = (img.width - side) / 2, sy = (img.height - side) / 2;
+      const canvas = document.createElement('canvas');
+      canvas.width = SIZE; canvas.height = SIZE;
+      canvas.getContext('2d').drawImage(img, sx, sy, side, side, 0, 0, SIZE, SIZE);
+      _pendingAvatarUrl = canvas.toDataURL('image/jpeg', 0.8);
+      renderAvatarPreview(_pendingAvatarUrl);
+      document.getElementById('avatarSaveBtn').style.display = '';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function saveAvatar() {
+  if (!_pendingAvatarUrl) return;
+  const err = document.getElementById('avatarError'), ok = document.getElementById('avatarSaved');
+  err.classList.remove('show'); ok.classList.remove('show');
+  const r = await SupaDB.updateMyAvatar(_pendingAvatarUrl);
+  if (r.error) { err.textContent = r.error; err.classList.add('show'); return; }
+  ok.classList.add('show');
+  document.getElementById('avatarSaveBtn').style.display = 'none';
+  document.getElementById('avatarRemoveBtn').style.display = '';
+  _pendingAvatarUrl = null;
+  setTimeout(() => ok.classList.remove('show'), 2500);
+}
+
+async function removeAvatar() {
+  const err = document.getElementById('avatarError'), ok = document.getElementById('avatarSaved');
+  err.classList.remove('show'); ok.classList.remove('show');
+  const r = await SupaDB.updateMyAvatar(null);
+  if (r.error) { err.textContent = r.error; err.classList.add('show'); return; }
+  renderAvatarPreview(null);
+  document.getElementById('avatarRemoveBtn').style.display = 'none';
+  document.getElementById('avatarSaveBtn').style.display = 'none';
+  _pendingAvatarUrl = null;
+  ok.classList.add('show');
+  setTimeout(() => ok.classList.remove('show'), 2500);
 }
 
 async function signOut() { await SupaDB.signOut(); window.location.href = 'login.html'; }
