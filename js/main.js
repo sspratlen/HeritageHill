@@ -86,6 +86,48 @@ async function isAdminLoggedIn() {
   return false;
 }
 
+function initialsFor(name, email) {
+  const source = (name && name.trim()) || (email && email.split('@')[0]) || '';
+  if (!source) return null;
+  const parts = source.trim().split(/\s+/);
+  const initials = parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]) : source.slice(0, 2);
+  return initials.toUpperCase();
+}
+
+function buildAvatarHtml({ name, email, avatarUrl }, sizePx) {
+  sizePx = sizePx || 34;
+  if (avatarUrl) {
+    return `<img src="${avatarUrl}" alt="Profile" style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;object-fit:cover;display:block;" />`;
+  }
+  const initials = initialsFor(name, email);
+  if (!initials) {
+    const iconSize = Math.round(sizePx * 0.55);
+    return `<span style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;background:#F4F4F2;display:flex;align-items:center;justify-content:center;color:#6B6B6B;"><svg width="${iconSize}" height="${iconSize}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>`;
+  }
+  const fontSize = Math.round(sizePx * 0.4);
+  return `<span style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;background:#BC7A1E;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${fontSize}px;font-family:'DM Sans',sans-serif;">${initials}</span>`;
+}
+
+async function renderNavAvatar() {
+  if (!window.SupaDB) return;
+  try {
+    const user = await SupaDB.getUser();
+    if (!user) return;
+    const [roleData, profile] = await Promise.all([
+      SupaDB.getUserRoleByEmail(user.email), SupaDB.getMyProfile(),
+    ]);
+    const dest = roleData ? 'admin/dashboard.html' : 'admin/my-profile.html';
+    const name = profile ? profile.name : '';
+    const avatarUrl = profile ? profile.avatarUrl : null;
+    const html = buildAvatarHtml({ name, email: user.email, avatarUrl }, 34);
+    ['navLoginBtn', 'navLoginBtnMobile'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.outerHTML = `<a href="${dest}" id="${id}" style="display:inline-flex;align-items:center;">${html}</a>`;
+    });
+  } catch (e) { console.error('[renderNavAvatar]', e.message); }
+}
+
 /* ── Legacy localStorage helpers (kept for backwards compat) ── */
 const DB = {
   get(key, fallback = []) {
