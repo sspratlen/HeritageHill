@@ -508,7 +508,13 @@ window.SupaDB = {
   async adminAddGroupMember(m) {
     if (!db()) return { error: 'Not configured' };
     try {
-      const match = await this.adminFindMemberByEmail(m.email);
+      let match = await this.adminFindMemberByEmail(m.email);
+      if (!match) {
+        const provisioned = await this.adminProvisionMember({
+          name: m.name, email: m.email, phone: m.phone, groupId: m.groupId,
+        });
+        if (provisioned.userId) match = { userId: provisioned.userId };
+      }
       const { error } = await db().from('group_memberships').insert({
         group_id: m.groupId, name: m.name, email: m.email, phone: m.phone || '',
         notes: m.notes || '', user_id: match ? match.userId : null,
