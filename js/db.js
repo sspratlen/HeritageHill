@@ -492,7 +492,11 @@ window.SupaDB = {
           'Authorization': 'Bearer ' + (session ? session.access_token : ''),
           'apikey': SUPABASE_ANON_KEY,
         },
-        body: JSON.stringify({ email: lower }),
+        // action: 'createIfNew' — if this email already has an auth account
+        // (e.g. self-registered but hasn't visited my-profile.html yet to get
+        // a member_profiles row), never touch its password. Just report the
+        // existing userId so we can still create the missing profile row.
+        body: JSON.stringify({ email: lower, action: 'createIfNew' }),
       });
       const json = await res.json();
       if (!res.ok || json.error) return { error: json.error || ('HTTP ' + res.status) };

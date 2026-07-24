@@ -74,13 +74,24 @@ serve(async (req: Request) => {
       })
     }
 
-    // If the user already exists, find them and reset their password
+    // If the user already exists, look them up.
     if (createErr.message.toLowerCase().includes('already') || createErr.message.toLowerCase().includes('duplicate') || createErr.status === 422) {
       const { data: list, error: listErr } = await admin.auth.admin.listUsers({ perPage: 1000 })
       if (listErr) throw listErr
       const existing = list.users.find((u: { email?: string }) => u.email?.toLowerCase() === email.toLowerCase())
       if (!existing) throw new Error('User lookup failed after duplicate error')
 
+      // action === 'createIfNew' means "never touch an existing account's
+      // password" — used by bulk/auto-provisioning flows where the caller
+      // cannot be sure whether this person already set their own password.
+      if (action === 'createIfNew') {
+        return new Response(JSON.stringify({ ok: true, action: 'existed', userId: existing.id }), {
+          headers: { ...CORS, 'Content-Type': 'application/json' },
+        })
+      }
+
+      // Default behavior (explicit staff-initiated create/reset): reset their
+      // password to the temp password.
       const { error: updateErr } = await admin.auth.admin.updateUserById(existing.id, {
         password: TEMP_PASSWORD,
       })
