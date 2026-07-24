@@ -196,6 +196,7 @@ function memberProfileFromDb(r) {
     userId: r.user_id, name: r.name, email: r.email, phone: r.phone || '',
     groupId: r.group_id, yearsAttending: r.years_attending || '',
     status: r.status, shareWithLeader: !!r.share_with_leader, createdAt: r.created_at,
+    avatarUrl: r.avatar_url || null,
   };
 }
 function attemptFromDb(r) {
@@ -1115,6 +1116,15 @@ window.SupaDB = {
       name, phone: phone || '', group_id: groupId || null,
       years_attending: yearsAttending || '', share_with_leader: !!shareWithLeader,
     }).eq('user_id', user.id);
+    if (error) return { error: error.message };
+    return { success: true };
+  },
+  async updateMyAvatar(avatarUrl) {
+    if (!db()) return { error: 'Not configured' };
+    const { data: { user } } = await db().auth.getUser();
+    if (!user) return { error: 'Not signed in' };
+    const { error } = await db().from('member_profiles')
+      .update({ avatar_url: avatarUrl || null }).eq('user_id', user.id);
     if (error) return { error: error.message };
     return { success: true };
   },
