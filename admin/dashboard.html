@@ -4977,13 +4977,17 @@ async function bulkRegisterLeadersAttendees() {
       if (!existing) candidates.set(email, { name: m.name, email, phone: m.phone, groupId: m.groupId, isLeader: false });
     });
 
-    let created = 0, skipped = 0, failed = 0;
+    let created = 0, skipped = 0, failed = 0, done = 0;
+    const total = candidates.size, failedEmails = [];
     for (const c of candidates.values()) {
       const result = await SupaDB.adminProvisionMember(c);
       if (result.created) created++;
       else if (result.skipped) skipped++;
-      else failed++;
+      else { failed++; failedEmails.push(c.email); }
+      done++;
+      btn.textContent = `Working… (${done}/${total})`;
     }
+    if (failedEmails.length) console.error('[bulkRegisterLeadersAttendees] failed:', failedEmails);
     showToast(`Done: ${created} created, ${skipped} already had accounts, ${failed} failed.`);
     renderPeoplePanel();
   } catch(e) {
