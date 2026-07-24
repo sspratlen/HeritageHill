@@ -33,7 +33,7 @@
       <a href="sermons.html">Watch</a>
       <a href="give.html">Give</a>
     </div>
-    <a href="admin/login.html" class="btn btn-ghost btn-sm">Login</a>
+    <a href="admin/login.html" class="btn btn-ghost btn-sm" id="navLoginBtn">Login</a>
     <a href="about.html#visit" class="btn btn-primary btn-sm nav-cta">Plan a Visit</a>
     <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
       <span></span><span></span><span></span>
@@ -48,7 +48,7 @@
   <a href="prayer.html">Prayer</a>
   <a href="sermons.html">Watch</a>
   <a href="give.html">Give</a>
-  <a href="admin/login.html" class="btn btn-ghost">Login</a>
+  <a href="admin/login.html" class="btn btn-ghost" id="navLoginBtnMobile">Login</a>
   <a href="about.html#visit" class="btn btn-primary">Plan a Visit</a>
 </div>
 
@@ -265,6 +265,7 @@
 <script src="js/main.js"></script>
 <script>
   document.getElementById('footerYear').textContent = new Date().getFullYear();
+      renderNavAvatar();
   isAdminLoggedIn().then(ok => { if (ok) document.getElementById('adminBar').classList.add('show'); });
 
   // Cache all published groups so filters don't re-query on every keystroke
