@@ -465,6 +465,46 @@ window.SupaDB = {
       return (data || []).map(groupMembershipFromDb);
     } catch(e) { console.error('[SupaDB] adminGetGroupMembers:', e.message); return []; }
   },
+  async adminGetAllCurrentGroupMembers() {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('group_memberships')
+        .select('*').is('left_at', null);
+      if (error) throw error;
+      return (data || []).map(groupMembershipFromDb);
+    } catch(e) { console.error('[SupaDB] adminGetAllCurrentGroupMembers:', e.message); return []; }
+  },
+  async adminProvisionMember({ name, email, phone, groupId }) {
+    if (!db() || !email) return { error: 'Email required' };
+    try {
+      const lower = email.toLowerCase();
+      const [profileCheck, roleCheck] = await Promise.all([
+        db().from('member_profiles').select('user_id').eq('email', lower).maybeSingle(),
+        db().from('user_roles').select('email').eq('email', lower).maybeSingle(),
+      ]);
+      if (profileCheck.data || roleCheck.data) return { skipped: true };
+
+      const { data: { session } } = await db().auth.getSession();
+      const res = await fetch(SUPABASE_URL + '/functions/v1/admin-create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + (session ? session.access_token : ''),
+          'apikey': SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ email: lower }),
+      });
+      const json = await res.json();
+      if (!res.ok || json.error) return { error: json.error || ('HTTP ' + res.status) };
+
+      const { error: insertErr } = await db().from('member_profiles').insert({
+        user_id: json.userId, name: name || lower, email: lower, phone: phone || '',
+        group_id: groupId || null, status: 'approved',
+      });
+      if (insertErr) return { error: insertErr.message };
+      return { created: true, userId: json.userId };
+    } catch(e) { console.error('[SupaDB] adminProvisionMember:', e.message); return { error: e.message }; }
+  },
   async adminAddGroupMember(m) {
     if (!db()) return { error: 'Not configured' };
     try {
