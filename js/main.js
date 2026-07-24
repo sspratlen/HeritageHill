@@ -94,10 +94,26 @@ function initialsFor(name, email) {
   return initials.toUpperCase();
 }
 
+function escapeHtmlAttr(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
+// avatar_url is written by the profile owner (or an admin) via updateMyAvatar,
+// but RLS only restricts WHO can write it, not WHAT — the value itself isn't
+// validated server-side. Only trust it as an image source if it's actually a
+// data: or https: URL, and HTML-escape it regardless before it's injected via
+// outerHTML (which parses as markup, not text), so a crafted string can't
+// break out of the src attribute.
+function isSafeAvatarUrl(url) {
+  return typeof url === 'string' && /^(data:image\/|https:\/\/)/i.test(url);
+}
+
 function buildAvatarHtml({ name, email, avatarUrl }, sizePx) {
   sizePx = sizePx || 34;
-  if (avatarUrl) {
-    return `<img src="${avatarUrl}" alt="Profile" style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;object-fit:cover;display:block;" />`;
+  if (avatarUrl && isSafeAvatarUrl(avatarUrl)) {
+    return `<img src="${escapeHtmlAttr(avatarUrl)}" alt="Profile" style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;object-fit:cover;display:block;" />`;
   }
   const initials = initialsFor(name, email);
   if (!initials) {
@@ -105,7 +121,7 @@ function buildAvatarHtml({ name, email, avatarUrl }, sizePx) {
     return `<span style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;background:#F4F4F2;display:flex;align-items:center;justify-content:center;color:#6B6B6B;"><svg width="${iconSize}" height="${iconSize}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>`;
   }
   const fontSize = Math.round(sizePx * 0.4);
-  return `<span style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;background:#BC7A1E;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${fontSize}px;font-family:'DM Sans',sans-serif;">${initials}</span>`;
+  return `<span style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;background:#BC7A1E;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${fontSize}px;font-family:'DM Sans',sans-serif;">${escapeHtmlAttr(initials)}</span>`;
 }
 
 async function renderNavAvatar() {
