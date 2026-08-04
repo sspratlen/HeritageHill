@@ -660,6 +660,8 @@
 </head>
 <body>
 
+<div id="page-content" style="visibility:hidden;">
+
 <!-- ══ 1. HERO ══════════════════════════════════════════════ -->
 <header class="hero">
   <div class="hero-mountains" aria-hidden="true"></div>
@@ -944,10 +946,38 @@
   </div>
 </footer>
 
+</div>
+<!-- /#page-content -->
+
+<div id="closed-message" style="display:none;min-height:100vh;align-items:center;justify-content:center;text-align:center;padding:40px 16px;background:#1a1a1a;color:#F5F0E8;">
+  <div>
+    <h1 style="font-size:1.8rem;margin-bottom:12px;">Registration Is Currently Closed</h1>
+    <p style="opacity:.7;">Check back soon, or reach out to <a href="mailto:scottspratlen@heritagehill.church" style="color:#E8891A;">scottspratlen@heritagehill.church</a> with questions.</p>
+  </div>
+</div>
+
 <script>
 (function () {
   var SUPA_URL = 'https://ktyplbmawlaerzohkdqy.supabase.co';
   var ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0eXBsYm1hd2xhZXJ6b2hrZHF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNjU4MDgsImV4cCI6MjA5MzY0MTgwOH0.Pe0_syQjPqkwrdl8cno9YliY2i1i8x77R8bYCG8KXr4';
+
+  fetch(SUPA_URL + '/rest/v1/site_settings?key=eq.retreat_registration_open&select=value', {
+    headers: { apikey: ANON_KEY, Authorization: 'Bearer ' + ANON_KEY },
+  })
+    .then(function (res) { return res.ok ? res.json() : []; })
+    .then(function (rows) {
+      var isOpen = rows.length ? rows[0].value !== false : true;
+      if (isOpen) {
+        document.getElementById('page-content').style.visibility = 'visible';
+      } else {
+        document.getElementById('closed-message').style.display = 'flex';
+      }
+    })
+    .catch(function () {
+      // Network/parse failure: fail OPEN, matching the admin-side default,
+      // rather than blocking legitimate registration due to a transient error.
+      document.getElementById('page-content').style.visibility = 'visible';
+    });
 
   window.handleRetreatSubmit = async function (e) {
     e.preventDefault();
