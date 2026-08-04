@@ -2412,18 +2412,20 @@ function applySignupsFilter(){
     empty.style.display='none';
     grid.innerHTML=signups.map(s=>{
       const ds=s.date?new Date(s.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
-      return`<div class="signup-card${s.contacted?' contacted':''}" id="sc_${s.id}">
-        <div class="signup-card-name">${s.name}</div>
-        <div class="signup-card-group">${s.contacted?'✓ Contacted · ':''}${s.groupName}</div>
-        <div class="signup-card-detail"><strong>Email</strong><a href="mailto:${s.email}" style="color:var(--primary);">${s.email}</a></div>
-        ${s.phone?`<div class="signup-card-detail"><strong>Phone</strong>${s.phone}</div>`:''}
-        <div class="signup-card-detail"><strong>Date</strong>${ds}</div>
-        ${s.message?`<div class="signup-card-message">"${s.message}"</div>`:''}
-        <div class="signup-card-footer">
+      const fullMsg=s.message||'';
+      const previewMsg=fullMsg.length>40?fullMsg.slice(0,40)+'…':fullMsg;
+      const msgCell=fullMsg?`<span class="signup-msg-preview" title="${escapeHtml(fullMsg)}" onclick="this.classList.toggle('expanded')">${escapeHtml(previewMsg)}</span>`:'—';
+      return`<tr id="sc_${s.id}">
+        <td><strong>${escapeHtml(s.name)}</strong><br><a href="mailto:${escapeHtml(s.email)}" style="font-size:.8rem;color:var(--primary);">${escapeHtml(s.email)}</a>${s.phone?`<br><span style="font-size:.8rem;color:var(--text-muted);">${escapeHtml(s.phone)}</span>`:''}</td>
+        <td>${escapeHtml(s.groupName)}</td>
+        <td style="font-size:.82rem;color:var(--text-muted);">${ds}</td>
+        <td>${msgCell}</td>
+        <td>${s.contacted?'<span class="badge badge-green">Contacted</span>':'<span class="badge badge-amber">New</span>'}</td>
+        <td><div class="td-actions">
           <button class="btn btn-sm ${s.contacted?'btn-ghost':'btn-success'}" onclick="toggleSignupContacted(${s.id})">${s.contacted?'↩ Mark Uncontacted':'✓ Mark Contacted'}</button>
           <button class="btn btn-danger btn-sm" onclick="deleteItem('signup',${s.id},'${s.name.replace(/'/g,"\\'")}')">Delete</button>
-        </div>
-      </div>`;
+        </div></td>
+      </tr>`;
     }).join('');
   }
 }
