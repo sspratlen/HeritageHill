@@ -350,7 +350,10 @@
         </select>
         <span id="signupCountLabel" style="margin-left:auto; font-size:.82rem; color:var(--text-muted);"></span>
       </div>
-      <div class="signups-grid" id="signupsGrid"></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Name & Contact</th><th>Group</th><th>Date</th><th>Message</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="signupsGrid"></tbody></table>
+      </div>
       <div class="empty" id="signupsEmpty" style="display:none;">
         <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
         <h3>No sign-up requests yet</h3><p>When visitors join a group from the website, they'll appear here.</p>
