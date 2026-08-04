@@ -927,6 +927,25 @@ window.SupaDB = {
     } catch(e) { console.error('[SupaDB] saveBannerSettings:', e.message); return { error: e.message }; }
   },
 
+  /* ── Site Settings: Retreat Registration Toggle ────────── */
+  async getRetreatRegistrationOpen() {
+    if (!db()) return true;
+    try {
+      const { data, error } = await db().from('site_settings').select('value').eq('key','retreat_registration_open').single();
+      if (error) return true;
+      return data?.value !== false;
+    } catch(e) { console.error('[SupaDB] getRetreatRegistrationOpen:', e.message); return true; }
+  },
+  async setRetreatRegistrationOpen(isOpen) {
+    if (!db()) return { error: 'No DB' };
+    try {
+      const { error } = await db().from('site_settings')
+        .upsert({ key: 'retreat_registration_open', value: isOpen, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+      if (error) throw error;
+      return { success: true };
+    } catch(e) { console.error('[SupaDB] setRetreatRegistrationOpen:', e.message); return { error: e.message }; }
+  },
+
   /* ── Attendance ─────────────────────────────────────────── */
   async adminGetAllAttendance() {
     if (!db()) return [];
