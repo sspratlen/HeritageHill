@@ -971,6 +971,10 @@
       <div class="action-bar">
         <h2>Retreat Registrations</h2>
         <span id="retreatCount" style="font-size:.85rem;color:var(--text-muted);"></span>
+        <label style="display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--text-muted);cursor:pointer;">
+          <input type="checkbox" id="retreatOpenToggle" onchange="toggleRetreatOpen(this.checked)" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer;" />
+          Registration Open
+        </label>
         <button class="btn btn-secondary btn-sm" onclick="downloadRetreatCSV()" style="margin-left:auto;">⬇ Download CSV</button>
       </div>
 
@@ -4590,6 +4594,21 @@ let _allRetreatRegs = [];
 async function renderRetreatTable() {
   _allRetreatRegs = await SupaDB.adminGetAllRetreatRegistrations();
   filterRetreatRegs();
+  loadRetreatOpenState();
+}
+
+async function loadRetreatOpenState() {
+  const isOpen = await SupaDB.getRetreatRegistrationOpen();
+  const el = document.getElementById('retreatOpenToggle');
+  if (el) el.checked = isOpen;
+}
+
+async function toggleRetreatOpen(isOpen) {
+  const res = await SupaDB.setRetreatRegistrationOpen(isOpen);
+  if (res.error) {
+    showToast('Failed to update registration status: ' + res.error, true);
+    loadRetreatOpenState(); // revert checkbox to actual persisted state
+  }
 }
 
 function filterRetreatRegs() {
