@@ -57,6 +57,7 @@ function groupFromDb(r) {
     day: r.day, time: r.time, location: r.location, type: r.type,
     audience: r.audience, description: r.description, image: r.image,
     open: r.open !== false, published: r.published !== false,
+    semesterId: r.semester_id || null,
   };
 }
 function groupToDb(g) {
@@ -65,6 +66,7 @@ function groupToDb(g) {
     day: g.day, time: g.time, location: g.location, type: g.type || 'Life Group',
     audience: g.audience || 'All Ages', description: g.description, image: g.image,
     open: g.open !== false, published: g.published !== false,
+    semester_id: g.semesterId || null,
   };
   if (g.id) o.id = g.id;
   return o;
@@ -907,6 +909,35 @@ window.SupaDB = {
       if (error) throw error;
       return { ok: true };
     } catch(e) { console.error('[SupaDB] saveSaveDates:', e.message); return { error: e.message }; }
+  },
+
+  /* ── Site Settings: Small Group Semesters ──────────────── */
+  async getSemesters() {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('site_settings').select('value').eq('key', 'semesters').single();
+      if (error) return [];
+      return Array.isArray(data?.value) ? data.value : [];
+    } catch(e) { console.error('[SupaDB] getSemesters:', e.message); return []; }
+  },
+  async saveSemesters(items) {
+    if (!db()) return { error: 'No DB' };
+    try {
+      const { error } = await db().from('site_settings')
+        .upsert({ key: 'semesters', value: items, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] saveSemesters:', e.message); return { error: e.message }; }
+  },
+  async getCurrentSemester() {
+    const list = await this.getSemesters();
+    if (!list.length) return null;
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const active = list.find(s => s.startDate <= today && today <= s.endDate);
+    if (active) return active;
+    const upcoming = list.filter(s => s.startDate >= today).sort((a, b) => a.startDate.localeCompare(b.startDate));
+    return upcoming.length ? upcoming[0] : null;
   },
 
   async getBannerSettings() {
