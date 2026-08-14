@@ -105,6 +105,10 @@
           <option value="Seniors">Seniors</option>
           <option value="All Ages">All Ages</option>
         </select>
+        <select id="groupSemester" class="filter-select" onchange="filterGroups()">
+          <option value="">All Semesters</option>
+          <option value="__current__">Current Semester</option>
+        </select>
       </div>
     </div>
 
@@ -305,12 +309,15 @@
     const day      = document.getElementById('groupDay').value;
     const type     = document.getElementById('groupType').value;
     const audience = document.getElementById('groupAudience').value;
+    const semester = document.getElementById('groupSemester').value;
     let groups = [..._allGroups];
 
     if (q)        groups = groups.filter(g => g.name.toLowerCase().includes(q) || g.description.toLowerCase().includes(q) || g.leader.toLowerCase().includes(q));
     if (day)      groups = groups.filter(g => g.day === day);
     if (type)     groups = groups.filter(g => g.type === type);
     if (audience) groups = groups.filter(g => g.audience === audience);
+    if (semester === '__current__') groups = groups.filter(g => g.semesterId === _currentSemesterId);
+    else if (semester) groups = groups.filter(g => g.semesterId === semester);
 
     const grid  = document.getElementById('groupGrid');
     const empty = document.getElementById('groupEmpty');
@@ -326,8 +333,17 @@
   }
 
   // Load groups from Supabase then apply any URL param filter
-  SupaDB.getPublishedGroups().then(data => {
-    _allGroups = data;
+  let _currentSemesterId = null;
+  Promise.all([SupaDB.getPublishedGroups(), SupaDB.getSemesters(), SupaDB.getCurrentSemester()]).then(([groups, semesters, current]) => {
+    _allGroups = groups;
+    _currentSemesterId = current ? current.id : null;
+    const semSel = document.getElementById('groupSemester');
+    semesters.slice().sort((a, b) => b.startDate.localeCompare(a.startDate)).forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.name;
+      semSel.appendChild(opt);
+    });
 
     // URL param pre-filter
     const urlParams = new URLSearchParams(window.location.search);
