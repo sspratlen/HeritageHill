@@ -959,6 +959,42 @@
             <span id="sdSaveMsg" style="font-size:.82rem;display:none;"></span>
           </div>
         </div>
+
+        <!-- Semesters Card -->
+        <div style="background:var(--bg-card);border:1.5px solid var(--border);border-radius:14px;padding:28px 32px;margin-top:24px;">
+          <div style="margin-bottom:20px;">
+            <h3 style="margin:0 0 4px;font-size:1.05rem;">Semesters</h3>
+            <p style="margin:0;font-size:.85rem;color:var(--text-muted);">Spring, Summer, and Fall date ranges used to tag small groups and filter to the current semester.</p>
+          </div>
+
+          <!-- Existing items list -->
+          <div id="semestersList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+
+          <!-- Add new item form -->
+          <div style="border:1px solid var(--border);border-radius:10px;padding:16px;background:var(--bg);">
+            <p style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin:0 0 12px;">Add Semester</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;">
+              <div class="field" style="margin:0;">
+                <label style="font-size:.8rem;">Name *</label>
+                <input type="text" id="semName" placeholder="e.g. Spring 2027" />
+              </div>
+              <div class="field" style="margin:0;">
+                <label style="font-size:.8rem;">Start Date *</label>
+                <input type="date" id="semStart" />
+              </div>
+              <div class="field" style="margin:0;">
+                <label style="font-size:.8rem;">End Date *</label>
+                <input type="date" id="semEnd" />
+              </div>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="addSemester()">+ Add</button>
+          </div>
+
+          <div style="margin-top:16px;display:flex;gap:10px;align-items:center;">
+            <button class="btn btn-primary" onclick="saveSemesters()">Save</button>
+            <span id="semSaveMsg" style="font-size:.82rem;display:none;"></span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1982,7 +2018,7 @@ function switchTab(tab) {
   else if(tab==='attendance') renderAttendanceTable();
   else if(tab==='sermons') renderSermonsTable();
   else if(tab==='email')    { loadCampaignHistory(); loadMailchimpTags(); }
-  else if(tab==='settings') { loadBannerSettings(); loadSaveDatesSettings(); }
+  else if(tab==='settings') { loadBannerSettings(); loadSaveDatesSettings(); loadSemesters(); }
   else if(tab==='users') renderUsersTable();
   else if(tab==='people')  renderPeoplePanel();
   else if(tab==='mygroup') renderMyGroupPanel();
@@ -4579,6 +4615,100 @@ function deleteSaveDate(index) {
 async function saveSaveDates() {
   const msg = document.getElementById('sdSaveMsg');
   const result = await SupaDB.saveSaveDates(_saveDates);
+  if (result && result.error) { showToast('Error saving: ' + result.error, true); return; }
+  msg.textContent = 'Saved! ✓';
+  msg.style.color = 'var(--primary)';
+  msg.style.display = '';
+  setTimeout(() => msg.style.display = 'none', 3000);
+}
+
+/* ── Semesters ────────────────────────────────────────────── */
+let _semesters = [];
+
+function genSemesterId(name) {
+  const slug = name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const suffix = Math.random().toString(36).slice(2, 6);
+  return `${slug}-${suffix}`;
+}
+
+async function loadSemesters() {
+  _semesters = await SupaDB.getSemesters();
+  renderSemestersList();
+}
+
+function renderSemestersList() {
+  const el = document.getElementById('semestersList');
+  if (!_semesters.length) {
+    el.innerHTML = '<p style="font-size:.85rem;color:var(--text-muted);margin:0;">No semesters yet — add one below.</p>';
+    return;
+  }
+  el.innerHTML = _semesters.map((item, i) => `
+    <div id="semRow${i}" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;">
+      <!-- View mode -->
+      <div id="semView${i}" style="display:flex;align-items:center;gap:10px;">
+        <div style="flex:1;min-width:0;">
+          <span style="font-weight:700;color:var(--primary);font-size:.85rem;">${item.name}</span>
+          <span style="color:var(--text-muted);font-size:.78rem;margin-left:10px;">${item.startDate} → ${item.endDate}</span>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="editSemester(${i})">Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="deleteSemester(${i})" style="color:#ef4444;">Remove</button>
+      </div>
+      <!-- Edit mode (hidden by default) -->
+      <div id="semEdit${i}" style="display:none;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div class="field" style="margin:0;"><label style="font-size:.78rem;">Name *</label><input type="text" id="semEName${i}" value="${item.name||''}" placeholder="e.g. Spring 2027" /></div>
+          <div class="field" style="margin:0;"><label style="font-size:.78rem;">Start Date *</label><input type="date" id="semEStart${i}" value="${item.startDate||''}" /></div>
+          <div class="field" style="margin:0;"><label style="font-size:.78rem;">End Date *</label><input type="date" id="semEEnd${i}" value="${item.endDate||''}" /></div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary btn-sm" onclick="commitSemester(${i})">Save</button>
+          <button class="btn btn-ghost btn-sm" onclick="cancelEditSemester(${i})">Cancel</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function editSemester(i) {
+  document.getElementById('semView'+i).style.display = 'none';
+  document.getElementById('semEdit'+i).style.display = '';
+  document.getElementById('semEName'+i).focus();
+}
+
+function cancelEditSemester(i) {
+  document.getElementById('semEdit'+i).style.display = 'none';
+  document.getElementById('semView'+i).style.display = 'flex';
+}
+
+async function commitSemester(i) {
+  const name      = document.getElementById('semEName'+i).value.trim();
+  const startDate = document.getElementById('semEStart'+i).value;
+  const endDate   = document.getElementById('semEEnd'+i).value;
+  if (!name || !startDate || !endDate) { showToast('Name, Start Date, and End Date are required.', true); return; }
+  _semesters[i] = { id: _semesters[i].id, name, startDate, endDate };
+  renderSemestersList();
+  await saveSemesters();
+}
+
+function addSemester() {
+  const name      = document.getElementById('semName').value.trim();
+  const startDate = document.getElementById('semStart').value;
+  const endDate   = document.getElementById('semEnd').value;
+  if (!name || !startDate || !endDate) { showToast('Name, Start Date, and End Date are required.', true); return; }
+  _semesters.push({ id: genSemesterId(name), name, startDate, endDate });
+  renderSemestersList();
+  document.getElementById('semName').value = '';
+  document.getElementById('semStart').value = '';
+  document.getElementById('semEnd').value = '';
+}
+
+function deleteSemester(index) {
+  _semesters.splice(index, 1);
+  renderSemestersList();
+}
+
+async function saveSemesters() {
+  const msg = document.getElementById('semSaveMsg');
+  const result = await SupaDB.saveSemesters(_semesters);
   if (result && result.error) { showToast('Error saving: ' + result.error, true); return; }
   msg.textContent = 'Saved! ✓';
   msg.style.color = 'var(--primary)';
