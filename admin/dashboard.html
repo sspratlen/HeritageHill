@@ -311,6 +311,10 @@
     <div class="tab-panel" id="panelGroups">
       <div class="action-bar">
         <h2>Manage Small Groups</h2>
+        <select id="groupSemesterFilter" onchange="renderGroupsTable()" style="padding:.45rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;">
+          <option value="">All Semesters</option>
+          <option value="__current__">Current Semester</option>
+        </select>
         <div style="display:flex;gap:8px;">
           <button class="btn btn-secondary" id="emailAllLeadersBtn" onclick="openAllLeadersEmailModal()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Email All Leaders
@@ -321,7 +325,7 @@
         </div>
       </div>
       <div class="table-wrap">
-        <table><thead><tr><th>Group Name</th><th>Day & Time</th><th>Type</th><th>Audience</th><th>Published</th><th>Status</th><th>Actions</th></tr></thead>
+        <table><thead><tr><th>Group Name</th><th>Day & Time</th><th>Type</th><th>Audience</th><th>Semester</th><th>Published</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody id="groupsTable"></tbody></table>
         <div class="empty" id="groupsEmpty" style="display:none;">
           <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
@@ -1309,6 +1313,11 @@
         </div>
         <div class="field"><label>Location *</label><input type="text" id="grLocation" placeholder="e.g. Heritage Hill Room A" /></div>
       </div>
+      <div class="form-row">
+        <div class="field"><label>Semester <span style="font-weight:400;color:var(--text-muted);font-size:.78rem;">(optional — leave blank for an ongoing group)</span></label>
+          <select id="grSemester"><option value="">— No Semester —</option></select>
+        </div>
+      </div>
       <div class="form-row full"><div class="field"><label>Description *</label><textarea id="grDescription" placeholder="Describe this group…"></textarea></div></div>
       <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:8px;">Group Image</label>
       <div class="img-picker">
@@ -2208,23 +2217,39 @@ function openGCalForEvent(id){const ev=_cachedEvents.find(e=>e.id===id);if(ev)wi
 
 /* GROUPS */
 let _cachedGroups = [];
+let _semestersForGroupModal = [];
 async function renderGroupsTable(){
   _cachedGroups = await SupaDB.adminGetAllGroups();
+  _semestersForGroupModal = await SupaDB.getSemesters();
   const isLeader = window._userRole === 'small_group_leader';
-  const groups = isLeader ? _cachedGroups.filter(g => window._myGroupIds.includes(g.id)) : _cachedGroups;
+  let groups = isLeader ? _cachedGroups.filter(g => window._myGroupIds.includes(g.id)) : _cachedGroups;
   // Show/hide Add Group and Email All Leaders buttons based on role
   const addBtn = document.getElementById('addGroupBtn');
   if (addBtn) addBtn.style.display = isLeader ? 'none' : '';
   const emailAllBtn = document.getElementById('emailAllLeadersBtn');
   if (emailAllBtn) emailAllBtn.style.display = isLeader ? 'none' : '';
+  const semSelEl = document.getElementById('groupSemesterFilter');
+  if (semSelEl && semSelEl.options.length <= 2) {
+    semSelEl.innerHTML = '<option value="">All Semesters</option><option value="__current__">Current Semester</option>'
+      + _semestersForGroupModal.slice().sort((a,b)=>b.startDate.localeCompare(a.startDate)).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  }
+  const filterVal = semSelEl ? semSelEl.value : '';
+  if (filterVal === '__current__') {
+    const current = await SupaDB.getCurrentSemester();
+    groups = current ? groups.filter(g => g.semesterId === current.id) : [];
+  } else if (filterVal) {
+    groups = groups.filter(g => g.semesterId === filterVal);
+  }
   const tbody=document.getElementById('groupsTable'),empty=document.getElementById('groupsEmpty');
   if(!groups.length){tbody.innerHTML='';empty.style.display='';return;}empty.style.display='none';
-  tbody.innerHTML=groups.map(g=>`
-    <tr>
+  tbody.innerHTML=groups.map(g=>{
+    const semName = g.semesterId ? (_semestersForGroupModal.find(s=>s.id===g.semesterId)||{}).name || '—' : '—';
+    return `<tr>
       <td><strong>${g.name}</strong><br><span style="font-size:.8rem;color:var(--text-muted);">Led by ${g.leader}</span></td>
       <td>${g.day}s at ${g.time}<br><span style="font-size:.8rem;color:var(--text-muted);">${(g.location||'').split('–')[0].trim()}</span></td>
       <td><span class="badge badge-blue">${g.type}</span></td>
       <td>${g.audience}</td>
+      <td>${semName}</td>
       <td>${g.published?'<span class="badge badge-green">Published</span>':'<span class="badge badge-gray">Draft</span>'}</td>
       <td>${g.open?'<span class="badge badge-amber">Open</span>':'<span class="badge badge-red">Full</span>'}</td>
       <td><div class="td-actions">
@@ -2237,7 +2262,8 @@ async function renderGroupsTable(){
         </button>
         ${!isLeader?`<button class="btn btn-danger btn-sm" onclick="deleteItem('group',${g.id},'${g.name.replace(/'/g,"\\'")}')">Delete</button>`:''}
       </div></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 function openGroupModal(g){
   document.getElementById('groupModalTitle').textContent=g?'Edit Group':'Add Group';
@@ -2253,6 +2279,9 @@ function openGroupModal(g){
   document.getElementById('grLocation').value=g?g.location:'';
   document.getElementById('grDescription').value=g?g.description:'';
   document.getElementById('grOpen').checked=g?g.open:true;
+  const semSel=document.getElementById('grSemester');
+  semSel.innerHTML='<option value="">— No Semester —</option>'+_semestersForGroupModal.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  semSel.value=g?(g.semesterId||''):'';
   switchImgTab('url',document.querySelector('#groupModal .img-tab'));
   document.getElementById('grImageUrl').value=g?(g.image||''):'';
   document.getElementById('grImageFinal').value=g?(g.image||''):'';
@@ -2360,7 +2389,7 @@ async function saveGroup(){
   if(!name||!lead||!time||!loc||!desc){showToast('Please fill in all required fields.',true);return;}
   let image=document.getElementById('grImageFinal').value.trim()||document.getElementById('grImageUrl').value.trim()||'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80';
   const leaderEmail=document.getElementById('grLeaderEmail').value.trim();
-  const newGr={id:id?parseInt(id):undefined,published:document.getElementById('grPublished').checked,name,leader:lead,leaderEmail,day:document.getElementById('grDay').value,time,location:loc,type:document.getElementById('grType').value,audience:document.getElementById('grAudience').value,description:desc,image,open:document.getElementById('grOpen').checked};
+  const newGr={id:id?parseInt(id):undefined,published:document.getElementById('grPublished').checked,name,leader:lead,leaderEmail,day:document.getElementById('grDay').value,time,location:loc,type:document.getElementById('grType').value,audience:document.getElementById('grAudience').value,description:desc,image,open:document.getElementById('grOpen').checked,semesterId:document.getElementById('grSemester').value||null};
   const result = await SupaDB.saveGroup(newGr);
   if(result.error){showToast('Error saving group: '+result.error,true);return;}
   closeGroupModal();renderGroupsTable();updateStats();
