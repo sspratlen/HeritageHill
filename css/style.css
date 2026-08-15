@@ -563,6 +563,30 @@ p  { font-size: 1.0625rem; color: var(--text-muted); }
 }
 .admin-fab:hover { background: var(--primary-dark); transform: scale(1.08); }
 
+/* ── Floating "Need Prayer?" button ────────────────────── */
+.prayer-fab {
+  position: fixed;
+  bottom: 24px; left: 24px;
+  z-index: 950;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px 14px 16px;
+  border-radius: 50px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  box-shadow: var(--shadow-lg);
+  font-family: 'DM Sans', sans-serif;
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.prayer-fab:active { cursor: grabbing; }
+.prayer-fab svg { flex-shrink: 0; }
+
 /* ── Responsive ─────────────────────────────────────── */
 @media (max-width: 1024px) {
   .grid-3 { grid-template-columns: repeat(2, 1fr); }
