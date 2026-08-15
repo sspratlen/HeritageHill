@@ -77,15 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.head.appendChild(style);
 });
 
-/* ── Admin login check ────────────────────────────────── */
-async function isAdminLoggedIn() {
-  if (window.SupaDB) {
-    const user = await window.SupaDB.getUser();
-    return !!user;
-  }
-  return false;
-}
-
 function initialsFor(name, email) {
   const source = (name && name.trim()) || (email && email.split('@')[0]) || '';
   if (!source) return null;

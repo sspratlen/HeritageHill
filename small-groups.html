@@ -257,11 +257,6 @@
   </div>
 </div>
 
-<!-- Admin floating button -->
-<div class="admin-edit-bar" id="adminBar">
-  <a href="admin/dashboard.html?tab=groups" class="admin-fab" title="Manage Groups">✏️</a>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="js/supabase-client.js"></script>
 <script src="js/db.js"></script>
@@ -269,7 +264,6 @@
 <script>
   document.getElementById('footerYear').textContent = new Date().getFullYear();
       renderNavAvatar();
-  isAdminLoggedIn().then(ok => { if (ok) document.getElementById('adminBar').classList.add('show'); });
 
   // Cache all published groups so filters don't re-query on every keystroke
   let _allGroups = [];

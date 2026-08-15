@@ -541,32 +541,10 @@ p  { font-size: 1.0625rem; color: var(--text-muted); }
 .empty-state svg { margin: 0 auto 16px; opacity: .35; }
 .empty-state h3  { color: var(--text); margin-bottom: .5rem; }
 
-/* ── Admin badge ─────────────────────────────────────── */
-.admin-edit-bar {
-  display: none;
-  position: fixed;
-  bottom: 24px; right: 24px;
-  z-index: 900;
-}
-.admin-edit-bar.show { display: block; }
-.admin-fab {
-  width: 56px; height: 56px;
-  border-radius: 50%;
-  background: var(--primary);
-  color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: var(--shadow-lg);
-  cursor: pointer;
-  border: none;
-  font-size: 1.4rem;
-  transition: background var(--transition), transform var(--transition);
-}
-.admin-fab:hover { background: var(--primary-dark); transform: scale(1.08); }
-
 /* ── Floating "Need Prayer?" button ────────────────────── */
 .prayer-fab {
   position: fixed;
-  bottom: 24px; left: 24px;
+  bottom: 24px; right: 24px;
   z-index: 950;
   display: flex;
   align-items: center;

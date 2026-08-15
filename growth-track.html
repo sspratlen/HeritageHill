@@ -169,18 +169,12 @@
   </div>
 </div>
 
-<!-- Admin floating button -->
-<div class="admin-edit-bar" id="adminBar">
-  <a href="admin/dashboard.html?tab=growthtrack" class="admin-fab" title="Manage Growth Track">✏️</a>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="js/supabase-client.js"></script>
 <script src="js/db.js"></script>
 <script src="js/main.js"></script>
 <script>
   document.getElementById('footerYear').textContent = new Date().getFullYear();
-  isAdminLoggedIn().then(ok => { if (ok) document.getElementById('adminBar').classList.add('show'); });
 
   let _gtParts = [];
 

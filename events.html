@@ -241,11 +241,6 @@ async function submitSubscribe() {
   </div>
 </footer>
 
-<!-- Admin floating button (visible when logged in) -->
-<div class="admin-edit-bar" id="adminBar">
-  <a href="admin/dashboard.html?tab=events" class="admin-fab" title="Manage Events">✏️</a>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="js/supabase-client.js"></script>
 <script src="js/db.js"></script>
@@ -253,7 +248,6 @@ async function submitSubscribe() {
 <script>
   document.getElementById('footerYear').textContent = new Date().getFullYear();
       renderNavAvatar();
-  isAdminLoggedIn().then(ok => { if (ok) document.getElementById('adminBar').classList.add('show'); });
 
   // Cache all published events so filters don't re-query on every keystroke
   let _allEvents = [];
