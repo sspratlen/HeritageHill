@@ -147,7 +147,7 @@ async function renderNavAvatar() {
 /* ── Floating "Need Prayer?" button ───────────────────── */
 function initPrayerFab() {
   const path = window.location.pathname.split('/').pop() || 'index.html';
-  if (path === 'prayer.html') return;
+  if (path === 'prayer.html' || path === 'prayer') return;
 
   const STORAGE_KEY = 'hhc_prayerFabPos';
   const DRAG_THRESHOLD = 6;
