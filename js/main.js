@@ -144,6 +144,106 @@ async function renderNavAvatar() {
   } catch (e) { console.error('[renderNavAvatar]', e.message); }
 }
 
+/* ── Floating "Need Prayer?" button ───────────────────── */
+function initPrayerFab() {
+  const path = window.location.pathname.split('/').pop() || 'index.html';
+  if (path === 'prayer.html') return;
+
+  const STORAGE_KEY = 'hhc_prayerFabPos';
+  const DRAG_THRESHOLD = 6;
+
+  const btn = document.createElement('button');
+  btn.className = 'prayer-fab';
+  btn.type = 'button';
+  btn.setAttribute('aria-label', 'Need Prayer? Contact us for prayer support');
+  btn.innerHTML = '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span>Need Prayer?</span>';
+  document.body.appendChild(btn);
+
+  function clamp(x, y) {
+    const rect = btn.getBoundingClientRect();
+    const maxX = Math.max(window.innerWidth - rect.width, 0);
+    const maxY = Math.max(window.innerHeight - rect.height, 0);
+    return { x: Math.min(Math.max(x, 0), maxX), y: Math.min(Math.max(y, 0), maxY) };
+  }
+
+  function applyPosition(x, y) {
+    btn.style.left = x + 'px';
+    btn.style.top = y + 'px';
+    btn.style.right = 'auto';
+    btn.style.bottom = 'auto';
+  }
+
+  function loadSavedPosition() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const pos = JSON.parse(raw);
+      if (typeof pos.left !== 'number' || typeof pos.top !== 'number') return null;
+      return pos;
+    } catch { return null; }
+  }
+
+  function savePosition(x, y) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ left: x, top: y })); } catch {}
+  }
+
+  const saved = loadSavedPosition();
+  if (saved) {
+    const c = clamp(saved.left, saved.top);
+    applyPosition(c.x, c.y);
+  }
+
+  let dragging = false;
+  let startX = 0, startY = 0, originLeft = 0, originTop = 0, moved = 0;
+
+  btn.addEventListener('pointerdown', (e) => {
+    dragging = true;
+    moved = 0;
+    startX = e.clientX;
+    startY = e.clientY;
+    const rect = btn.getBoundingClientRect();
+    originLeft = rect.left;
+    originTop = rect.top;
+    btn.setPointerCapture(e.pointerId);
+  });
+
+  btn.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    moved = Math.max(moved, Math.hypot(dx, dy));
+    const c = clamp(originLeft + dx, originTop + dy);
+    applyPosition(c.x, c.y);
+  });
+
+  btn.addEventListener('pointerup', (e) => {
+    if (!dragging) return;
+    dragging = false;
+    if (moved < DRAG_THRESHOLD) {
+      window.location.href = 'prayer.html';
+      return;
+    }
+    const rect = btn.getBoundingClientRect();
+    savePosition(rect.left, rect.top);
+  });
+
+  btn.addEventListener('pointercancel', () => { dragging = false; });
+
+  btn.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      window.location.href = 'prayer.html';
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    const rect = btn.getBoundingClientRect();
+    const c = clamp(rect.left, rect.top);
+    applyPosition(c.x, c.y);
+  });
+}
+initPrayerFab();
+
 /* ── Legacy localStorage helpers (kept for backwards compat) ── */
 const DB = {
   get(key, fallback = []) {
