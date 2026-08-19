@@ -936,14 +936,15 @@ window.SupaDB = {
     } catch(e) { console.error('[SupaDB] saveSemesters:', e.message); return { error: e.message }; }
   },
   async getCurrentSemester() {
+    // "Current" is whichever configured semester extends furthest into the
+    // future (by end date) — not whichever semester's range contains today.
+    // This is deliberate: a broad catch-all semester (e.g. one admins label
+    // "old" to bucket historical groups) can have an end date that still
+    // technically covers today, but the semester admins are actively setting
+    // groups up for — often weeks before its start date — should win.
     const list = await this.getSemesters();
     if (!list.length) return null;
-    const d = new Date();
-    const today = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    const active = list.find(s => s.startDate <= today && today <= s.endDate);
-    if (active) return active;
-    const upcoming = list.filter(s => s.startDate >= today).sort((a, b) => a.startDate.localeCompare(b.startDate));
-    return upcoming.length ? upcoming[0] : null;
+    return list.slice().sort((a, b) => b.endDate.localeCompare(a.endDate))[0];
   },
 
   async getBannerSettings() {
