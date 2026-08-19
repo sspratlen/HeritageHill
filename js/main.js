@@ -137,8 +137,13 @@ async function renderNavAvatar() {
 
 /* ── Floating "Need Prayer?" button ───────────────────── */
 function initPrayerFab() {
+  // Allowlist, not a blocklist: js/main.js is also loaded by admin pages
+  // (e.g. admin/dashboard.html, for the profile avatar) which must never
+  // show this public-site button or use its root-relative "prayer.html" link.
+  const PUBLIC_PAGES = ['index', 'about', 'events', 'small-groups', 'growth-track', 'sermons', 'give', 'lead-a-group'];
   const path = window.location.pathname.split('/').pop() || 'index.html';
-  if (path === 'prayer.html' || path === 'prayer') return;
+  const bare = path.replace(/\.html$/, '') || 'index';
+  if (!PUBLIC_PAGES.includes(bare)) return;
 
   const STORAGE_KEY = 'hhc_prayerFabPos';
   const DRAG_THRESHOLD = 6;
