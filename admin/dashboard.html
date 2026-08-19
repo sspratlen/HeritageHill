@@ -379,9 +379,13 @@
           <option value="approved">Approved</option>
           <option value="rejected">Rejected</option>
         </select>
+        <select id="appFilterSemester" onchange="renderApplicationsTable()" style="padding:.45rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;">
+          <option value="">All Semesters</option>
+          <option value="__current__">Current Semester</option>
+        </select>
       </div>
       <div class="table-wrap">
-        <table><thead><tr><th>Applicant</th><th>Proposed Group</th><th>Type / Audience</th><th>Day & Time</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
+        <table><thead><tr><th>Applicant</th><th>Proposed Group</th><th>Type / Audience</th><th>Day & Time</th><th>Submitted</th><th>Semester</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody id="applicationsTable"></tbody></table>
         <div class="empty" id="applicationsEmpty" style="display:none;">
           <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
@@ -2537,23 +2541,40 @@ function emailGroupSignups(){
 
 /* APPLICATIONS */
 let _cachedApplications = [];
+let _semestersForApplications = [];
 async function renderApplicationsTable(){
-  _cachedApplications = await SupaDB.adminGetAllApplications();
+  [_cachedApplications, _semestersForApplications] = await Promise.all([
+    SupaDB.adminGetAllApplications(), SupaDB.getSemesters()
+  ]);
+  const semSelEl = document.getElementById('appFilterSemester');
+  if (semSelEl && semSelEl.options.length <= 2) {
+    semSelEl.innerHTML = '<option value="">All Semesters</option><option value="__current__">Current Semester</option>'
+      + _semestersForApplications.slice().sort((a,b)=>b.startDate.localeCompare(a.startDate)).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  }
   const filterStatus=document.getElementById('appFilterStatus').value;
+  const filterSemester=semSelEl ? semSelEl.value : '';
   let apps=[..._cachedApplications];
   if(filterStatus)apps=apps.filter(a=>a.status===filterStatus);
+  if(filterSemester==='__current__'){
+    const current = await SupaDB.getCurrentSemester();
+    apps = current ? apps.filter(a=>a.semesterId===current.id) : [];
+  } else if(filterSemester){
+    apps = apps.filter(a=>a.semesterId===filterSemester);
+  }
   apps.sort((a,b)=>new Date(b.submittedDate)-new Date(a.submittedDate));
   const tbody=document.getElementById('applicationsTable'),empty=document.getElementById('applicationsEmpty');
   if(!apps.length){tbody.innerHTML='';empty.style.display='';return;}empty.style.display='none';
   const sb={pending:'badge-amber',approved:'badge-green',rejected:'badge-red'};
   tbody.innerHTML=apps.map(a=>{
     const ds=a.submittedDate?new Date(a.submittedDate).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
+    const semName = a.semesterId ? (_semestersForApplications.find(x=>x.id===a.semesterId)||{}).name || '—' : '—';
     return`<tr>
-      <td><strong>${a.name}</strong><br><a href="mailto:${a.email}" style="font-size:.8rem;color:var(--primary);">${a.email}</a>${a.phone?`<br><span style="font-size:.8rem;color:var(--text-muted);">${a.phone}</span>`:''}</td>
-      <td><strong>${a.groupName}</strong></td>
-      <td><span class="badge badge-blue">${a.type}</span><br><span style="font-size:.8rem;color:var(--text-muted);">${a.audience}</span></td>
-      <td>${a.day}s at ${a.time}</td>
+      <td><strong>${escapeHtml(a.name)}</strong><br><a href="mailto:${escapeHtml(a.email)}" style="font-size:.8rem;color:var(--primary);">${escapeHtml(a.email)}</a>${a.phone?`<br><span style="font-size:.8rem;color:var(--text-muted);">${escapeHtml(a.phone)}</span>`:''}</td>
+      <td><strong>${escapeHtml(a.groupName)}</strong></td>
+      <td><span class="badge badge-blue">${escapeHtml(a.type)}</span><br><span style="font-size:.8rem;color:var(--text-muted);">${escapeHtml(a.audience)}</span></td>
+      <td>${escapeHtml(a.day)}s at ${escapeHtml(a.time)}</td>
       <td style="font-size:.82rem;color:var(--text-muted);">${ds}</td>
+      <td>${escapeHtml(semName)}</td>
       <td><span class="badge ${sb[a.status]||'badge-gray'}">${a.status[0].toUpperCase()+a.status.slice(1)}</span></td>
       <td><div class="td-actions">
         <button class="btn btn-ghost btn-sm" onclick="viewApplication(${a.id})">View</button>
