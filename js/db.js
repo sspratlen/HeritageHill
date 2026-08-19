@@ -109,6 +109,7 @@ function signupFromDb(r) {
     leaderName: r.leader_name, leaderEmail: r.leader_email || '',
     name: r.name, email: r.email, phone: r.phone || '', message: r.message || '',
     date: r.created_at, contacted: !!r.contacted,
+    semesterId: r.semester_id || null,
   };
 }
 function signupToDb(s) {
@@ -117,6 +118,7 @@ function signupToDb(s) {
     leader_name: s.leaderName, leader_email: s.leaderEmail || '',
     name: s.name, email: s.email, phone: s.phone || '', message: s.message || '',
     contacted: false,
+    semester_id: s.semesterId || null,
   };
 }
 
@@ -127,6 +129,7 @@ function applicationFromDb(r) {
     groupName: r.group_name, type: r.type, audience: r.audience,
     day: r.day, time: r.time, location: r.location,
     description: r.description, why: r.why, notes: r.notes || '',
+    semesterId: r.semester_id || null,
   };
 }
 function applicationToDb(a) {
@@ -136,6 +139,7 @@ function applicationToDb(a) {
     day: a.day, time: a.time, location: a.location,
     description: a.description, why: a.why, notes: a.notes || '',
     status: a.status || 'pending',
+    semester_id: a.semesterId || null,
   };
 }
 
@@ -329,7 +333,8 @@ window.SupaDB = {
   async submitSignup(signup) {
     if (!db()) return { error: 'Not configured' };
     try {
-      const { error } = await db().from('signups').insert(signupToDb(signup));
+      const current = await this.getCurrentSemester();
+      const { error } = await db().from('signups').insert(signupToDb({ ...signup, semesterId: current ? current.id : null }));
       if (error) throw error;
       return { ok: true };
     } catch(e) { console.error('[SupaDB] submitSignup:', e.message); return { error: e.message }; }
@@ -339,7 +344,8 @@ window.SupaDB = {
   async submitApplication(app) {
     if (!db()) return { error: 'Not configured' };
     try {
-      const { error } = await db().from('applications').insert(applicationToDb(app));
+      const current = await this.getCurrentSemester();
+      const { error } = await db().from('applications').insert(applicationToDb({ ...app, semesterId: current ? current.id : null }));
       if (error) throw error;
       return { ok: true };
     } catch(e) { console.error('[SupaDB] submitApplication:', e.message); return { error: e.message }; }
