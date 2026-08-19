@@ -333,6 +333,15 @@ async function submitSubscribe() {
     }
 
     filterEvents();
+
+    // Check for a direct link to a specific event (e.g. from the announcement banner)
+    const eventParam = urlParams.get('event');
+    if (eventParam) {
+      const targetId = parseInt(eventParam, 10);
+      if (_allEvents.some(e => e.id === targetId)) {
+        openEventDetail(targetId);
+      }
+    }
   });
 
   // Load Save the Date items
