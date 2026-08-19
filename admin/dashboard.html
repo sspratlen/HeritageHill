@@ -352,10 +352,15 @@
           <option value="new">New Only</option>
           <option value="contacted">Contacted Only</option>
         </select>
+        <label style="margin-left:8px;">Semester:</label>
+        <select id="signupFilterSemester" onchange="applySignupsFilter()">
+          <option value="">All Semesters</option>
+          <option value="__current__">Current Semester</option>
+        </select>
         <span id="signupCountLabel" style="margin-left:auto; font-size:.82rem; color:var(--text-muted);"></span>
       </div>
       <div class="table-wrap">
-        <table><thead><tr><th>Name & Contact</th><th>Group</th><th>Date</th><th>Message</th><th>Status</th><th>Actions</th></tr></thead>
+        <table><thead><tr><th>Name & Contact</th><th>Group</th><th>Date</th><th>Message</th><th>Semester</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody id="signupsGrid"></tbody></table>
       </div>
       <div class="empty" id="signupsEmpty" style="display:none;">
@@ -2441,10 +2446,11 @@ function generateAIImage(){
 
 /* SIGNUPS */
 let _cachedSignups = [], _cachedSignupGroups = [];
+let _semestersForSignups = [];
 async function renderSignupsPanel(){
   const isLeader = window._userRole === 'small_group_leader';
-  [_cachedSignups, _cachedSignupGroups] = await Promise.all([
-    SupaDB.adminGetAllSignups(), SupaDB.adminGetAllGroups()
+  [_cachedSignups, _cachedSignupGroups, _semestersForSignups] = await Promise.all([
+    SupaDB.adminGetAllSignups(), SupaDB.adminGetAllGroups(), SupaDB.getSemesters()
   ]);
   // Populate filter dropdown once after data loads — don't touch it on filter changes
   const visibleGroups = isLeader ? _cachedSignupGroups.filter(g => window._myGroupIds.includes(g.id)) : _cachedSignupGroups;
@@ -2454,12 +2460,18 @@ async function renderSignupsPanel(){
   sel.innerHTML=(showAllOption?'<option value="">All Groups</option>':'')+visibleGroups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
   if (isLeader && visibleGroups.length === 1) sel.value = String(visibleGroups[0].id);
   sel.disabled = isLeader && visibleGroups.length <= 1;
+  const semSelEl = document.getElementById('signupFilterSemester');
+  if (semSelEl && semSelEl.options.length <= 2) {
+    semSelEl.innerHTML = '<option value="">All Semesters</option><option value="__current__">Current Semester</option>'
+      + _semestersForSignups.slice().sort((a,b)=>b.startDate.localeCompare(a.startDate)).map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  }
   applySignupsFilter();
 }
-function applySignupsFilter(){
+async function applySignupsFilter(){
   const isLeader = window._userRole === 'small_group_leader';
   const filterGroupId=document.getElementById('signupFilterGroup').value;
   const filterStatus=document.getElementById('signupFilterStatus').value;
+  const filterSemester=document.getElementById('signupFilterSemester').value;
   let signups=[..._cachedSignups];
   // Leaders: first restrict to their own groups, then apply dropdown selection
   if (isLeader) signups=signups.filter(s=>window._myGroupIds.includes(s.groupId));
@@ -2467,6 +2479,12 @@ function applySignupsFilter(){
   if(filterGroupId)signups=signups.filter(s=>String(s.groupId)===String(filterGroupId));
   if(filterStatus==='new')signups=signups.filter(s=>!s.contacted);
   if(filterStatus==='contacted')signups=signups.filter(s=>s.contacted);
+  if(filterSemester==='__current__'){
+    const current = await SupaDB.getCurrentSemester();
+    signups = current ? signups.filter(s=>s.semesterId===current.id) : [];
+  } else if(filterSemester){
+    signups = signups.filter(s=>s.semesterId===filterSemester);
+  }
   signups.sort((a,b)=>new Date(b.date)-new Date(a.date));
   const grid=document.getElementById('signupsGrid'),empty=document.getElementById('signupsEmpty');
   const countLabel=document.getElementById('signupCountLabel');
@@ -2480,11 +2498,13 @@ function applySignupsFilter(){
       const fullMsg=s.message||'';
       const previewMsg=fullMsg.length>40?fullMsg.slice(0,40)+'…':fullMsg;
       const msgCell=fullMsg?`<span class="signup-msg-preview" title="${escapeHtml(fullMsg)}" onclick="this.classList.toggle('expanded')">${escapeHtml(previewMsg)}</span>`:'—';
+      const semName = s.semesterId ? (_semestersForSignups.find(x=>x.id===s.semesterId)||{}).name || '—' : '—';
       return`<tr id="sc_${s.id}">
         <td><strong>${escapeHtml(s.name)}</strong><br><a href="mailto:${escapeHtml(s.email)}" style="font-size:.8rem;color:var(--primary);">${escapeHtml(s.email)}</a>${s.phone?`<br><span style="font-size:.8rem;color:var(--text-muted);">${escapeHtml(s.phone)}</span>`:''}</td>
         <td>${escapeHtml(s.groupName)}</td>
         <td style="font-size:.82rem;color:var(--text-muted);">${ds}</td>
         <td>${msgCell}</td>
+        <td>${escapeHtml(semName)}</td>
         <td>${s.contacted?'<span class="badge badge-green">Contacted</span>':'<span class="badge badge-amber">New</span>'}</td>
         <td><div class="td-actions">
           <button class="btn btn-sm ${s.contacted?'btn-ghost':'btn-success'}" onclick="toggleSignupContacted(${s.id})">${s.contacted?'↩ Mark Uncontacted':'✓ Mark Contacted'}</button>
