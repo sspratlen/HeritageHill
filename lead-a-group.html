@@ -271,6 +271,14 @@
         </div>
         <div class="lag-row full">
           <div class="lag-field">
+            <label>Semester *</label>
+            <select id="lagSemester" required>
+              <option value="">Select…</option>
+            </select>
+          </div>
+        </div>
+        <div class="lag-row full">
+          <div class="lag-field">
             <label>Group Description *</label>
             <textarea id="lagDescription" required placeholder="Describe what this group will do, study, or focus on. Who is it for? What will a typical meeting look like?" rows="4"></textarea>
           </div>
@@ -351,6 +359,16 @@
   document.getElementById('footerYear').textContent = new Date().getFullYear();
       renderNavAvatar();
 
+  SupaDB.getSemesters().then(semesters => {
+    const sel = document.getElementById('lagSemester');
+    semesters.slice().sort((a, b) => b.startDate.localeCompare(a.startDate)).forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.name;
+      sel.appendChild(opt);
+    });
+  });
+
   async function handleLagSubmit(e) {
     e.preventDefault();
 
@@ -369,6 +387,7 @@
       day:         document.getElementById('lagDay').value,
       time:        document.getElementById('lagTime').value.trim(),
       location:    document.getElementById('lagLocation').value,
+      semesterId:  document.getElementById('lagSemester').value,
       description: document.getElementById('lagDescription').value.trim(),
       why:         document.getElementById('lagWhy').value.trim(),
       notes:       document.getElementById('lagNotes').value.trim()

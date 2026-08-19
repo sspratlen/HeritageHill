@@ -344,8 +344,15 @@ window.SupaDB = {
   async submitApplication(app) {
     if (!db()) return { error: 'Not configured' };
     try {
-      const current = await this.getCurrentSemester();
-      const { error } = await db().from('applications').insert(applicationToDb({ ...app, semesterId: current ? current.id : null }));
+      // The Leader Application form now lets the applicant pick a semester
+      // directly, so an explicit semesterId always wins. Auto-detection is
+      // only a fallback for any other caller that doesn't supply one.
+      let semesterId = app.semesterId || null;
+      if (!semesterId) {
+        const current = await this.getCurrentSemester();
+        semesterId = current ? current.id : null;
+      }
+      const { error } = await db().from('applications').insert(applicationToDb({ ...app, semesterId }));
       if (error) throw error;
       return { ok: true };
     } catch(e) { console.error('[SupaDB] submitApplication:', e.message); return { error: e.message }; }
