@@ -2076,9 +2076,19 @@ async function renderEventsTable() {
         <button class="btn btn-ghost btn-sm" onclick="editEvent(${ev.id})">Edit</button>
         <button class="btn btn-ghost btn-sm" onclick="openMediaModal(${ev.id})" style="color:var(--primary);">📣 Media</button>
         <button class="btn btn-ghost btn-sm" onclick="openGCalForEvent(${ev.id})" style="color:var(--secondary);">📅 Calendar</button>
+        <button class="btn btn-ghost btn-sm" onclick="copyEventLink(${ev.id})" style="color:var(--text-muted);">🔗 Copy Link</button>
         <button class="btn btn-danger btn-sm" onclick="deleteItem('event',${ev.id},'${ev.title.replace(/'/g,"\\'")}')">Delete</button>
       </div></td>
     </tr>`).join('');
+}
+
+function copyEventLink(id) {
+  const url = `events.html?event=${id}`;
+  navigator.clipboard.writeText(url).then(() => {
+    showToast("Link copied! Paste it into the Banner's Link URL field.");
+  }).catch(() => {
+    showToast('Could not copy link — your browser blocked clipboard access.', true);
+  });
 }
 
 function formatDateDisplay(ymd) {
