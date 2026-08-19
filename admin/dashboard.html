@@ -315,6 +315,11 @@
           <option value="">All Semesters</option>
           <option value="__current__">Current Semester</option>
         </select>
+        <select id="groupPublishedFilter" onchange="renderGroupsTable()" style="padding:.45rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;">
+          <option value="">All Statuses</option>
+          <option value="published">Published Only</option>
+          <option value="draft">Draft Only</option>
+        </select>
         <div style="display:flex;gap:8px;">
           <button class="btn btn-secondary" id="emailAllLeadersBtn" onclick="openAllLeadersEmailModal()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Email All Leaders
@@ -2258,6 +2263,13 @@ async function renderGroupsTable(){
     groups = current ? groups.filter(g => g.semesterId === current.id) : [];
   } else if (filterVal) {
     groups = groups.filter(g => g.semesterId === filterVal);
+  }
+  const pubSelEl = document.getElementById('groupPublishedFilter');
+  const pubFilterVal = pubSelEl ? pubSelEl.value : '';
+  if (pubFilterVal === 'published') {
+    groups = groups.filter(g => g.published);
+  } else if (pubFilterVal === 'draft') {
+    groups = groups.filter(g => !g.published);
   }
   const tbody=document.getElementById('groupsTable'),empty=document.getElementById('groupsEmpty');
   if(!groups.length){tbody.innerHTML='';empty.style.display='';return;}empty.style.display='none';
