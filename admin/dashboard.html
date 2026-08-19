@@ -2618,7 +2618,7 @@ function viewApplication(id){
 function closeAppDetailModal(){document.getElementById('appDetailModal').classList.remove('open');}
 async function approveApplication(id){
   const a=_cachedApplications.find(x=>x.id===id);if(!a)return;
-  const draftGroup={published:false,name:a.groupName,leader:a.name,leaderEmail:a.email,day:a.day,time:a.time,type:a.type,audience:a.audience,location:a.location,description:a.description,image:'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80',open:true};
+  const draftGroup={published:false,name:a.groupName,leader:a.name,leaderEmail:a.email,day:a.day,time:a.time,type:a.type,audience:a.audience,location:a.location,description:a.description,image:'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80',open:true,semesterId:a.semesterId||null};
   await Promise.all([
     SupaDB.saveGroup(draftGroup),
     SupaDB.updateApplication(id,{status:'approved'})
