@@ -2291,6 +2291,7 @@ async function renderGroupsTable(){
           <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           Email Group
         </button>
+        <button class="btn btn-ghost btn-sm" onclick="printGroupSignupSheet(${g.id})">🖨️ Print Sign-Up Sheet</button>
         ${!isLeader?`<button class="btn btn-danger btn-sm" onclick="deleteItem('group',${g.id},'${g.name.replace(/'/g,"\\'")}')">Delete</button>`:''}
       </div></td>
     </tr>`;
@@ -4492,6 +4493,105 @@ body { font-family:Georgia,'Times New Roman',serif; background:#fff; }
 </head>
 <body>
 ${pages.join('\n')}
+<script>window.onload = function(){ window.print(); };<\/script>
+</body></html>`);
+  win.document.close();
+}
+
+function printGroupSignupSheet(id) {
+  const g = _cachedGroups.find(x => x.id === id);
+  if (!g) return;
+
+  function esc(s) {
+    return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  const rows = Array.from({ length: 18 }).map(() => `
+    <tr>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+      <td>&nbsp;</td>
+    </tr>`).join('');
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html>
+<html><head>
+<title>${esc(g.name)} — Sign-Up Sheet</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+@page { size:letter portrait; margin:.4in; }
+body { font-family:Georgia,'Times New Roman',serif; background:#fff; color:#111; }
+.church-name {
+  font-family:Arial,sans-serif;
+  font-size:9px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  color:#BC7A1E;
+  border-bottom:2px solid #BC7A1E;
+  padding-bottom:8px;
+  margin-bottom:16px;
+}
+.group-image {
+  width:100%;
+  max-height:2.6in;
+  object-fit:cover;
+  border-radius:8px;
+  margin-bottom:16px;
+  display:block;
+}
+.group-name {
+  font-family:Arial,sans-serif;
+  font-size:22px;
+  font-weight:700;
+  margin-bottom:6px;
+}
+.group-meta {
+  font-family:Arial,sans-serif;
+  font-size:11px;
+  color:#555;
+  margin-bottom:12px;
+}
+.group-description {
+  font-size:12.5px;
+  line-height:1.6;
+  color:#333;
+  margin-bottom:20px;
+}
+table { width:100%; border-collapse:collapse; }
+th, td {
+  border:1px solid #999;
+  padding:10px 8px;
+  text-align:left;
+  font-family:Arial,sans-serif;
+  font-size:10.5px;
+}
+th {
+  background:#f4f4f2;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  font-size:9px;
+  color:#555;
+}
+th:nth-child(1), td:nth-child(1) { width:34%; }
+th:nth-child(2), td:nth-child(2) { width:38%; }
+th:nth-child(3), td:nth-child(3) { width:28%; }
+td { height:.32in; }
+@media print {
+  body { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+}
+</style>
+</head>
+<body>
+<div class="church-name">Heritage Hill Church</div>
+<img class="group-image" src="${esc(g.image)}" alt="${esc(g.name)}" />
+<div class="group-name">${esc(g.name)}</div>
+<div class="group-meta">Led by ${esc(g.leader)} &nbsp;\u00b7&nbsp; ${esc(g.day)}s at ${esc(g.time)} &nbsp;\u00b7&nbsp; ${esc(g.location)}</div>
+<div class="group-description">${esc(g.description)}</div>
+<table>
+  <thead><tr><th>Name</th><th>Email</th><th>Phone</th></tr></thead>
+  <tbody>${rows}</tbody>
+</table>
 <script>window.onload = function(){ window.print(); };<\/script>
 </body></html>`);
   win.document.close();
