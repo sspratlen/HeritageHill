@@ -77,6 +77,7 @@ function growthTrackPartFromDb(r) {
     id: r.id, part: r.part, title: r.title, description: r.description || '',
     sessionDate: r.session_date, sessionTime: r.session_time || '',
     location: r.location || '', published: !!r.published,
+    sundayOfMonth: r.sunday_of_month || null,
   };
 }
 function growthTrackPartToDb(p) {
@@ -84,6 +85,7 @@ function growthTrackPartToDb(p) {
     title: p.title, description: p.description || '',
     session_date: p.sessionDate || null, session_time: p.sessionTime || '',
     location: p.location || '', published: !!p.published,
+    sunday_of_month: p.sundayOfMonth || null,
   };
 }
 function growthTrackRegistrationFromDb(r) {
@@ -431,6 +433,32 @@ window.SupaDB = {
       if (error) throw error;
       return { ok: true };
     } catch(e) { console.error('[SupaDB] adminUpdateGrowthTrackPart:', e.message); return { error: e.message }; }
+  },
+  async getGrowthTrackCancellations() {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('growth_track_cancellations').select('*');
+      if (error) throw error;
+      return (data || []).map(r => ({ part: r.part, sessionDate: r.session_date }));
+    } catch(e) { console.error('[SupaDB] getGrowthTrackCancellations:', e.message); return []; }
+  },
+  async adminCancelGrowthTrackOccurrence(part, sessionDate) {
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const { error } = await db().from('growth_track_cancellations')
+        .upsert({ part, session_date: sessionDate }, { onConflict: 'part,session_date' });
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] adminCancelGrowthTrackOccurrence:', e.message); return { error: e.message }; }
+  },
+  async adminReinstateGrowthTrackOccurrence(part, sessionDate) {
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const { error } = await db().from('growth_track_cancellations')
+        .delete().eq('part', part).eq('session_date', sessionDate);
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] adminReinstateGrowthTrackOccurrence:', e.message); return { error: e.message }; }
   },
   async adminGetGrowthTrackRegistrations(part) {
     if (!db()) return [];
