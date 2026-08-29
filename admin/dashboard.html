@@ -5508,6 +5508,129 @@ async function toggleGtOccurrence(part, sessionDate, shouldCancel) {
   if (result.error) { showToast(result.error, true); return; }
   showToast(shouldCancel ? 'Occurrence cancelled' : 'Occurrence reinstated');
   renderGrowthTrackTab();
+  if (shouldCancel) {
+    // adminGetGrowthTrackRegistrations already fails open (returns [] on error,
+    // logging internally) — so a lookup failure here simply means the modal
+    // doesn't open, without blocking the cancellation that already succeeded above.
+    const allRegs = await SupaDB.adminGetGrowthTrackRegistrations(part);
+    const affected = allRegs.filter(r => r.sessionDate === sessionDate);
+    if (affected.length) openGtCancelEmailModal(part, sessionDate, affected);
+  }
+}
+
+/* ── GROWTH TRACK CANCELLATION EMAIL ─────────────────────── */
+let _gtCancelEmailQuill = null;
+
+// Finds the next occurrence of this part that isn't the one just cancelled and
+// isn't itself already cancelled. Looks 12 occurrences ahead (double the 6 shown
+// in the admin card) so a candidate is very unlikely to be missed even if several
+// consecutive months are cancelled. Excludes `justCancelledDate` explicitly rather
+// than relying solely on `_gtCancellationsAdmin`, since that array is refreshed by
+// `renderGrowthTrackTab()` earlier in the same toggle flow and this function may
+// run before or after that refresh completes.
+function nextGtOccurrenceAfterCancel(p, justCancelledDate) {
+  const occurrences = computeGrowthTrackOccurrences(p.sundayOfMonth, 12);
+  return occurrences.find(date =>
+    date !== justCancelledDate &&
+    !_gtCancellationsAdmin.some(c => c.part === p.part && c.sessionDate === date)
+  ) || null;
+}
+
+function buildGtCancelEmailContent(p, sessionDate) {
+  const title = p.title || GT_LABELS[p.part];
+  const shortDate = new Date(sessionDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const longDate = new Date(sessionDate+'T00:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const nextDate = nextGtOccurrenceAfterCancel(p, sessionDate);
+  const nextDateLong = nextDate ? new Date(nextDate+'T00:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) : null;
+  const subject = `${title} — ${shortDate} Session Cancelled`;
+  const nextParagraph = nextDateLong
+    ? `<p>We'd love to have you join us for the next one — <strong>${escapeHtml(nextDateLong)}</strong>. You can register at <a href="https://heritagehill.church/growth-track.html">heritagehill.church/growth-track.html</a>.</p>`
+    : `<p>Keep an eye on <a href="https://heritagehill.church/growth-track.html">heritagehill.church/growth-track.html</a> for the next upcoming date.</p>`;
+  const html = `<p>Hi there,</p>
+<p>We're sorry to let you know that the <strong>${escapeHtml(title)}</strong> session on <strong>${escapeHtml(longDate)}</strong> has been cancelled.</p>
+${nextParagraph}
+<p>Sorry for the inconvenience, and we hope to see you soon!</p>
+<p>— Heritage Hill Church</p>`;
+  return { subject, html };
+}
+
+async function openGtCancelEmailModal(part, sessionDate, registrants) {
+  const p = _gtPartsAdmin.find(x => x.part === part);
+  if (!p) return;
+  const { subject, html } = buildGtCancelEmailContent(p, sessionDate);
+  document.getElementById('gtCancelEmailTitle').textContent = 'Notify Registrants';
+  document.getElementById('gtCancelEmailSubject').value = subject;
+  document.getElementById('gtCancelEmailTo').value = [...new Set(registrants.map(r => r.email).filter(Boolean))].join('\n');
+  document.getElementById('gtCancelEmailError').style.display = 'none';
+  updateGtCancelEmailCount();
+
+  // Init Quill once, reset content on reopen (matches the existing groupEmailModal pattern)
+  if (!_gtCancelEmailQuill) {
+    _gtCancelEmailQuill = new Quill('#gtCancelEmailEditor', {
+      theme: 'snow',
+      modules: {
+        toolbar: [
+          [{ header: [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          ['link'],
+          ['clean'],
+        ],
+      },
+    });
+  } else {
+    _gtCancelEmailQuill.setContents([]);
+  }
+  _gtCancelEmailQuill.root.innerHTML = html;
+
+  document.getElementById('gtCancelEmailModal').classList.add('open');
+}
+function closeGtCancelEmailModal() { document.getElementById('gtCancelEmailModal').classList.remove('open'); }
+
+function updateGtCancelEmailCount() {
+  const raw = document.getElementById('gtCancelEmailTo').value;
+  const count = raw.split(/[\n,]+/).map(e => e.trim()).filter(e => e.includes('@')).length;
+  document.getElementById('gtCancelEmailRecipientCount').textContent = count ? `${count} recipient${count !== 1 ? 's' : ''}` : '';
+}
+
+async function sendGtCancelEmail() {
+  const toRaw = document.getElementById('gtCancelEmailTo').value;
+  const recipients = toRaw.split(/[\n,]+/).map(e => e.trim()).filter(e => e.includes('@'));
+  const subject = document.getElementById('gtCancelEmailSubject').value.trim();
+  const htmlBody = _gtCancelEmailQuill ? _gtCancelEmailQuill.root.innerHTML : '';
+  const errEl = document.getElementById('gtCancelEmailError');
+  errEl.style.display = 'none';
+
+  if (!recipients.length) { errEl.textContent = 'Add at least one recipient email.'; errEl.style.display = ''; return; }
+  if (!subject)           { errEl.textContent = 'Subject is required.';              errEl.style.display = ''; return; }
+  if (!htmlBody || htmlBody === '<p><br></p>') { errEl.textContent = 'Message cannot be empty.'; errEl.style.display = ''; return; }
+
+  const btn = document.getElementById('gtCancelEmailSendBtn');
+  btn.disabled = true; btn.innerHTML = 'Sending…';
+
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/send-group-email', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        subject,
+        htmlBody,
+        recipients,
+        fromName: 'Heritage Hill Church',
+        fromEmail: 'noreply@heritagehill.church',
+        replyTo: '',
+      }),
+    });
+    const json = await res.json();
+    if (json.error) { errEl.textContent = 'Error: ' + json.error; errEl.style.display = ''; return; }
+    closeGtCancelEmailModal();
+    showToast(`Email sent to ${recipients.length} recipient${recipients.length !== 1 ? 's' : ''} ✓`);
+  } catch(e) {
+    errEl.textContent = 'Error: ' + e.message; errEl.style.display = '';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send Email';
+  }
 }
 
 function openGtPartModal(part) {
