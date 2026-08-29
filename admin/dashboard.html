@@ -5419,16 +5419,20 @@ async function renderGrowthTrackTab() {
     SupaDB.getGrowthTrackCancellations(),
   ]);
   const regCounts = await Promise.all(_gtPartsAdmin.map(p => SupaDB.adminGetGrowthTrackRegistrations(p.part)));
-  const gtRegistrantCounts = {};
-  _gtPartsAdmin.forEach((p, i) => { gtRegistrantCounts[p.part] = regCounts[i].length; });
+  const gtRegistrationsByPart = {};
+  _gtPartsAdmin.forEach((p, i) => { gtRegistrationsByPart[p.part] = regCounts[i]; });
   document.getElementById('gtCards').innerHTML = _gtPartsAdmin.map(p => {
     const occurrences = computeGrowthTrackOccurrences(p.sundayOfMonth, 6);
+    const partRegs = gtRegistrationsByPart[p.part] || [];
+    const totalCount = partRegs.length;
     const occurrenceRows = occurrences.map(date => {
       const cancelled = _gtCancellationsAdmin.some(c => c.part === p.part && c.sessionDate === date);
       const dateDisplay = new Date(date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      const count = partRegs.filter(r => r.sessionDate === date).length;
       return `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:.82rem;">
-          <span style="${cancelled?'color:var(--text-muted);text-decoration:line-through;':''}">${dateDisplay}</span>
+        <div style="display:flex;align-items:center;padding:4px 0;font-size:.82rem;">
+          <span style="flex:1;${cancelled?'color:var(--text-muted);text-decoration:line-through;':''}">${dateDisplay}</span>
+          <span style="width:76px;text-align:center;">${count}</span>
           <button class="btn btn-ghost btn-sm" onclick="toggleGtOccurrence('${p.part}','${date}',${!cancelled})">${cancelled?'Reinstate':'Cancel'}</button>
         </div>`;
     }).join('');
@@ -5443,10 +5447,14 @@ async function renderGrowthTrackTab() {
         ${p.sessionTime ? ' · ' + escapeHtml(p.sessionTime) : ''}${p.location ? ' · ' + escapeHtml(p.location) : ''}
       </p>
       <p style="font-size:.85rem;font-weight:600;margin-bottom:12px;">
-        ${gtRegistrantCounts[p.part] || 0} registrant${gtRegistrantCounts[p.part] === 1 ? '' : 's'} total
+        ${totalCount} registrant${totalCount === 1 ? '' : 's'} total
       </p>
       ${occurrenceRows ? `<div style="margin-bottom:12px;">
-        <p style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:4px;">Upcoming Occurrences</p>
+        <div style="display:flex;align-items:center;padding:2px 0 4px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);">
+          <span style="flex:1;">Date</span>
+          <span style="width:76px;text-align:center;">Registrants</span>
+          <span style="width:76px;"></span>
+        </div>
         ${occurrenceRows}
       </div>` : ''}
       <div class="td-actions">
