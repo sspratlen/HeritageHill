@@ -5410,6 +5410,53 @@ async function renderAnalyticsTab() {
   await loadAnalyticsReports();
 }
 
+// Renders Claude's markdown-ish analysis text (#/## headings, **bold**, *italic*,
+// numbered/bulleted lists, paragraphs) as styled HTML instead of showing raw
+// markdown syntax. Handles only the small subset of markdown the analysis prompt
+// actually produces — not a general-purpose markdown parser.
+function renderAnalysisMarkdown(text) {
+  const inline = s => escapeHtml(s)
+    .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#1C1C1E;">$1</strong>')
+    .replace(/(^|[^*])\*([^*]+?)\*(?!\*)/g, '$1<em>$2</em>');
+  const lines = text.split('\n');
+  let html = '';
+  let listItems = [];
+  let listType = null;
+  const flushList = () => {
+    if (!listItems.length) return;
+    const tag = listType;
+    html += `<${tag} style="margin:0 0 16px;padding-left:22px;">${listItems.join('')}</${tag}>`;
+    listItems = [];
+    listType = null;
+  };
+  lines.forEach(line => {
+    const trimmed = line.trim();
+    if (!trimmed) { flushList(); return; }
+    const h1 = trimmed.match(/^#\s+(.*)/);
+    const h2 = trimmed.match(/^##\s+(.*)/);
+    const ol = trimmed.match(/^\d+\.\s+(.*)/);
+    const ul = trimmed.match(/^[-*]\s+(.*)/);
+    if (h1) {
+      flushList();
+      html += `<h2 style="font-size:1.25rem;font-weight:700;color:var(--primary);margin:0 0 16px;padding-bottom:10px;border-bottom:2px solid var(--primary);">${inline(h1[1])}</h2>`;
+    } else if (h2) {
+      flushList();
+      html += `<h3 style="font-size:1.02rem;font-weight:700;color:#1C1C1E;margin:22px 0 10px;">${inline(h2[1])}</h3>`;
+    } else if (ol) {
+      if (listType !== 'ol') { flushList(); listType = 'ol'; }
+      listItems.push(`<li style="margin-bottom:8px;line-height:1.7;color:#3a3a3a;">${inline(ol[1])}</li>`);
+    } else if (ul) {
+      if (listType !== 'ul') { flushList(); listType = 'ul'; }
+      listItems.push(`<li style="margin-bottom:8px;line-height:1.7;color:#3a3a3a;">${inline(ul[1])}</li>`);
+    } else {
+      flushList();
+      html += `<p style="margin:0 0 16px;line-height:1.75;color:#3a3a3a;">${inline(trimmed)}</p>`;
+    }
+  });
+  flushList();
+  return html;
+}
+
 async function loadAnalyticsReports() {
   _analyticsReports = await SupaDB.adminGetAssessmentAnalyticsReports();
   const box = document.getElementById('analyticsReports');
@@ -5419,15 +5466,18 @@ async function loadAnalyticsReports() {
   }
   box.innerHTML = _analyticsReports.map((r, i) => {
     const dateStr = new Date(r.createdAt).toLocaleString();
-    const bodyHtml = r.analysisText.split('\n').map(line => `<p style="margin:0 0 8px;">${escapeHtml(line)}</p>`).join('');
+    const bodyHtml = renderAnalysisMarkdown(r.analysisText);
     return `
-      <div style="border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;">
+      <div style="border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);">
         <div onclick="const d=this.nextElementSibling; const open=d.style.display==='none'; d.style.display=open?'':'none'; this.querySelector('.acc-chevron').textContent=open?'▲':'▼';"
-             style="cursor:pointer;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;background:#fafafa;">
-          <span style="font-size:.85rem;"><strong>${dateStr}</strong>${r.createdBy ? ' · ' + escapeHtml(r.createdBy) : ''}</span>
+             style="cursor:pointer;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#fdf6ec,#fff);border-bottom:1px solid var(--border);">
+          <span style="font-size:.85rem;display:flex;align-items:center;gap:8px;">
+            <span style="display:inline-flex;align-items:center;gap:5px;background:var(--primary);color:#fff;font-weight:700;font-size:.7rem;letter-spacing:.04em;text-transform:uppercase;padding:3px 9px;border-radius:20px;">✦ Claude Analysis</span>
+            <strong>${dateStr}</strong>${r.createdBy ? ' · ' + escapeHtml(r.createdBy) : ''}
+          </span>
           <span class="acc-chevron" style="color:var(--text-muted);">${i === 0 ? '▲' : '▼'}</span>
         </div>
-        <div style="${i === 0 ? '' : 'display:none;'}padding:14px;font-size:.88rem;">${bodyHtml}</div>
+        <div style="${i === 0 ? '' : 'display:none;'}padding:28px 24px;font-size:.92rem;background:#fff;">${bodyHtml}</div>
       </div>`;
   }).join('');
 }
