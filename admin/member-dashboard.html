@@ -187,7 +187,7 @@ function escapeHtml(s) {
   }[c]));
 }
 
-let _allMembers = [], _currentIndex = -1, _content = null, _groups = [], _allAttempts = [];
+let _allMembers = [], _currentIndex = -1, _content = null, _groups = [], _allAttempts = [], _semesters = [];
 
 (async () => {
   try {
@@ -196,14 +196,15 @@ let _allMembers = [], _currentIndex = -1, _content = null, _groups = [], _allAtt
     const roleData = await SupaDB.getUserRoleByEmail(user.email);
     if (!roleData || roleData.role !== 'admin') { window.location.href = 'dashboard.html'; return; }
 
-    const [profiles, contentRows, groups, attempts] = await Promise.all([
+    const [profiles, contentRows, groups, attempts, semesters] = await Promise.all([
       SupaDB.adminGetAllMemberProfiles(), SupaDB.getAssessmentContent(), SupaDB.adminGetAllGroups(),
-      SupaDB.getVisibleAttempts(),
+      SupaDB.getVisibleAttempts(), SupaDB.getSemesters(),
     ]);
     _allMembers = profiles.filter(p => p.status === 'approved').sort((a, b) => a.name.localeCompare(b.name));
     _content = Assessments.splitContent(contentRows);
     _groups = groups;
     _allAttempts = attempts;
+    _semesters = semesters;
 
     const startId = new URLSearchParams(window.location.search).get('id');
     _currentIndex = Math.max(0, _allMembers.findIndex(p => p.userId === startId));
@@ -273,7 +274,7 @@ async function loadCurrentMember() {
   const g = _allAttempts.find(a => a.userId === p.userId && a.assessmentType === 'gifts');
 
   MemberDashboard.renderGrowthTrackProgress(document.getElementById('mdGtProgress'), gtRegs);
-  MemberDashboard.renderGroupHistory(document.getElementById('mdGroupHistory'), memberships, _groups, p.email);
+  MemberDashboard.renderGroupHistory(document.getElementById('mdGroupHistory'), memberships, _groups, p.email, _semesters);
 
   document.getElementById('mdDisc').innerHTML = d
     ? `<strong style="font-size:1.2rem;">${escapeHtml(d.result)}</strong>

@@ -144,15 +144,16 @@ let _profile = null, _content = null;
   sel.value = _profile.groupId || '';
 
   // Results
-  const [attempts, content, gtRegs, memberships] = await Promise.all([
+  const [attempts, content, gtRegs, memberships, semesters] = await Promise.all([
     SupaDB.getMyAttempts(), SupaDB.getAssessmentContent(),
     SupaDB.getGrowthTrackRegistrationsForUser(user.id), SupaDB.getGroupMembershipsForUser(user.id),
+    SupaDB.getSemesters(),
   ]);
   _content = Assessments.splitContent(content);
   renderResult('disc',  attempts.filter(a => a.assessmentType === 'disc'));
   renderResult('gifts', attempts.filter(a => a.assessmentType === 'gifts'));
   MemberDashboard.renderGrowthTrackProgress(document.getElementById('gtProgressBox'), gtRegs);
-  MemberDashboard.renderGroupHistory(document.getElementById('groupHistoryBox'), memberships, groups, _profile.email);
+  MemberDashboard.renderGroupHistory(document.getElementById('groupHistoryBox'), memberships, groups, _profile.email, semesters);
 })();
 
 function escapeHtml(s) {

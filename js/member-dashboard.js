@@ -43,12 +43,16 @@ const MemberDashboard = {
   // (matched against groups[].leaderEmail) even if they have no separate
   // group_memberships row for that group. Leading a group counts as having
   // attended it.
-  renderGroupHistory(containerEl, memberships, groups, email) {
+  // semesters: result of SupaDB.getSemesters() — used to show the group's
+  // semester name (e.g. "Fall 2026") in the Joined column for a leader row,
+  // since there's no tracked join date for leading (only for real
+  // memberships, which keep their real joined date).
+  renderGroupHistory(containerEl, memberships, groups, email, semesters) {
     const led = (email
       ? groups.filter(g => g.leaderEmail && g.leaderEmail.toLowerCase() === email.toLowerCase())
       : []
     ).filter(g => !memberships.some(m => String(m.groupId) === String(g.id)))
-     .map(g => ({ groupId: g.id, joinedAt: null, leftAt: null, isLeader: true }));
+     .map(g => ({ groupId: g.id, joinedAt: null, leftAt: null, isLeader: true, semesterId: g.semesterId }));
 
     const rows = memberships.concat(led);
 
@@ -60,12 +64,16 @@ const MemberDashboard = {
       const g = groups.find(x => String(x.id) === String(id));
       return g ? g.name : 'Unknown Group';
     };
+    const semesterName = id => {
+      const s = (semesters || []).find(x => x.id === id);
+      return s ? s.name : '—';
+    };
     const fmt = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
     containerEl.innerHTML = `<table><thead><tr><th>Group</th><th>Joined</th><th>Status</th></tr></thead><tbody>` +
       rows.map(m => `
         <tr>
           <td>${this.escapeHtml(groupName(m.groupId))}</td>
-          <td>${m.isLeader ? '—' : fmt(m.joinedAt)}</td>
+          <td>${m.isLeader ? this.escapeHtml(semesterName(m.semesterId)) : fmt(m.joinedAt)}</td>
           <td>${m.isLeader ? '<span class="badge badge-blue">Leader</span>' : (m.leftAt ? 'Left ' + fmt(m.leftAt) : '<span class="badge badge-green">Current</span>')}</td>
         </tr>`).join('') + '</tbody></table>';
   },
