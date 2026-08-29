@@ -4830,8 +4830,16 @@ function genSemesterId(name) {
   return `${slug}-${suffix}`;
 }
 
+// Keeps _semesters itself in chronological order (not just the display) —
+// Edit/Remove buttons address rows by array index, so the underlying array
+// must stay sorted whenever it changes, not just be sorted at render time.
+function sortSemestersChronologically() {
+  _semesters.sort((a, b) => a.startDate.localeCompare(b.startDate));
+}
+
 async function loadSemesters() {
   _semesters = await SupaDB.getSemesters();
+  sortSemestersChronologically();
   renderSemestersList();
 }
 
@@ -4884,6 +4892,7 @@ async function commitSemester(i) {
   const endDate   = document.getElementById('semEEnd'+i).value;
   if (!name || !startDate || !endDate) { showToast('Name, Start Date, and End Date are required.', true); return; }
   _semesters[i] = { id: _semesters[i].id, name, startDate, endDate };
+  sortSemestersChronologically();
   renderSemestersList();
   await saveSemesters();
 }
@@ -4894,6 +4903,7 @@ function addSemester() {
   const endDate   = document.getElementById('semEnd').value;
   if (!name || !startDate || !endDate) { showToast('Name, Start Date, and End Date are required.', true); return; }
   _semesters.push({ id: genSemesterId(name), name, startDate, endDate });
+  sortSemestersChronologically();
   renderSemestersList();
   document.getElementById('semName').value = '';
   document.getElementById('semStart').value = '';
