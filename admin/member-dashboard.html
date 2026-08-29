@@ -276,19 +276,14 @@ async function loadCurrentMember() {
   MemberDashboard.renderGrowthTrackProgress(document.getElementById('mdGtProgress'), gtRegs);
   MemberDashboard.renderGroupHistory(document.getElementById('mdGroupHistory'), memberships, _groups, p.email, _semesters);
 
-  document.getElementById('mdDisc').innerHTML = d
-    ? `<strong style="font-size:1.2rem;">${escapeHtml(d.result)}</strong>
-       ${['D','I','S','C'].map(k => `<div style="font-size:.85rem;">${k}: ${escapeHtml(d.scores[k])}</div>`).join('')}
-       <p style="font-size:.8rem; color:var(--text-muted);">Taken ${new Date(d.completedAt).toLocaleDateString()}</p>`
-    : '<p style="color:var(--text-muted);">Not taken yet.</p>';
+  const mdDiscBox = document.getElementById('mdDisc');
+  if (d) MemberDashboard.renderDiscResult(mdDiscBox, d, _content.discBlends);
+  else mdDiscBox.innerHTML = '<p style="color:var(--text-muted);">Not taken yet.</p>';
 
   const rec = g ? recommendedMinistries(giftNames(g)) : [];
-  document.getElementById('mdGifts').innerHTML = g
-    ? `<p><strong>${giftNames(g).map(escapeHtml).join(', ')}</strong></p>
-       <div style="columns:2; font-size:.82rem;">${Object.entries(g.scores)
-         .sort((a,b) => b[1]-a[1]).map(([c,s]) => `<div>${escapeHtml(c)}: ${escapeHtml(s)}</div>`).join('')}</div>
-       <p style="font-size:.8rem; color:var(--text-muted);">Taken ${new Date(g.completedAt).toLocaleDateString()}</p>`
-    : '<p style="color:var(--text-muted);">Not taken yet.</p>';
+  const mdGiftsBox = document.getElementById('mdGifts');
+  if (g) MemberDashboard.renderGiftsResult(mdGiftsBox, g, _content.gifts);
+  else mdGiftsBox.innerHTML = '<p style="color:var(--text-muted);">Not taken yet.</p>';
   document.getElementById('mdMinistries').innerHTML = !g
     ? '<p style="color:var(--text-muted); font-size:.85rem;">Take the gifts assessment to see recommendations.</p>'
     : rec.length ? rec.map(m => `<span class="badge badge-amber" style="margin:0 6px 6px 0;">${escapeHtml(m)}</span>`).join('')
