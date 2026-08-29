@@ -320,6 +320,7 @@
           <option value="published">Published Only</option>
           <option value="draft">Draft Only</option>
         </select>
+        <input type="text" id="groupLeaderFilter" placeholder="Search by leader…" oninput="renderGroupsTable()" style="padding:.45rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;" />
         <div style="display:flex;gap:8px;">
           <button class="btn btn-secondary" id="emailAllLeadersBtn" onclick="openAllLeadersEmailModal()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Email All Leaders
@@ -330,7 +331,7 @@
         </div>
       </div>
       <div class="table-wrap">
-        <table><thead><tr><th>Group Name</th><th>Day & Time</th><th>Type</th><th>Audience</th><th>Semester</th><th>Published</th><th>Status</th><th>Actions</th></tr></thead>
+        <table><thead><tr><th>Group Name</th><th>Leader</th><th>Day & Time</th><th>Type</th><th>Audience</th><th>Semester</th><th>Published</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody id="groupsTable"></tbody></table>
         <div class="empty" id="groupsEmpty" style="display:none;">
           <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
@@ -2271,12 +2272,18 @@ async function renderGroupsTable(){
   } else if (pubFilterVal === 'draft') {
     groups = groups.filter(g => !g.published);
   }
+  const leaderFilterEl = document.getElementById('groupLeaderFilter');
+  const leaderFilterVal = leaderFilterEl ? leaderFilterEl.value.trim().toLowerCase() : '';
+  if (leaderFilterVal) {
+    groups = groups.filter(g => (g.leader || '').toLowerCase().includes(leaderFilterVal));
+  }
   const tbody=document.getElementById('groupsTable'),empty=document.getElementById('groupsEmpty');
   if(!groups.length){tbody.innerHTML='';empty.style.display='';return;}empty.style.display='none';
   tbody.innerHTML=groups.map(g=>{
     const semName = g.semesterId ? (_semestersForGroupModal.find(s=>s.id===g.semesterId)||{}).name || '—' : '—';
     return `<tr>
-      <td><strong>${g.name}</strong><br><span style="font-size:.8rem;color:var(--text-muted);">Led by ${g.leader}</span></td>
+      <td><strong>${g.name}</strong></td>
+      <td>${g.leader}</td>
       <td>${g.day}s at ${g.time}<br><span style="font-size:.8rem;color:var(--text-muted);">${(g.location||'').split('–')[0].trim()}</span></td>
       <td><span class="badge badge-blue">${g.type}</span></td>
       <td>${g.audience}</td>
