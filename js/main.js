@@ -135,6 +135,40 @@ async function renderNavAvatar() {
   } catch (e) { console.error('[renderNavAvatar]', e.message); }
 }
 
+/* ── Growth Track: recurring Sunday occurrence calculation ─
+   Shared by growth-track.html (public) and admin/dashboard.html
+   (Growth Track tab) — both load this file. */
+function nthSundayOfMonth(year, month, n) {
+  // month is 0-indexed (JS Date convention: 0 = January)
+  const first = new Date(year, month, 1);
+  const firstSundayDate = 1 + ((7 - first.getDay()) % 7);
+  return new Date(year, month, firstSundayDate + (n - 1) * 7);
+}
+
+function growthTrackIsoDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// Returns the next `count` occurrence dates (as 'YYYY-MM-DD' strings) for a
+// part that runs on the `sundayOfMonth`-th Sunday (1, 2, or 3) of every
+// month, starting today, skipping any that have already passed. Returns
+// [] if sundayOfMonth is falsy (part not yet configured with a schedule).
+function computeGrowthTrackOccurrences(sundayOfMonth, count) {
+  if (!sundayOfMonth) return [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dates = [];
+  let year = today.getFullYear();
+  let month = today.getMonth();
+  while (dates.length < count) {
+    const d = nthSundayOfMonth(year, month, sundayOfMonth);
+    if (d >= today) dates.push(growthTrackIsoDate(d));
+    month++;
+    if (month > 11) { month = 0; year++; }
+  }
+  return dates;
+}
+
 /* ── Floating "Need Prayer?" button ───────────────────── */
 function initPrayerFab() {
   // Allowlist, not a blocklist: js/main.js is also loaded by admin pages
