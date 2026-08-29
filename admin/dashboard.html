@@ -1383,7 +1383,14 @@
       <div class="form-row full"><div class="field"><label>Title *</label><input type="text" id="gtpTitle" placeholder="e.g. About Us" /></div></div>
       <div class="form-row full"><div class="field"><label>Description *</label><textarea id="gtpDescription" placeholder="Describe this part of the Growth Track…"></textarea></div></div>
       <div class="form-row">
-        <div class="field"><label>Date</label><input type="date" id="gtpDate" /></div>
+        <div class="field"><label>Which Sunday</label>
+          <select id="gtpSundayOfMonth">
+            <option value="">— Not Scheduled —</option>
+            <option value="1">1st Sunday</option>
+            <option value="2">2nd Sunday</option>
+            <option value="3">3rd Sunday</option>
+          </select>
+        </div>
         <div class="field"><label>Time</label><input type="text" id="gtpTime" placeholder="e.g. 9:00 AM" /></div>
       </div>
       <div class="form-row full"><div class="field"><label>Location</label><input type="text" id="gtpLocation" placeholder="e.g. Heritage Hill Main Campus" /></div></div>
@@ -5399,26 +5406,55 @@ async function renderMyGroupPanel() {
 }
 
 /* GROWTH TRACK */
-let _gtPartsAdmin = [];
+let _gtPartsAdmin = [], _gtCancellationsAdmin = [];
 const GT_LABELS = { about_us: 'About Us', about_you: 'About You', get_involved: 'Get Involved' };
+const SUNDAY_LABELS = { 1: '1st Sunday', 2: '2nd Sunday', 3: '3rd Sunday' };
 
 async function renderGrowthTrackTab() {
-  _gtPartsAdmin = await SupaDB.adminGetAllGrowthTrackParts();
-  document.getElementById('gtCards').innerHTML = _gtPartsAdmin.map(p => `
+  [_gtPartsAdmin, _gtCancellationsAdmin] = await Promise.all([
+    SupaDB.adminGetAllGrowthTrackParts(),
+    SupaDB.getGrowthTrackCancellations(),
+  ]);
+  document.getElementById('gtCards').innerHTML = _gtPartsAdmin.map(p => {
+    const occurrences = computeGrowthTrackOccurrences(p.sundayOfMonth, 6);
+    const occurrenceRows = occurrences.map(date => {
+      const cancelled = _gtCancellationsAdmin.some(c => c.part === p.part && c.sessionDate === date);
+      const dateDisplay = new Date(date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      return `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:.82rem;">
+          <span style="${cancelled?'color:var(--text-muted);text-decoration:line-through;':''}">${dateDisplay}</span>
+          <button class="btn btn-ghost btn-sm" onclick="toggleGtOccurrence('${p.part}','${date}',${!cancelled})">${cancelled?'Reinstate':'Cancel'}</button>
+        </div>`;
+    }).join('');
+    return `
     <div class="chart-card" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
         <h3 style="font-size:1.05rem;">${escapeHtml(p.title || GT_LABELS[p.part])}</h3>
         ${p.published?'<span class="badge badge-green">Published</span>':'<span class="badge badge-gray">Draft</span>'}
       </div>
       <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px;">
-        ${p.sessionDate ? new Date(p.sessionDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : 'No date set'}
+        ${p.sundayOfMonth ? escapeHtml(SUNDAY_LABELS[p.sundayOfMonth]) + ' of every month' : 'Not scheduled'}
         ${p.sessionTime ? ' · ' + escapeHtml(p.sessionTime) : ''}${p.location ? ' · ' + escapeHtml(p.location) : ''}
       </p>
+      ${occurrenceRows ? `<div style="margin-bottom:12px;">
+        <p style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:4px;">Upcoming Occurrences</p>
+        ${occurrenceRows}
+      </div>` : ''}
       <div class="td-actions">
         <button class="btn btn-secondary btn-sm" onclick="openGtPartModal('${p.part}')">Edit</button>
         <button class="btn btn-primary btn-sm" onclick="openGtRoster('${p.part}')">Registrants</button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+}
+
+async function toggleGtOccurrence(part, sessionDate, shouldCancel) {
+  const result = shouldCancel
+    ? await SupaDB.adminCancelGrowthTrackOccurrence(part, sessionDate)
+    : await SupaDB.adminReinstateGrowthTrackOccurrence(part, sessionDate);
+  if (result.error) { showToast(result.error, true); return; }
+  showToast(shouldCancel ? 'Occurrence cancelled' : 'Occurrence reinstated');
+  renderGrowthTrackTab();
 }
 
 function openGtPartModal(part) {
@@ -5429,7 +5465,7 @@ function openGtPartModal(part) {
   document.getElementById('gtpPublished').checked = p.published;
   document.getElementById('gtpTitle').value = p.title || '';
   document.getElementById('gtpDescription').value = p.description || '';
-  document.getElementById('gtpDate').value = p.sessionDate || '';
+  document.getElementById('gtpSundayOfMonth').value = p.sundayOfMonth || '';
   document.getElementById('gtpTime').value = p.sessionTime || '';
   document.getElementById('gtpLocation').value = p.location || '';
   document.getElementById('gtPartModal').classList.add('open');
@@ -5438,10 +5474,11 @@ function closeGtPartModal() { document.getElementById('gtPartModal').classList.r
 
 async function saveGtPart() {
   const id = document.getElementById('gtpId').value;
+  const sundayVal = document.getElementById('gtpSundayOfMonth').value;
   const result = await SupaDB.adminUpdateGrowthTrackPart(id, {
     title: document.getElementById('gtpTitle').value.trim(),
     description: document.getElementById('gtpDescription').value.trim(),
-    sessionDate: document.getElementById('gtpDate').value || null,
+    sundayOfMonth: sundayVal ? parseInt(sundayVal, 10) : null,
     sessionTime: document.getElementById('gtpTime').value.trim(),
     location: document.getElementById('gtpLocation').value.trim(),
     published: document.getElementById('gtpPublished').checked,
