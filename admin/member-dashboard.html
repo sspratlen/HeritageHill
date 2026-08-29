@@ -273,7 +273,7 @@ async function loadCurrentMember() {
   const g = _allAttempts.find(a => a.userId === p.userId && a.assessmentType === 'gifts');
 
   MemberDashboard.renderGrowthTrackProgress(document.getElementById('mdGtProgress'), gtRegs);
-  MemberDashboard.renderGroupHistory(document.getElementById('mdGroupHistory'), memberships, _groups);
+  MemberDashboard.renderGroupHistory(document.getElementById('mdGroupHistory'), memberships, _groups, p.email);
 
   document.getElementById('mdDisc').innerHTML = d
     ? `<strong style="font-size:1.2rem;">${escapeHtml(d.result)}</strong>

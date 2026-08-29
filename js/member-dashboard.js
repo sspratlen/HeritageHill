@@ -39,8 +39,20 @@ const MemberDashboard = {
   // groups: for name lookup — SupaDB.adminGetAllGroups() (admin caller) or
   // SupaDB.getPublishedGroups() (member's own page); a group unpublished
   // since a past membership falls back to "Unknown Group" in the latter case.
-  renderGroupHistory(containerEl, memberships, groups) {
-    if (!memberships.length) {
+  // email: the member's own email — used to also surface groups they lead
+  // (matched against groups[].leaderEmail) even if they have no separate
+  // group_memberships row for that group. Leading a group counts as having
+  // attended it.
+  renderGroupHistory(containerEl, memberships, groups, email) {
+    const led = (email
+      ? groups.filter(g => g.leaderEmail && g.leaderEmail.toLowerCase() === email.toLowerCase())
+      : []
+    ).filter(g => !memberships.some(m => String(m.groupId) === String(g.id)))
+     .map(g => ({ groupId: g.id, joinedAt: null, leftAt: null, isLeader: true }));
+
+    const rows = memberships.concat(led);
+
+    if (!rows.length) {
       containerEl.innerHTML = '<p style="color:var(--text-muted);font-size:.9rem;">No group history yet.</p>';
       return;
     }
@@ -50,11 +62,11 @@ const MemberDashboard = {
     };
     const fmt = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
     containerEl.innerHTML = `<table><thead><tr><th>Group</th><th>Joined</th><th>Status</th></tr></thead><tbody>` +
-      memberships.map(m => `
+      rows.map(m => `
         <tr>
           <td>${this.escapeHtml(groupName(m.groupId))}</td>
-          <td>${fmt(m.joinedAt)}</td>
-          <td>${m.leftAt ? 'Left ' + fmt(m.leftAt) : '<span class="badge badge-green">Current</span>'}</td>
+          <td>${m.isLeader ? '—' : fmt(m.joinedAt)}</td>
+          <td>${m.isLeader ? '<span class="badge badge-blue">Leader</span>' : (m.leftAt ? 'Left ' + fmt(m.leftAt) : '<span class="badge badge-green">Current</span>')}</td>
         </tr>`).join('') + '</tbody></table>';
   },
 };

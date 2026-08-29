@@ -152,7 +152,7 @@ let _profile = null, _content = null;
   renderResult('disc',  attempts.filter(a => a.assessmentType === 'disc'));
   renderResult('gifts', attempts.filter(a => a.assessmentType === 'gifts'));
   MemberDashboard.renderGrowthTrackProgress(document.getElementById('gtProgressBox'), gtRegs);
-  MemberDashboard.renderGroupHistory(document.getElementById('groupHistoryBox'), memberships, groups);
+  MemberDashboard.renderGroupHistory(document.getElementById('groupHistoryBox'), memberships, groups, _profile.email);
 })();
 
 function escapeHtml(s) {
