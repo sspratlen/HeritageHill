@@ -5424,7 +5424,6 @@ async function renderGrowthTrackTab() {
   document.getElementById('gtCards').innerHTML = _gtPartsAdmin.map(p => {
     const occurrences = computeGrowthTrackOccurrences(p.sundayOfMonth, 6);
     const partRegs = gtRegistrationsByPart[p.part] || [];
-    const totalCount = partRegs.length;
     const occurrenceRows = occurrences.map(date => {
       const cancelled = _gtCancellationsAdmin.some(c => c.part === p.part && c.sessionDate === date);
       const dateDisplay = new Date(date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
@@ -5445,9 +5444,6 @@ async function renderGrowthTrackTab() {
       <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px;">
         ${p.sundayOfMonth ? escapeHtml(SUNDAY_LABELS[p.sundayOfMonth]) + ' of every month' : 'Not scheduled'}
         ${p.sessionTime ? ' · ' + escapeHtml(p.sessionTime) : ''}${p.location ? ' · ' + escapeHtml(p.location) : ''}
-      </p>
-      <p style="font-size:.85rem;font-weight:600;margin-bottom:12px;">
-        ${totalCount} registrant${totalCount === 1 ? '' : 's'} total
       </p>
       ${occurrenceRows ? `<div style="margin-bottom:12px;">
         <div style="display:grid;grid-template-columns:1fr 80px 90px;padding:2px 0 4px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);">
