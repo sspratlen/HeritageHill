@@ -234,6 +234,10 @@
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       Members <span id="peopleBadge" style="display:none; background:#BC7A1E; color:#fff; border-radius:10px; font-size:.7rem; padding:1px 7px; margin-left:auto;">0</span>
     </a>
+    <a onclick="switchTab('analytics')" id="sideAnalytics" data-tab="analytics">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
+    </a>
     <a onclick="switchTab('mygroup')" id="sideMygroup" data-tab="mygroup">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
       My Group
@@ -1199,6 +1203,38 @@
       <div id="gtCards" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:16px;"></div>
     </div>
 
+    <div class="tab-panel" id="panelAnalytics">
+      <div class="action-bar">
+        <h2>Assessment Analytics</h2>
+      </div>
+      <div id="analyticsEmpty" style="display:none;color:var(--text-muted);padding:20px;">
+        No assessment data yet — once members start taking the DISC and Spiritual Gifts assessments, their results will appear here.
+      </div>
+      <div id="analyticsContent" style="display:none;">
+        <div class="stats-row" style="grid-template-columns:repeat(2,1fr);margin-bottom:24px;">
+          <div class="stat-card"><div class="num" id="analyticsDiscStat">–</div><div class="lbl">Members Taken DISC</div></div>
+          <div class="stat-card"><div class="num" id="analyticsGiftsStat">–</div><div class="lbl">Members Taken Gifts</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+          <div class="chart-card" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+            <h3 style="font-size:1.05rem;margin-bottom:14px;">DISC Distribution</h3>
+            <div id="analyticsDiscChart"></div>
+          </div>
+          <div class="chart-card" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+            <h3 style="font-size:1.05rem;margin-bottom:14px;">Spiritual Gifts Distribution</h3>
+            <div id="analyticsGiftsChart" style="max-height:520px;overflow-y:auto;"></div>
+          </div>
+        </div>
+        <div class="chart-card" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <h3 style="font-size:1.05rem;">Claude Ministry Analysis</h3>
+            <button class="btn btn-primary btn-sm" id="analyticsGenerateBtn" onclick="generateClaudeAnalysis()">Generate Analysis</button>
+          </div>
+          <div id="analyticsReports"></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1987,7 +2023,7 @@
 <script>
 // Role-based access map
 const ROLE_TABS = {
-  admin:               ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','attendance','sermons','email','settings','users','people','growthtrack'],
+  admin:               ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','attendance','sermons','email','settings','users','people','analytics','growthtrack'],
   event_manager:       ['events','rsvps','sermons','email'],
   small_group_leader:  ['groups','signups','mygroup'],
 };
@@ -2066,7 +2102,7 @@ function applyRoleVisibility() {
   }
 })();
 
-const ALL_TABS = ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','attendance','sermons','email','settings','users','people','mygroup','growthtrack'];
+const ALL_TABS = ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','attendance','sermons','email','settings','users','people','analytics','mygroup','growthtrack'];
 function switchTab(tab) {
   // Block access to tabs the current role doesn't have
   const allowed = ROLE_TABS[window._userRole] || ROLE_TABS.admin;
@@ -2079,7 +2115,7 @@ function switchTab(tab) {
   const c = tab[0].toUpperCase()+tab.slice(1);
   const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
   if(p) p.classList.add('active'); if(s) s.classList.add('active');
-  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings',users:'User Permissions',people:'Members & Assessments',mygroup:'My Group',growthtrack:'Growth Track'};
+  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings',users:'User Permissions',people:'Members & Assessments',analytics:'Analytics',mygroup:'My Group',growthtrack:'Growth Track'};
   document.getElementById('topbarTitle').textContent = titles[tab]||tab;
   if(tab==='events') renderEventsTable();
   else if(tab==='groups') renderGroupsTable();
@@ -2095,6 +2131,7 @@ function switchTab(tab) {
   else if(tab==='settings') { loadBannerSettings(); loadSaveDatesSettings(); loadSemesters(); }
   else if(tab==='users') renderUsersTable();
   else if(tab==='people')  renderPeoplePanel();
+  else if(tab==='analytics') renderAnalyticsTab();
   else if(tab==='mygroup') renderMyGroupPanel();
   else if(tab==='growthtrack') renderGrowthTrackTab();
 }
@@ -5298,6 +5335,126 @@ function latestByUser(attempts) {
   return map;
 }
 function giftNames(a) { try { const n = JSON.parse(a.result); return Array.isArray(n) ? n : []; } catch(e) { return []; } }
+
+/* ── ASSESSMENT ANALYTICS ─────────────────────────────────── */
+let _analyticsReports = [];
+
+function computeAssessmentAnalytics(profiles, attempts, content) {
+  const approved = profiles.filter(p => p.status === 'approved');
+  const latest = latestByUser(attempts);
+  const gifts = content.filter(c => c.kind === 'gift');
+
+  const discCounts = { D: 0, I: 0, S: 0, C: 0 };
+  let discTaken = 0;
+  const giftCounts = {};
+  gifts.forEach(g => { giftCounts[(g.extra && g.extra.name) || g.code] = 0; });
+  let giftsTaken = 0;
+
+  approved.forEach(p => {
+    const a = latest[p.userId] || {};
+    if (a.disc) {
+      discTaken++;
+      a.disc.result.split('').forEach(letter => { if (discCounts[letter] !== undefined) discCounts[letter]++; });
+    }
+    if (a.gifts) {
+      giftsTaken++;
+      giftNames(a.gifts).forEach(name => { if (giftCounts[name] !== undefined) giftCounts[name]++; });
+    }
+  });
+
+  const giftMinistries = {};
+  gifts.forEach(g => { giftMinistries[(g.extra && g.extra.name) || g.code] = (g.extra && g.extra.ministries) || []; });
+
+  return {
+    totalApprovedMembers: approved.length,
+    discTaken, giftsTaken,
+    discCounts, giftCounts, giftMinistries,
+  };
+}
+
+function analyticsBarList(counts, maxScale) {
+  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const max = maxScale || Math.max(1, ...entries.map(([, v]) => v));
+  return entries.map(([label, count]) => `
+    <div style="display:flex;align-items:center;gap:10px;margin:6px 0;font-size:.85rem;">
+      <span style="width:130px;flex-shrink:0;">${escapeHtml(label)}</span>
+      <div style="flex:1;height:10px;background:#eee;border-radius:6px;overflow:hidden;">
+        <div style="width:${(count / max) * 100}%;height:100%;background:var(--primary);"></div>
+      </div>
+      <span style="width:24px;text-align:right;color:var(--text-muted);">${count}</span>
+    </div>`).join('');
+}
+
+async function renderAnalyticsTab() {
+  const [profiles, attempts, content] = await Promise.all([
+    SupaDB.adminGetAllMemberProfiles(), SupaDB.getVisibleAttempts(), SupaDB.getAssessmentContent(),
+  ]);
+  const stats = computeAssessmentAnalytics(profiles, attempts, content);
+  window._analyticsStats = stats;
+
+  const hasData = stats.totalApprovedMembers > 0 && (stats.discTaken > 0 || stats.giftsTaken > 0);
+  document.getElementById('analyticsEmpty').style.display = hasData ? 'none' : '';
+  document.getElementById('analyticsContent').style.display = hasData ? '' : 'none';
+  document.getElementById('analyticsGenerateBtn').disabled = !hasData;
+  if (!hasData) return;
+
+  const pct = (n, d) => d ? Math.round((n / d) * 100) : 0;
+  document.getElementById('analyticsDiscStat').textContent =
+    `${stats.discTaken} / ${stats.totalApprovedMembers} (${pct(stats.discTaken, stats.totalApprovedMembers)}%)`;
+  document.getElementById('analyticsGiftsStat').textContent =
+    `${stats.giftsTaken} / ${stats.totalApprovedMembers} (${pct(stats.giftsTaken, stats.totalApprovedMembers)}%)`;
+
+  document.getElementById('analyticsDiscChart').innerHTML = analyticsBarList(stats.discCounts);
+  document.getElementById('analyticsGiftsChart').innerHTML = analyticsBarList(stats.giftCounts);
+
+  await loadAnalyticsReports();
+}
+
+async function loadAnalyticsReports() {
+  _analyticsReports = await SupaDB.adminGetAssessmentAnalyticsReports();
+  const box = document.getElementById('analyticsReports');
+  if (!_analyticsReports.length) {
+    box.innerHTML = '<p style="color:var(--text-muted);font-size:.9rem;">No analysis generated yet.</p>';
+    return;
+  }
+  box.innerHTML = _analyticsReports.map((r, i) => {
+    const dateStr = new Date(r.createdAt).toLocaleString();
+    const bodyHtml = r.analysisText.split('\n').map(line => `<p style="margin:0 0 8px;">${escapeHtml(line)}</p>`).join('');
+    return `
+      <div style="border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;">
+        <div onclick="const d=this.nextElementSibling; const open=d.style.display==='none'; d.style.display=open?'':'none'; this.querySelector('.acc-chevron').textContent=open?'▲':'▼';"
+             style="cursor:pointer;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;background:#fafafa;">
+          <span style="font-size:.85rem;"><strong>${dateStr}</strong>${r.createdBy ? ' · ' + escapeHtml(r.createdBy) : ''}</span>
+          <span class="acc-chevron" style="color:var(--text-muted);">${i === 0 ? '▲' : '▼'}</span>
+        </div>
+        <div style="${i === 0 ? '' : 'display:none;'}padding:14px;font-size:.88rem;">${bodyHtml}</div>
+      </div>`;
+  }).join('');
+}
+
+async function generateClaudeAnalysis() {
+  const btn = document.getElementById('analyticsGenerateBtn');
+  const stats = window._analyticsStats;
+  if (!stats) return;
+  btn.disabled = true; btn.textContent = 'Generating… (up to a minute)';
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/analyze-assessments', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ summaryStats: stats }),
+    });
+    const json = await res.json();
+    if (json.error) { showToast(json.error, true); return; }
+    const saveResult = await SupaDB.adminSaveAssessmentAnalyticsReport({ summaryStats: stats, analysisText: json.analysisText });
+    if (saveResult.error) { showToast(saveResult.error, true); return; }
+    showToast('Analysis generated');
+    await loadAnalyticsReports();
+  } catch(e) {
+    showToast('Error: ' + e.message, true);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Generate Analysis';
+  }
+}
 
 async function bulkRegisterLeadersAttendees() {
   if (!confirm('Register all current small group leaders and attendees as site members? This creates login accounts (password HHTemp!) for anyone who doesn\'t already have one.')) return;
