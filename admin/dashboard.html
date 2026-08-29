@@ -1928,6 +1928,46 @@
 </div>
 
 
+<!-- Growth Track cancellation notice modal -->
+<div class="modal-overlay" id="gtCancelEmailModal" onclick="if(event.target===this)closeGtCancelEmailModal()">
+  <div class="modal modal-lg" style="max-width:780px;">
+    <div class="modal-header">
+      <h3 id="gtCancelEmailTitle">Notify Registrants</h3>
+      <button class="modal-close" onclick="closeGtCancelEmailModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field" style="margin-bottom:16px;">
+        <label>From</label>
+        <div style="font-size:.88rem;color:var(--text);background:var(--bg-subtle,#f4f4f2);border:1px solid var(--border,#e4e4e4);border-radius:8px;padding:9px 12px;">
+          <strong>Heritage Hill Church</strong> &lt;noreply@heritagehill.church&gt;
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:16px;">
+        <label>To <span style="font-size:.78rem;color:var(--text-muted);font-weight:400;">— pre-filled from this occurrence's registrants. Edit as needed, one email per line or comma-separated. Each person receives their own copy.</span></label>
+        <textarea class="group-email-recipients" id="gtCancelEmailTo" placeholder="member@example.com, another@example.com" oninput="updateGtCancelEmailCount()"></textarea>
+      </div>
+      <div class="field" style="margin-bottom:16px;">
+        <label>Subject</label>
+        <input type="text" id="gtCancelEmailSubject" placeholder="e.g. About Us — Sep 6 Session Cancelled" />
+      </div>
+      <div class="field" style="margin-bottom:4px;">
+        <label style="margin-bottom:8px;display:block;">Message</label>
+        <div id="gtCancelEmailEditor"></div>
+      </div>
+      <p id="gtCancelEmailError" style="color:var(--danger);font-size:.82rem;margin-top:10px;display:none;"></p>
+    </div>
+    <div class="modal-footer">
+      <span id="gtCancelEmailRecipientCount" style="font-size:.82rem;color:var(--text-muted);margin-right:auto;"></span>
+      <button class="btn btn-ghost" onclick="closeGtCancelEmailModal()">Cancel</button>
+      <button class="btn btn-primary" id="gtCancelEmailSendBtn" onclick="sendGtCancelEmail()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send Email
+      </button>
+    </div>
+  </div>
+</div>
+
+
 <!-- Delete confirm modal -->
 <div class="modal-overlay" id="deleteModal">
   <div class="modal" style="max-width:400px;">
