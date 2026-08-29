@@ -1468,6 +1468,9 @@
           <div class="field"><label>Phone <span style="font-size:.75rem;color:var(--text-muted);font-weight:400;">(optional)</span></label><input id="gtrPhone" type="tel" placeholder="(402) 555-1234" /></div>
           <div class="field"><label>Notes <span style="font-size:.75rem;color:var(--text-muted);font-weight:400;">(optional)</span></label><input id="gtrNotes" type="text" placeholder="Optional note" /></div>
         </div>
+        <div class="form-row" style="margin-bottom:12px;">
+          <div class="field"><label>Occurrence Date *</label><select id="gtrSessionDate"></select></div>
+        </div>
         <div style="text-align:right;">
           <button class="btn btn-primary btn-sm" onclick="addGtRegistrant()">Add Registrant</button>
         </div>
@@ -1475,11 +1478,11 @@
       </div>
       <div class="table-wrap" style="margin:0;">
         <table>
-          <thead><tr><th>Name</th><th>Contact</th><th>Notes</th><th>Registered</th><th>Attended</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Name</th><th>Contact</th><th>Date</th><th>Notes</th><th>Registered</th><th>Attended</th><th>Actions</th></tr></thead>
           <tbody id="gtRosterTable"></tbody>
         </table>
         <div id="gtRosterEmpty" class="empty" style="display:none;padding:24px 0;">
-          <p style="margin:0;color:var(--text-muted);">No registrants yet for this session.</p>
+          <p style="margin:0;color:var(--text-muted);">No registrants yet for this part.</p>
         </div>
       </div>
     </div>
@@ -5415,6 +5418,9 @@ async function renderGrowthTrackTab() {
     SupaDB.adminGetAllGrowthTrackParts(),
     SupaDB.getGrowthTrackCancellations(),
   ]);
+  const regCounts = await Promise.all(_gtPartsAdmin.map(p => SupaDB.adminGetGrowthTrackRegistrations(p.part)));
+  const gtRegistrantCounts = {};
+  _gtPartsAdmin.forEach((p, i) => { gtRegistrantCounts[p.part] = regCounts[i].length; });
   document.getElementById('gtCards').innerHTML = _gtPartsAdmin.map(p => {
     const occurrences = computeGrowthTrackOccurrences(p.sundayOfMonth, 6);
     const occurrenceRows = occurrences.map(date => {
@@ -5435,6 +5441,9 @@ async function renderGrowthTrackTab() {
       <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px;">
         ${p.sundayOfMonth ? escapeHtml(SUNDAY_LABELS[p.sundayOfMonth]) + ' of every month' : 'Not scheduled'}
         ${p.sessionTime ? ' · ' + escapeHtml(p.sessionTime) : ''}${p.location ? ' · ' + escapeHtml(p.location) : ''}
+      </p>
+      <p style="font-size:.85rem;font-weight:600;margin-bottom:12px;">
+        ${gtRegistrantCounts[p.part] || 0} registrant${gtRegistrantCounts[p.part] === 1 ? '' : 's'} total
       </p>
       ${occurrenceRows ? `<div style="margin-bottom:12px;">
         <p style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);margin-bottom:4px;">Upcoming Occurrences</p>
@@ -5501,6 +5510,10 @@ async function openGtRoster(part) {
   document.getElementById('gtrPhone').value = '';
   document.getElementById('gtrNotes').value = '';
   document.getElementById('gtrError').style.display = 'none';
+  const occurrences = computeGrowthTrackOccurrences(p.sundayOfMonth, 6);
+  document.getElementById('gtrSessionDate').innerHTML = occurrences.map(date =>
+    `<option value="${date}">${new Date(date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</option>`
+  ).join('');
   await loadGtRoster();
   document.getElementById('gtRosterModal').classList.add('open');
 }
@@ -5508,9 +5521,7 @@ function closeGtRoster() { document.getElementById('gtRosterModal').classList.re
 
 async function loadGtRoster() {
   const all = await SupaDB.adminGetGrowthTrackRegistrations(_gtRosterPart.part);
-  // "Current" roster = registrations whose snapshot matches the part's live date/time.
-  _gtRosterRows = all.filter(r =>
-    r.sessionDate === _gtRosterPart.sessionDate && r.sessionTime === _gtRosterPart.sessionTime);
+  _gtRosterRows = all.slice().sort((a, b) => (a.sessionDate || '').localeCompare(b.sessionDate || ''));
   const tbody = document.getElementById('gtRosterTable'), empty = document.getElementById('gtRosterEmpty');
   if (!_gtRosterRows.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
   empty.style.display = 'none';
@@ -5518,6 +5529,7 @@ async function loadGtRoster() {
     <tr>
       <td><strong>${escapeHtml(r.name)}</strong>${r.addedByAdmin ? ' <span class="badge badge-gray">manual</span>' : ''}</td>
       <td>${escapeHtml(r.email)}${r.phone ? '<br><span style="font-size:.8rem;color:var(--text-muted);">' + escapeHtml(r.phone) + '</span>' : ''}</td>
+      <td>${r.sessionDate ? new Date(r.sessionDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—'}</td>
       <td>${escapeHtml(r.notes)}</td>
       <td>${new Date(r.createdAt).toLocaleDateString()}</td>
       <td style="text-align:center;">
@@ -5543,9 +5555,15 @@ async function addGtRegistrant() {
     err.style.display = '';
     return;
   }
+  const sessionDate = document.getElementById('gtrSessionDate').value;
+  if (!sessionDate) {
+    err.textContent = 'This part has no upcoming occurrences to register for.';
+    err.style.display = '';
+    return;
+  }
   err.style.display = 'none';
   const result = await SupaDB.adminAddGrowthTrackRegistration({
-    part: _gtRosterPart.part, sessionDate: _gtRosterPart.sessionDate, sessionTime: _gtRosterPart.sessionTime,
+    part: _gtRosterPart.part, sessionDate, sessionTime: _gtRosterPart.sessionTime,
     name, email, phone: document.getElementById('gtrPhone').value.trim(),
     notes: document.getElementById('gtrNotes').value.trim(),
   });
@@ -5571,9 +5589,11 @@ function csvSafeGt(v) {
 }
 
 function exportGtRosterCsv() {
-  const headers = ['Name','Email','Phone','Notes','Added By Admin','Registered'];
+  const headers = ['Name','Email','Phone','Date','Notes','Added By Admin','Registered'];
   const rows = _gtRosterRows.map(r => [
-    r.name, r.email, r.phone, r.notes, r.addedByAdmin ? 'yes' : 'no',
+    r.name, r.email, r.phone,
+    r.sessionDate ? new Date(r.sessionDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '',
+    r.notes, r.addedByAdmin ? 'yes' : 'no',
     new Date(r.createdAt).toLocaleDateString(),
   ]);
   const csv = [headers, ...rows].map(r =>
