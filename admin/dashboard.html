@@ -5438,9 +5438,10 @@ async function generateClaudeAnalysis() {
   if (!stats) return;
   btn.disabled = true; btn.textContent = 'Generating… (up to a minute)';
   try {
+    const { data: { session } } = await window._supabase.auth.getSession();
     const res = await fetch(SUPABASE_URL + '/functions/v1/analyze-assessments', {
       method: 'POST',
-      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + (session ? session.access_token : ''), 'Content-Type': 'application/json' },
       body: JSON.stringify({ summaryStats: stats }),
     });
     const json = await res.json();
