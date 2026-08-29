@@ -96,6 +96,12 @@ function growthTrackRegistrationFromDb(r) {
     userId: r.user_id, attended: !!r.attended,
   };
 }
+function analyticsReportFromDb(r) {
+  return {
+    id: r.id, createdAt: r.created_at, createdBy: r.created_by || '',
+    summaryStats: r.summary_stats || {}, analysisText: r.analysis_text,
+  };
+}
 
 function groupMembershipFromDb(r) {
   return {
@@ -459,6 +465,28 @@ window.SupaDB = {
       if (error) throw error;
       return { ok: true };
     } catch(e) { console.error('[SupaDB] adminReinstateGrowthTrackOccurrence:', e.message); return { error: e.message }; }
+  },
+  async adminGetAssessmentAnalyticsReports() {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('assessment_analytics_reports')
+        .select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(analyticsReportFromDb);
+    } catch(e) { console.error('[SupaDB] adminGetAssessmentAnalyticsReports:', e.message); return []; }
+  },
+  async adminSaveAssessmentAnalyticsReport({ summaryStats, analysisText }) {
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const { data: { user } } = await db().auth.getUser();
+      const { error } = await db().from('assessment_analytics_reports').insert({
+        created_by: (user && user.email) || null,
+        summary_stats: summaryStats,
+        analysis_text: analysisText,
+      });
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] adminSaveAssessmentAnalyticsReport:', e.message); return { error: e.message }; }
   },
   async adminGetGrowthTrackRegistrations(part) {
     if (!db()) return [];
