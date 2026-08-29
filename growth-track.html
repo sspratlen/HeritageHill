@@ -140,6 +140,7 @@
       </div>
       <form id="gtForm" onsubmit="handleGtSubmit(event)">
         <input type="hidden" id="gtPart" />
+        <input type="hidden" id="gtSessionDate" />
         <div style="margin-bottom:14px;">
           <label style="display:block; font-size:.82rem; font-weight:600; margin-bottom:5px;">Full Name *</label>
           <input type="text" id="gtName" required placeholder="Your full name"
@@ -191,22 +192,35 @@
   }
 
   function renderGtCard(p) {
-    const meta = [fmtDate(p.sessionDate), p.sessionTime, p.location].filter(Boolean).join(' · ');
+    const timeLocation = [p.sessionTime, p.location].filter(Boolean).join(' · ');
+    const occurrences = computeGrowthTrackOccurrences(p.sundayOfMonth, 3);
+    const occurrenceRows = occurrences.map(date => {
+      const cancelled = _gtCancellations.some(c => c.part === p.part && c.sessionDate === date);
+      return `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-top:1px solid #eee;">
+          <span style="font-size:.85rem; ${cancelled ? 'color:#999; text-decoration:line-through;' : ''}">${escapeHtml(fmtDate(date))}</span>
+          ${cancelled
+            ? '<span style="font-size:.78rem; color:#999; font-weight:600;">Cancelled</span>'
+            : `<button class="btn btn-primary btn-sm" onclick="openGtModal('${p.part}','${date}')">Register</button>`}
+        </div>`;
+    }).join('');
     return `
     <article class="card" data-reveal>
       <div class="card-body">
         <h3>${escapeHtml(p.title)}</h3>
-        ${meta ? `<div class="card-meta"><span>${escapeHtml(meta)}</span></div>` : ''}
+        ${timeLocation ? `<div class="card-meta"><span>${escapeHtml(timeLocation)}</span></div>` : ''}
         <p style="font-size:.875rem;">${escapeHtml(p.description)}</p>
-        <div style="margin-top:14px; text-align:right;">
-          <button class="btn btn-primary btn-sm" onclick="openGtModal('${p.part}')">Register</button>
-        </div>
+        ${occurrenceRows ? `<div style="margin-top:14px;">${occurrenceRows}</div>` : ''}
       </div>
     </article>`;
   }
 
+  let _gtCancellations = [];
   async function loadGrowthTrack() {
-    _gtParts = await SupaDB.getPublishedGrowthTrackParts();
+    [_gtParts, _gtCancellations] = await Promise.all([
+      SupaDB.getPublishedGrowthTrackParts(),
+      SupaDB.getGrowthTrackCancellations(),
+    ]);
     const grid = document.getElementById('gtGrid');
     const empty = document.getElementById('gtEmpty');
     if (!_gtParts.length) { grid.innerHTML = ''; empty.style.display = ''; return; }
@@ -215,10 +229,13 @@
   }
   loadGrowthTrack();
 
-  async function openGtModal(part) {
+  async function openGtModal(part, sessionDate) {
     const p = _gtParts.find(x => x.part === part);
     document.getElementById('gtPart').value = part;
-    document.getElementById('gtPartDisplay').textContent = p ? p.title : '';
+    document.getElementById('gtSessionDate').value = sessionDate || '';
+    document.getElementById('gtPartDisplay').textContent = p
+      ? (sessionDate ? p.title + ' — ' + fmtDate(sessionDate) : p.title)
+      : '';
     document.getElementById('gtForm').reset();
     document.getElementById('gtForm').style.display = '';
     document.getElementById('gtSuccess').style.display = 'none';
@@ -244,11 +261,12 @@
   async function handleGtSubmit(e) {
     e.preventDefault();
     const part = document.getElementById('gtPart').value;
+    const sessionDate = document.getElementById('gtSessionDate').value || null;
     const p = _gtParts.find(x => x.part === part);
     let userId = null;
     try { const user = await SupaDB.getUser(); if (user) userId = user.id; } catch (err) { /* not logged in */ }
     const reg = {
-      part, sessionDate: p ? p.sessionDate : null, sessionTime: p ? p.sessionTime : '',
+      part, sessionDate, sessionTime: p ? p.sessionTime : '',
       name: document.getElementById('gtName').value.trim(),
       email: document.getElementById('gtEmail').value.trim(),
       phone: document.getElementById('gtPhone').value.trim(),
