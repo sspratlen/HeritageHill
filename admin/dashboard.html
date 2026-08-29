@@ -5430,10 +5430,10 @@ async function renderGrowthTrackTab() {
       const dateDisplay = new Date(date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
       const count = partRegs.filter(r => r.sessionDate === date).length;
       return `
-        <div style="display:flex;align-items:center;padding:4px 0;font-size:.82rem;">
-          <span style="flex:1;${cancelled?'color:var(--text-muted);text-decoration:line-through;':''}">${dateDisplay}</span>
-          <span style="width:76px;text-align:center;">${count}</span>
-          <button class="btn btn-ghost btn-sm" onclick="toggleGtOccurrence('${p.part}','${date}',${!cancelled})">${cancelled?'Reinstate':'Cancel'}</button>
+        <div style="display:grid;grid-template-columns:1fr 80px 90px;align-items:center;padding:4px 0;font-size:.82rem;">
+          <span style="${cancelled?'color:var(--text-muted);text-decoration:line-through;':''}">${dateDisplay}</span>
+          <span style="text-align:center;">${count}</span>
+          <button class="btn btn-ghost btn-sm" style="justify-self:start;" onclick="toggleGtOccurrence('${p.part}','${date}',${!cancelled})">${cancelled?'Reinstate':'Cancel'}</button>
         </div>`;
     }).join('');
     return `
@@ -5450,10 +5450,10 @@ async function renderGrowthTrackTab() {
         ${totalCount} registrant${totalCount === 1 ? '' : 's'} total
       </p>
       ${occurrenceRows ? `<div style="margin-bottom:12px;">
-        <div style="display:flex;align-items:center;padding:2px 0 4px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);">
-          <span style="flex:1;">Date</span>
-          <span style="width:76px;text-align:center;">Registrants</span>
-          <span style="width:76px;"></span>
+        <div style="display:grid;grid-template-columns:1fr 80px 90px;padding:2px 0 4px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);">
+          <span>Date</span>
+          <span style="text-align:center;">Registrants</span>
+          <span></span>
         </div>
         ${occurrenceRows}
       </div>` : ''}
