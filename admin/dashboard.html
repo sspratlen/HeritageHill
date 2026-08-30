@@ -2118,10 +2118,20 @@ function applyRoleVisibility() {
 })();
 
 const ALL_TABS = ['events','groups','signups','applications','subscribers','rsvps','prayer','retreat','attendance','sermons','email','settings','users','people','analytics','mygroup','growthtrack'];
+function toggleSidebar() {
+  document.querySelector('.sidebar').classList.toggle('open');
+  document.getElementById('sidebarBackdrop').classList.toggle('open');
+}
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebarBackdrop').classList.remove('open');
+}
+
 function switchTab(tab) {
   // Block access to tabs the current role doesn't have
   const allowed = ROLE_TABS[window._userRole] || ROLE_TABS.admin;
   if (!allowed.includes(tab)) return;
+  closeSidebar();
   ALL_TABS.forEach(t => {
     const c = t[0].toUpperCase()+t.slice(1);
     const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
