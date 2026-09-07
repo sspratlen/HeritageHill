@@ -102,6 +102,19 @@ function analyticsReportFromDb(r) {
     summaryStats: r.summary_stats || {}, analysisText: r.analysis_text,
   };
 }
+function outboundEmailRecipientFromDb(r) {
+  return {
+    id: r.id, sendId: r.send_id, email: r.email, resendEmailId: r.resend_email_id,
+    status: r.status, statusUpdatedAt: r.status_updated_at,
+  };
+}
+function outboundEmailSendFromDb(r) {
+  return {
+    id: r.id, createdAt: r.created_at, sentBy: r.sent_by, context: r.context,
+    groupId: r.group_id, subject: r.subject,
+    recipients: (r.outbound_email_recipients || []).map(outboundEmailRecipientFromDb),
+  };
+}
 
 function groupMembershipFromDb(r) {
   return {
@@ -527,6 +540,31 @@ window.SupaDB = {
       if (error) throw error;
       return (data || []).map(growthTrackRegistrationFromDb);
     } catch(e) { console.error('[SupaDB] getGrowthTrackRegistrationsForUser:', e.message); return []; }
+  },
+  async adminSaveOutboundEmailSend({ subject, context, groupId, sentBy, results }) {
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const { data: sendRow, error: sendErr } = await db().from('outbound_email_sends')
+        .insert({ sent_by: sentBy, context, group_id: groupId, subject }).select().single();
+      if (sendErr) throw sendErr;
+      const recipientRows = (results || []).map(r => ({
+        send_id: sendRow.id, email: r.email, resend_email_id: r.resendId || null, status: 'pending',
+      }));
+      if (recipientRows.length) {
+        const { error: recErr } = await db().from('outbound_email_recipients').insert(recipientRows);
+        if (recErr) throw recErr;
+      }
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] adminSaveOutboundEmailSend:', e.message); return { error: e.message }; }
+  },
+  async getVisibleOutboundEmailSends() {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('outbound_email_sends')
+        .select('*, outbound_email_recipients(*)').order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(outboundEmailSendFromDb);
+    } catch(e) { console.error('[SupaDB] getVisibleOutboundEmailSends:', e.message); return []; }
   },
   async adminGetGroupMembers(groupId) {
     if (!db()) return [];
