@@ -56,7 +56,6 @@ serve(async (req: Request) => {
     // Reply-To is only needed when replies should go somewhere other than the From address.
     const replyToRaw = (typeof replyTo === 'string' && replyTo.includes('@')) ? replyTo.trim() : ''
     const replyToEmail = replyToRaw && replyToRaw.toLowerCase() !== fromAddr.toLowerCase() ? replyToRaw : ''
-    const unsubEmail = replyToEmail || fromAddr
 
     // Light, personal-looking shell — a simple sender line and minimal footer, no heavy
     // marketing header/imagery (which pushes Gmail toward the Promotions/Updates tab).
@@ -93,8 +92,9 @@ serve(async (req: Request) => {
 
     const textBody = `${htmlToText(htmlBody)}\n\n—\nFrom ${senderName} · Heritage Hill Church\n6909 Cornhusker Rd, Papillion, NE 68133\nhttps://heritagehill.church`
 
-    const listUnsub = `<mailto:${unsubEmail}?subject=unsubscribe>`
-
+    // No List-Unsubscribe header: this goes to staff/leaders, not a marketing
+    // list, and that header is one of Gmail's strongest "bulk mail" signals —
+    // leaving it off keeps these landing in the primary inbox instead of Promotions.
     // One message per recipient (real To:, no BCC). Resend batch endpoint accepts up to 100/call.
     const valid = recipients.filter((r: unknown) => typeof r === 'string' && r.includes('@'))
     const messages = valid.map((to: string) => ({
@@ -104,10 +104,6 @@ serve(async (req: Request) => {
       subject,
       html: wrappedHtml,
       text: textBody,
-      headers: {
-        'List-Unsubscribe': listUnsub,
-        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-      },
     }))
 
     const apiKey = Deno.env.get('RESEND_API_KEY')
