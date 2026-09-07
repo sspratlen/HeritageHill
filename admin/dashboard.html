@@ -344,6 +344,9 @@
           <button class="btn btn-secondary" id="emailAllLeadersBtn" onclick="openAllLeadersEmailModal()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Email All Leaders
           </button>
+          <button class="btn btn-secondary" id="emailHistoryBtn" onclick="openEmailHistoryModal()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Email History
+          </button>
           <button class="btn btn-primary" id="addGroupBtn" onclick="openGroupModal()">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Group
           </button>
@@ -2014,6 +2017,26 @@
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         Send Email
       </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Email History modal -->
+<div class="modal-overlay" id="emailHistoryModal" onclick="if(event.target===this)closeEmailHistoryModal()">
+  <div class="modal modal-lg" style="max-width:780px;">
+    <div class="modal-header">
+      <h3>Email History</h3>
+      <button class="modal-close" onclick="closeEmailHistoryModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.82rem;color:var(--text-muted);margin:0 0 16px;">
+        Opens are tracked but not guaranteed — some email apps block the tracking image.
+      </p>
+      <div id="emailHistoryList"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeEmailHistoryModal()">Close</button>
     </div>
   </div>
 </div>
@@ -6258,6 +6281,65 @@ async function sendGroupEmail() {
     btn.disabled = false;
     btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Send Email';
   }
+}
+
+/* ── EMAIL HISTORY ─────────────────────────────────────────── */
+const EMAIL_STATUS_LABELS = { pending: 'Pending', delivered: 'Delivered', opened: 'Opened', bounced: 'Bounced', complained: 'Complained' };
+const EMAIL_STATUS_COLORS = {
+  pending: 'background:#F0F0EE;color:#6B6B6B;',
+  delivered: 'background:#E8EEF7;color:#155CA2;',
+  opened: 'background:#E4F3EA;color:#1E7A45;',
+  bounced: 'background:#FBE4E4;color:#B3261E;',
+  complained: 'background:#FBE4E4;color:#B3261E;',
+};
+
+function emailStatusPill(status) {
+  const style = EMAIL_STATUS_COLORS[status] || EMAIL_STATUS_COLORS.pending;
+  const label = EMAIL_STATUS_LABELS[status] || status;
+  return `<span style="${style}font-weight:700;font-size:.76rem;padding:2px 9px;border-radius:20px;">${escapeHtml(label)}</span>`;
+}
+
+async function openEmailHistoryModal() {
+  document.getElementById('emailHistoryModal').classList.add('open');
+  await renderEmailHistory();
+}
+function closeEmailHistoryModal() {
+  document.getElementById('emailHistoryModal').classList.remove('open');
+}
+
+async function renderEmailHistory() {
+  const box = document.getElementById('emailHistoryList');
+  box.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:.9rem;">Loading…</div>';
+  const sends = await SupaDB.getVisibleOutboundEmailSends();
+  if (!sends.length) {
+    box.innerHTML = '<p style="color:var(--text-muted);font-size:.9rem;">No emails sent yet.</p>';
+    return;
+  }
+  box.innerHTML = sends.map((s, i) => {
+    const dateStr = new Date(s.createdAt).toLocaleString();
+    const group = s.groupId ? _cachedGroups.find(g => g.id === s.groupId) : null;
+    const groupLabel = s.groupId ? (group ? group.name : 'Group') : 'All Leaders';
+    const rows = s.recipients.map(r => `
+      <tr><td style="padding:6px 0;font-size:.85rem;">${escapeHtml(r.email)}</td><td style="padding:6px 0;">${emailStatusPill(r.status)}</td></tr>
+    `).join('');
+    return `
+      <div style="border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;">
+        <div onclick="const d=this.nextElementSibling; const open=d.style.display==='none'; d.style.display=open?'':'none'; this.querySelector('.acc-chevron').textContent=open?'▲':'▼';"
+             style="cursor:pointer;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;background:#fafafa;">
+          <span style="font-size:.88rem;">
+            <strong>${escapeHtml(s.subject)}</strong>
+            <span style="color:var(--text-muted);"> · ${escapeHtml(groupLabel)} · ${dateStr} · ${s.recipients.length} recipient${s.recipients.length !== 1 ? 's' : ''}</span>
+          </span>
+          <span class="acc-chevron" style="color:var(--text-muted);">${i === 0 ? '▲' : '▼'}</span>
+        </div>
+        <div style="${i === 0 ? '' : 'display:none;'}padding:0 16px 12px;">
+          <table style="width:100%;">
+            <thead><tr><th style="text-align:left;font-size:.76rem;color:var(--text-muted);padding:8px 0;">Recipient</th><th style="text-align:left;font-size:.76rem;color:var(--text-muted);padding:8px 0;">Status</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }).join('');
 }
 
 /* ── USER PERMISSIONS ─────────────────────────────────────── */
