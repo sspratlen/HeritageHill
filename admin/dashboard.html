@@ -6242,6 +6242,16 @@ async function sendGroupEmail() {
     if (json.error) { errEl.textContent = 'Error: ' + json.error; errEl.style.display = ''; return; }
     closeGroupEmailModal();
     showToast(`Email sent to ${recipients.length} recipient${recipients.length !== 1 ? 's' : ''} ✓`);
+
+    // Record send history for the Email History view. A failure here doesn't
+    // mean the email wasn't sent (it already was) — it's a separate,
+    // non-blocking warning rather than treated as a send error.
+    const sentBy = (window._currentUser && window._currentUser.email) || _groupEmailFromEmail;
+    const saveResult = await SupaDB.adminSaveOutboundEmailSend({
+      subject, context: 'small_group', groupId: _groupEmailGroupId,
+      sentBy, results: json.results || [],
+    });
+    if (saveResult.error) showToast('Email sent, but couldn\'t save to history: ' + saveResult.error, true);
   } catch(e) {
     errEl.textContent = 'Error: ' + e.message; errEl.style.display = '';
   } finally {
