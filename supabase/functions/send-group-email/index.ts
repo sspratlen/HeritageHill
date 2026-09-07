@@ -108,9 +108,14 @@ serve(async (req: Request) => {
 
     const apiKey = Deno.env.get('RESEND_API_KEY')
     let sent = 0
+    // Resend's batch response returns one { id } per message, in the same
+    // order as the request array (confirmed in Resend's API docs) — so each
+    // chunk's recipients zip directly against that chunk's response array.
+    const results: { email: string; resendId: string | null }[] = []
 
     for (let i = 0; i < messages.length; i += 100) {
       const chunk = messages.slice(i, i + 100)
+      const chunkRecipients = valid.slice(i, i + 100)
       const resendRes = await fetch('https://api.resend.com/emails/batch', {
         method: 'POST',
         headers: {
@@ -124,10 +129,15 @@ serve(async (req: Request) => {
         const err = await resendRes.text()
         throw new Error(`Resend error (sent ${sent} of ${messages.length} so far): ${err}`)
       }
+      const resendJson = await resendRes.json()
+      const chunkResults = (resendJson.data || []) as { id: string }[]
+      chunkRecipients.forEach((email: string, idx: number) => {
+        results.push({ email, resendId: (chunkResults[idx] && chunkResults[idx].id) || null })
+      })
       sent += chunk.length
     }
 
-    return new Response(JSON.stringify({ ok: true, sent }), {
+    return new Response(JSON.stringify({ ok: true, sent, results }), {
       headers: { ...CORS, 'Content-Type': 'application/json' },
     })
 
