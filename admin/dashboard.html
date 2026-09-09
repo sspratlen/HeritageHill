@@ -1503,6 +1503,7 @@
 
     </div>
     <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="exportGroupRosterCsv()">⬇ Export CSV</button>
       <button class="btn btn-ghost" onclick="closeGroupRoster()">Close</button>
     </div>
   </div>
@@ -2594,6 +2595,28 @@ async function removeGroupMember(membershipId) {
   await SupaDB.adminRemoveGroupMember(membershipId);
   showToast('Member removed.');
   await renderGroupRoster();
+}
+
+function csvSafe(v) {
+  const s = String(v == null ? '' : v);
+  return /^[=+\-@]/.test(s) ? "'" + s : s;
+}
+
+function exportGroupRosterCsv() {
+  if (!_rosterMembers.length) { showToast('No members to export.', true); return; }
+  const group = _cachedGroups.find(g => g.id === _rosterGroupId);
+  const headers = ['Name', 'Email', 'Phone', 'Note', 'Joined'];
+  const rows = _rosterMembers.map(m => [
+    m.name, m.email, m.phone || '', m.notes || '',
+    m.joinedAt ? new Date(m.joinedAt + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '',
+  ]);
+  const csv = [headers, ...rows].map(r =>
+    r.map(v => `"${csvSafe(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' }));
+  const slug = (group ? group.name : 'group').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  a.download = `${slug}-members-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
 }
 async function saveGroup(){
   const id=document.getElementById('grId').value;
