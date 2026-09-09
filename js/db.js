@@ -11,6 +11,7 @@ const CONTACT_FUNCTION_URL       = SUPABASE_URL + '/functions/v1/send-contact-em
 const MAILCHIMP_FUNCTION_URL     = SUPABASE_URL + '/functions/v1/mailchimp';
 const PRAYER_NOTIFY_URL          = SUPABASE_URL + '/functions/v1/notify-pastors';
 const LEADER_APPROVED_NOTIFY_URL = SUPABASE_URL + '/functions/v1/notify-leader-approved';
+const GROUP_SIGNUP_NOTIFY_URL    = SUPABASE_URL + '/functions/v1/notify-group-signup';
 
 /* ── Column-name mappers (snake_case DB ↔ camelCase JS) ────── */
 
@@ -357,6 +358,15 @@ window.SupaDB = {
       const current = await this.getCurrentSemester();
       const { error } = await db().from('signups').insert(signupToDb({ ...signup, semesterId: current ? current.id : null }));
       if (error) throw error;
+      // Fire-and-forget confirmation email to the requester (non-blocking)
+      fetch(GROUP_SIGNUP_NOTIFY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` },
+        body: JSON.stringify({
+          name: signup.name || '', email: signup.email || '',
+          groupName: signup.groupName || '', leaderName: signup.leaderName || '',
+        }),
+      }).catch(e => console.warn('[SupaDB] Group signup confirmation email failed (non-critical):', e.message));
       return { ok: true };
     } catch(e) { console.error('[SupaDB] submitSignup:', e.message); return { error: e.message }; }
   },
