@@ -637,6 +637,15 @@ window.SupaDB = {
       return { ok: true };
     } catch(e) { console.error('[SupaDB] adminAddGroupMember:', e.message); return { error: e.message }; }
   },
+  async adminUpdateGroupMember(id, { name, email, phone, notes }) {
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const { error } = await db().from('group_memberships')
+        .update({ name, email, phone: phone || '', notes: notes || '' }).eq('id', id);
+      if (error) throw error;
+      return { ok: true };
+    } catch(e) { console.error('[SupaDB] adminUpdateGroupMember:', e.message); return { error: e.message }; }
+  },
   async adminRemoveGroupMember(id) {
     if (!db()) return { error: 'Not configured' };
     try {
