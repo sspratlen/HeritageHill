@@ -105,3 +105,10 @@ update public.user_roles t
 set person_id = p.id
 from public.people p
 where lower(t.email) = lower(p.email) and t.person_id is null;
+
+-- event_rsvps had 0 rows on staging at authoring time (no-op today), but is
+-- included for completeness so future RSVP rows aren't silently missed.
+update public.event_rsvps t
+set person_id = p.id
+from public.people p
+where lower(t.email) = lower(p.email) and t.person_id is null;
