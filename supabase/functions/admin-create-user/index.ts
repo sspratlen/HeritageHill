@@ -25,19 +25,26 @@ serve(async (req: Request) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     )
 
+    // Every action here creates an account, resets a password, or deletes an
+    // account — there is no legitimate unauthenticated caller (self-registration
+    // uses Supabase's own auth.signUp, not this function). Verify the caller
+    // has a real session before doing anything.
+    const authHeader = req.headers.get('Authorization') || ''
+    const jwt = authHeader.replace(/^Bearer\s+/i, '')
+    const { data: caller, error: callerErr } = await admin.auth.getUser(jwt)
+    if (callerErr || !caller?.user?.email) {
+      return new Response(JSON.stringify({ error: 'Not authenticated' }), {
+        status: 401, headers: { ...CORS, 'Content-Type': 'application/json' },
+      })
+    }
+    const { data: roleRow } = await admin.from('user_roles')
+      .select('role').eq('email', caller.user.email.toLowerCase()).maybeSingle()
+
     if (action === 'delete') {
-      // Verify the CALLER is an admin (delete is destructive; create/reset was
-      // already exposed, but deletion must be gated).
-      const authHeader = req.headers.get('Authorization') || ''
-      const jwt = authHeader.replace(/^Bearer\s+/i, '')
-      const { data: caller, error: callerErr } = await admin.auth.getUser(jwt)
-      if (callerErr || !caller?.user?.email) {
-        return new Response(JSON.stringify({ error: 'Not authenticated' }), {
-          status: 401, headers: { ...CORS, 'Content-Type': 'application/json' },
-        })
-      }
-      const { data: roleRow } = await admin.from('user_roles')
-        .select('role').eq('email', caller.user.email.toLowerCase()).maybeSingle()
+      // Deletion is admin-only (matches the People/Members tab's own
+      // ROLE_TABS gating — small group leaders never see a delete-account
+      // control in the UI, unlike create/reset below, which leaders trigger
+      // legitimately via "Add to Group").
       if (!roleRow || roleRow.role !== 'admin') {
         return new Response(JSON.stringify({ error: 'Admins only' }), {
           status: 403, headers: { ...CORS, 'Content-Type': 'application/json' },
@@ -52,6 +59,15 @@ serve(async (req: Request) => {
       if (delErr) throw delErr
       return new Response(JSON.stringify({ ok: true, action: 'deleted' }), {
         headers: { ...CORS, 'Content-Type': 'application/json' },
+      })
+    }
+
+    // Create/reset: any staff role (admin, small_group_leader, event_manager)
+    // may call this — small group leaders legitimately trigger it via
+    // "Add to Group", not just admins via User Permissions "Set Up Account".
+    if (!roleRow) {
+      return new Response(JSON.stringify({ error: 'Staff access required' }), {
+        status: 403, headers: { ...CORS, 'Content-Type': 'application/json' },
       })
     }
 

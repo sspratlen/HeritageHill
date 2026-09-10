@@ -6482,9 +6482,10 @@ async function setupUserAccount(email) {
   const btn = event.target;
   btn.disabled = true; btn.textContent = 'Working…';
   try {
+    const { data: { session } } = await window._supabase.auth.getSession();
     const res = await fetch(SUPABASE_URL + '/functions/v1/admin-create-user', {
       method: 'POST',
-      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + (session ? session.access_token : ''), 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     });
     const json = await res.json();
