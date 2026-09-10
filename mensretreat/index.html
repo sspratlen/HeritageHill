@@ -958,8 +958,13 @@
 
 <script>
 (function () {
-  var SUPA_URL = 'https://ktyplbmawlaerzohkdqy.supabase.co';
-  var ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0eXBsYm1hd2xhZXJ6b2hrZHF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNjU4MDgsImV4cCI6MjA5MzY0MTgwOH0.Pe0_syQjPqkwrdl8cno9YliY2i1i8x77R8bYCG8KXr4';
+  var IS_STAGING = location.hostname === 'sspratlen.github.io';
+  var SUPA_URL = IS_STAGING
+    ? 'https://govvofbrhhpowtdnuzcw.supabase.co'
+    : 'https://ktyplbmawlaerzohkdqy.supabase.co';
+  var ANON_KEY = IS_STAGING
+    ? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdnZvZmJyaGhwb3d0ZG51emN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMzgzOTIsImV4cCI6MjEwNDYxNDM5Mn0.uI4LwK03_af2QPNTQJi0qmELzgndayO8gmhjygZFU5Q'
+    : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0eXBsYm1hd2xhZXJ6b2hrZHF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNjU4MDgsImV4cCI6MjA5MzY0MTgwOH0.Pe0_syQjPqkwrdl8cno9YliY2i1i8x77R8bYCG8KXr4';
 
   fetch(SUPA_URL + '/rest/v1/site_settings?key=eq.retreat_registration_open&select=value', {
     headers: { apikey: ANON_KEY, Authorization: 'Bearer ' + ANON_KEY },

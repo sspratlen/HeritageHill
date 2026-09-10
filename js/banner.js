@@ -4,8 +4,15 @@
    every public page. Works standalone (no SDK required).
    ================================================================ */
 (async () => {
-  const SUPABASE_URL      = 'https://ktyplbmawlaerzohkdqy.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0eXBsYm1hd2xhZXJ6b2hrZHF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNjU4MDgsImV4cCI6MjA5MzY0MTgwOH0.Pe0_syQjPqkwrdl8cno9YliY2i1i8x77R8bYCG8KXr4';
+  /* Staging (sspratlen.github.io) talks to a separate Supabase project so it
+     never touches production data. Everything else uses production. */
+  const HHC_IS_STAGING    = location.hostname === 'sspratlen.github.io';
+  const SUPABASE_URL      = HHC_IS_STAGING
+    ? 'https://govvofbrhhpowtdnuzcw.supabase.co'
+    : 'https://ktyplbmawlaerzohkdqy.supabase.co';
+  const SUPABASE_ANON_KEY = HHC_IS_STAGING
+    ? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdvdnZvZmJyaGhwb3d0ZG51emN3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMzgzOTIsImV4cCI6MjEwNDYxNDM5Mn0.uI4LwK03_af2QPNTQJi0qmELzgndayO8gmhjygZFU5Q'
+    : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0eXBsYm1hd2xhZXJ6b2hrZHF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNjU4MDgsImV4cCI6MjA5MzY0MTgwOH0.Pe0_syQjPqkwrdl8cno9YliY2i1i8x77R8bYCG8KXr4';
 
   /* Ensure the bar element exists in the DOM */
   let bar = document.getElementById('announcementBar');
