@@ -333,7 +333,7 @@
       <button class="mobile-hamburger" onclick="toggleSidebar()" aria-label="Toggle navigation">
         <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
-      <h1 id="topbarTitle">Members & Assessments</h1>
+      <h1 id="topbarTitle">Membership</h1>
     </div>
     <div style="display:flex;align-items:center;gap:12px;">
       <span class="admin-badge" id="roleBadge">Admin</span>
@@ -1221,7 +1221,7 @@
     <!-- PEOPLE (admin) -->
     <div class="tab-panel active" id="panelPeople">
       <div class="action-bar">
-        <h2>Members &amp; Assessments</h2>
+        <h2>Membership</h2>
         <div style="display:flex; gap:8px;">
           <button class="btn btn-secondary" id="bulkRegisterBtn" onclick="bulkRegisterLeadersAttendees()">Register Leaders &amp; Attendees</button>
           <a href="gifts-dashboard.html" class="btn btn-secondary">
@@ -1236,15 +1236,6 @@
       <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
         <input id="pplSearch" placeholder="Search name or email…" oninput="applyPeopleFilter()"
                style="flex:1;min-width:180px;padding:.55rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;" />
-        <select id="pplGiftFilter" onchange="applyPeopleFilter()"
-                style="padding:.55rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;background:#fff;"><option value="">All Gifts</option></select>
-        <select id="pplDiscFilter" onchange="applyPeopleFilter()"
-                style="padding:.55rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;background:#fff;">
-          <option value="">All Personalities</option>
-          <option value="D">D</option><option value="I">I</option><option value="S">S</option><option value="C">C</option>
-        </select>
-        <select id="pplGroupFilter" onchange="applyPeopleFilter()"
-                style="padding:.55rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;background:#fff;"><option value="">All Groups</option></select>
       </div>
       <div id="peopleTableWrap"></div>
     </div>
@@ -2372,7 +2363,7 @@ function switchTab(tab) {
   const c = tab[0].toUpperCase()+tab.slice(1);
   const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
   if(p) p.classList.add('active'); if(s) s.classList.add('active');
-  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings',users:'User Permissions',people:'Members & Assessments',baptism:'Baptism',analytics:'Analytics',mygroup:'My Group',growthtrack:'Growth Track',impactteams:'Impact Teams'};
+  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings',users:'User Permissions',people:'Membership',baptism:'Baptism',analytics:'Analytics',mygroup:'My Group',growthtrack:'Growth Track',impactteams:'Impact Teams'};
   document.getElementById('topbarTitle').textContent = titles[tab]||tab;
   if(tab==='events') renderEventsTable();
   else if(tab==='groups') renderGroupsTable();
@@ -5866,7 +5857,7 @@ function escapeHtml(s) {
   }[c]));
 }
 
-let _pplProfiles = [], _pplLatest = {}, _pplGifts = []; // _pplLatest[userId] = {disc, gifts}
+let _pplProfiles = [], _pplLatest = {}; // _pplLatest[userId] = {disc, gifts} -- used by memberTable() (My Group)
 
 function latestByUser(attempts) {
   const map = {};
@@ -6100,11 +6091,10 @@ async function bulkRegisterLeadersAttendees() {
 }
 
 async function renderPeoplePanel() {
-  const [profiles, attempts, groups, content] = await Promise.all([
-    SupaDB.adminGetAllMemberProfiles(), SupaDB.getVisibleAttempts(),
-    SupaDB.adminGetAllGroups(), SupaDB.getAssessmentContent(),
+  const [profiles, groups] = await Promise.all([
+    SupaDB.adminGetAllMemberProfiles(), SupaDB.adminGetAllGroups(),
   ]);
-  _pplProfiles = profiles; _pplLatest = latestByUser(attempts);
+  _pplProfiles = profiles;
   window._pplGroups = groups;
 
   const pending = profiles.filter(p => p.status === 'pending');
@@ -6122,14 +6112,6 @@ async function renderPeoplePanel() {
       <button class="btn btn-danger btn-sm" onclick="deleteMember('${p.userId}')">Delete</button>
     </div>`).join('');
 
-  const gsel = document.getElementById('pplGroupFilter');
-  gsel.innerHTML = '<option value="">All Groups</option>' +
-    groups.map(g => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('');
-  const gifts = content.filter(c => c.kind === 'gift');
-  _pplGifts = gifts;
-  document.getElementById('pplGiftFilter').innerHTML = '<option value="">All Gifts</option>' +
-    gifts.map(g => `<option>${escapeHtml((g.extra && g.extra.name) || g.code)}</option>`).join('');
-
   applyPeopleFilter();
 }
 
@@ -6140,21 +6122,32 @@ function groupName(id) {
 
 function applyPeopleFilter() {
   const q = document.getElementById('pplSearch').value.toLowerCase();
-  const gift = document.getElementById('pplGiftFilter').value;
-  const disc = document.getElementById('pplDiscFilter').value;
-  const grp  = document.getElementById('pplGroupFilter').value;
   let rows = _pplProfiles.filter(p => p.status === 'approved');
   if (q) rows = rows.filter(p => p.name.toLowerCase().includes(q) || p.email.toLowerCase().includes(q));
-  if (grp) rows = rows.filter(p => String(p.groupId) === String(grp));
-  if (disc) rows = rows.filter(p => {
-    const a = (_pplLatest[p.userId] || {}).disc;
-    return a && a.result[0] === disc;
-  });
-  if (gift) rows = rows.filter(p => {
-    const a = (_pplLatest[p.userId] || {}).gifts;
-    return a && giftNames(a).includes(gift);
-  });
-  document.getElementById('peopleTableWrap').innerHTML = memberTable(rows);
+  // Newest members first -- this tab is about membership, so that's the
+  // one ordering that's actually meaningful here.
+  rows = rows.slice().sort((a, b) => (b.memberSince || '').localeCompare(a.memberSince || ''));
+  document.getElementById('peopleTableWrap').innerHTML = membershipTable(rows);
+}
+
+// The Membership tab's own table -- just who's a member and since when.
+// The full profile (groups, Growth Track, assessments, impact teams) lives
+// one click away via "View". Distinct from memberTable() below, which the
+// small-group leader's "My Group" tab still uses and which does show
+// Personality/Gifts -- that's the leader's own read, not membership status.
+function membershipTable(rows) {
+  if (!rows.length) return '<p style="color:var(--text-muted); padding:20px;">No members match.</p>';
+  const isAdmin = window._userRole === 'admin';
+  const fmt = d => d ? new Date(d.slice(0, 10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+  return `<table><thead><tr>
+    <th>Name</th><th>Email</th><th>Member Since</th><th></th>
+  </tr></thead><tbody>${rows.map(p => `
+    <tr>
+      <td><strong>${escapeHtml(p.name)}</strong></td>
+      <td><a href="mailto:${escapeHtml(p.email)}" style="color:var(--primary);">${escapeHtml(p.email)}</a></td>
+      <td>${fmt(p.memberSince)}</td>
+      <td>${isAdmin ? `<a class="btn btn-secondary btn-sm" href="member-dashboard.html?id=${encodeURIComponent(p.userId)}">View</a>` : ''}</td>
+    </tr>`).join('')}</tbody></table>`;
 }
 
 function memberTable(rows) {
