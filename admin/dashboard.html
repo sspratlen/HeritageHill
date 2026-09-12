@@ -34,6 +34,20 @@
     .sidebar-nav .nav-section { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,.4); padding: 16px 12px 6px; }
     .sidebar-nav .nav-section:first-child { padding-top: 4px; }
     .sidebar-nav .nav-section-verse { text-transform: none; font-weight: 400; font-style: italic; letter-spacing: 0; color: rgba(255,255,255,.22); margin-left: 4px; }
+    /* Found/Filled/Freed/Forged stage headers -- numbered like the Journey
+       pipeline's stage circles, in the Heritage amber. */
+    .nav-section.nav-stage { display: flex; align-items: center; gap: 10px; padding: 20px 12px 10px; }
+    .nav-section.nav-stage:first-child { padding-top: 6px; }
+    .nav-stage-circle {
+      width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%;
+      border: 1.5px solid var(--primary); background: rgba(188,122,30,.12); color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .68rem; font-weight: 700; letter-spacing: 0; text-transform: none;
+      font-variant-numeric: tabular-nums;
+    }
+    .nav-stage-text { display: flex; flex-direction: column; gap: 1px; }
+    .nav-stage-name { font-size: .82rem; font-weight: 700; letter-spacing: .02em; text-transform: none; color: #fff; }
+    .nav-stage .nav-section-verse { margin-left: 0; font-size: .72rem; }
     .sidebar-footer { padding: 16px 12px; border-top: 1px solid rgba(255,255,255,.08); }
     .sidebar-footer a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: rgba(255,255,255,.5); font-size: .85rem; text-decoration: none; transition: all .2s; }
     .sidebar-footer a:hover { background: rgba(255,255,255,.08); color: #fff; }
@@ -201,7 +215,10 @@
     <span>Admin Dashboard</span>
   </div>
   <nav class="sidebar-nav">
-    <div class="nav-section" id="navSectionFound">Found <span class="nav-section-verse">by God</span></div>
+    <div class="nav-section nav-stage" id="navSectionFound">
+      <span class="nav-stage-circle">01</span>
+      <span class="nav-stage-text"><span class="nav-stage-name">Found</span><span class="nav-section-verse">by God</span></span>
+    </div>
     <a onclick="switchTab('people')" id="sidePeople" data-tab="people" class="active">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       Members <span id="peopleBadge" style="display:none; background:#BC7A1E; color:#fff; border-radius:10px; font-size:.7rem; padding:1px 7px; margin-left:auto;">0</span>
@@ -211,7 +228,10 @@
       Baptism
     </a>
 
-    <div class="nav-section" id="navSectionFilled">Filled <span class="nav-section-verse">by the Spirit</span></div>
+    <div class="nav-section nav-stage" id="navSectionFilled">
+      <span class="nav-stage-circle">02</span>
+      <span class="nav-stage-text"><span class="nav-stage-name">Filled</span><span class="nav-section-verse">by the Spirit</span></span>
+    </div>
     <a onclick="switchTab('groups')" id="sideGroups" data-tab="groups">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
       Small Groups
@@ -225,7 +245,10 @@
       My Group
     </a>
 
-    <div class="nav-section" id="navSectionFreed">Freed <span class="nav-section-verse">to live like Jesus</span></div>
+    <div class="nav-section nav-stage" id="navSectionFreed">
+      <span class="nav-stage-circle">03</span>
+      <span class="nav-stage-text"><span class="nav-stage-name">Freed</span><span class="nav-section-verse">to live like Jesus</span></span>
+    </div>
     <a onclick="switchTab('growthtrack')" id="sideGrowthtrack" data-tab="growthtrack">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
       Growth Track
@@ -235,7 +258,10 @@
       Analytics
     </a>
 
-    <div class="nav-section" id="navSectionForged">Forged <span class="nav-section-verse">for mission</span></div>
+    <div class="nav-section nav-stage" id="navSectionForged">
+      <span class="nav-stage-circle">04</span>
+      <span class="nav-stage-text"><span class="nav-stage-name">Forged</span><span class="nav-section-verse">for mission</span></span>
+    </div>
     <a onclick="switchTab('impactteams')" id="sideImpactteams" data-tab="impactteams">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
       Impact Teams
