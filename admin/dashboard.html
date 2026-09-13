@@ -241,10 +241,6 @@
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       Attendance
     </a>
-    <a onclick="switchTab('mygroup')" id="sideMygroup" data-tab="mygroup">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
-      My Group
-    </a>
 
     <div class="nav-section nav-stage" id="navSectionFreed">
       <span class="nav-stage-circle">03</span>
@@ -1205,7 +1201,7 @@
         <br><br>
         <strong style="color:var(--text);">Admin</strong> — Full access to all sections.<br>
         <strong style="color:var(--text);">Event Manager</strong> — Events, RSVPs, Sermons, Email.<br>
-        <strong style="color:var(--text);">Small Group Leader</strong> — Small Groups, Sign-Ups, Leader Applications, Subscribers.
+        Small group leaders no longer use this dashboard — they manage their group from their own <a href="my-profile.html" style="color:var(--primary);">My Profile</a> page instead.
       </div>
       <div class="table-wrap">
         <table>
@@ -1264,14 +1260,6 @@
         <p style="color:var(--text-muted);font-size:.85rem;margin-bottom:4px;">Approved members with no baptism on record.</p>
         <div id="baptismNotYetBox"></div>
       </div>
-    </div>
-
-    <!-- MY GROUP (small group leader) -->
-    <div class="tab-panel" id="panelMygroup">
-      <p style="font-size:.85rem; color:var(--text-muted); margin-bottom:14px;">
-        Members of your groups who chose to share their assessment results with you.
-      </p>
-      <div id="myGroupTableWrap"></div>
     </div>
 
     <!-- GROWTH TRACK -->
@@ -2086,7 +2074,6 @@
             <option value="">Select a role…</option>
             <option value="admin">Admin — Full access to all sections</option>
             <option value="event_manager">Event Manager — Events, RSVPs, Sermons, Email</option>
-            <option value="small_group_leader">Small Group Leader — Groups, Sign-Ups, Applications, Subscribers</option>
           </select>
         </div>
       </div>
@@ -2270,9 +2257,8 @@
 const ROLE_TABS = {
   admin:               ['people','baptism','groups','attendance','growthtrack','analytics','impactteams','events','signups','applications','subscribers','rsvps','prayer','retreat','sermons','email','settings','users'],
   event_manager:       ['events','rsvps','sermons','email'],
-  small_group_leader:  ['groups','signups','mygroup'],
 };
-const ROLE_LABELS = { admin:'Admin', event_manager:'Event Manager', small_group_leader:'Small Group Leader' };
+const ROLE_LABELS = { admin:'Admin', event_manager:'Event Manager' };
 
 function applyRoleVisibility() {
   const allowed = ROLE_TABS[window._userRole] || ROLE_TABS.admin;
@@ -2306,7 +2292,10 @@ function applyRoleVisibility() {
   if (!user) { window.location.href = 'login.html?next=dashboard.html'; return; }
   window._currentUser = user;
   const roleData = await SupaDB.getUserRoleByEmail(user.email);
-  if (!roleData) { window.location.href = 'my-profile.html'; return; }
+  // Small group leaders manage their group from my-profile.html now, not
+  // this dashboard -- treat that role the same as having no staff role at
+  // all here, rather than falling through to ROLE_TABS.admin below.
+  if (!roleData || roleData.role === 'small_group_leader') { window.location.href = 'my-profile.html'; return; }
   window._userRole = roleData.role;
   window._currentUserName = (roleData && roleData.displayName) ? roleData.displayName : '';
   // Force password change before loading dashboard
@@ -2315,13 +2304,6 @@ function applyRoleVisibility() {
       window._passwordChangeDone = resolve;
       document.getElementById('forcePasswordModal').style.display = 'flex';
     });
-  }
-  window._myGroups = [];
-  window._myGroupIds = [];
-  if (window._userRole === 'small_group_leader') {
-    const allGroups = await SupaDB.adminGetAllGroups();
-    window._myGroups = allGroups.filter(g => g.leaderEmail && g.leaderEmail.toLowerCase() === user.email.toLowerCase());
-    window._myGroupIds = window._myGroups.map(g => g.id);
   }
   applyRoleVisibility();
   SupaDB.getMyProfile().then(profile => {
@@ -2347,7 +2329,7 @@ function applyRoleVisibility() {
   }
 })();
 
-const ALL_TABS = ['people','baptism','groups','attendance','mygroup','growthtrack','analytics','impactteams','events','signups','applications','subscribers','rsvps','prayer','retreat','sermons','email','settings','users'];
+const ALL_TABS = ['people','baptism','groups','attendance','growthtrack','analytics','impactteams','events','signups','applications','subscribers','rsvps','prayer','retreat','sermons','email','settings','users'];
 function toggleSidebar() {
   document.querySelector('.sidebar').classList.toggle('open');
   document.getElementById('sidebarBackdrop').classList.toggle('open');
@@ -2370,7 +2352,7 @@ function switchTab(tab) {
   const c = tab[0].toUpperCase()+tab.slice(1);
   const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
   if(p) p.classList.add('active'); if(s) s.classList.add('active');
-  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings',users:'User Permissions',people:'Membership',baptism:'Baptism',analytics:'Analytics',mygroup:'My Group',growthtrack:'Growth Track',impactteams:'Impact Teams'};
+  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings',users:'User Permissions',people:'Membership',baptism:'Baptism',analytics:'Analytics',growthtrack:'Growth Track',impactteams:'Impact Teams'};
   document.getElementById('topbarTitle').textContent = titles[tab]||tab;
   if(tab==='events') renderEventsTable();
   else if(tab==='groups') renderGroupsTable();
@@ -2388,7 +2370,6 @@ function switchTab(tab) {
   else if(tab==='people')  renderPeoplePanel();
   else if(tab==='baptism') renderBaptismTab();
   else if(tab==='analytics') renderAnalyticsTab();
-  else if(tab==='mygroup') renderMyGroupPanel();
   else if(tab==='growthtrack') renderGrowthTrackTab();
   else if(tab==='impactteams') renderImpactTeamsTable();
 }
@@ -2591,13 +2572,7 @@ async function renderGroupsTable(){
   renderMyGroupsCard();
   _cachedGroups = await SupaDB.adminGetAllGroups();
   _semestersForGroupModal = await SupaDB.getSemesters();
-  const isLeader = window._userRole === 'small_group_leader';
-  let groups = isLeader ? _cachedGroups.filter(g => window._myGroupIds.includes(g.id)) : _cachedGroups;
-  // Show/hide Add Group and Email All Leaders buttons based on role
-  const addBtn = document.getElementById('addGroupBtn');
-  if (addBtn) addBtn.style.display = isLeader ? 'none' : '';
-  const emailAllBtn = document.getElementById('emailAllLeadersBtn');
-  if (emailAllBtn) emailAllBtn.style.display = isLeader ? 'none' : '';
+  let groups = _cachedGroups;
   const semSelEl = document.getElementById('groupSemesterFilter');
   if (semSelEl && semSelEl.options.length <= 2) {
     semSelEl.innerHTML = '<option value="">All Semesters</option><option value="__current__">Current Semester</option>'
@@ -2644,7 +2619,7 @@ async function renderGroupsTable(){
           Email Group
         </button>
         <button class="btn btn-ghost btn-sm" onclick="printGroupSignupSheet(${g.id})">🖨️ Print Sign-Up Sheet</button>
-        ${!isLeader?`<button class="btn btn-danger btn-sm" onclick="deleteItem('group',${g.id},'${g.name.replace(/'/g,"\\'")}')">Delete</button>`:''}
+        <button class="btn btn-danger btn-sm" onclick="deleteItem('group',${g.id},'${g.name.replace(/'/g,"\\'")}')">Delete</button>
       </div></td>
     </tr>`;
   }).join('');
@@ -3108,18 +3083,12 @@ function generateAIImage(){
 let _cachedSignups = [], _cachedSignupGroups = [];
 let _semestersForSignups = [];
 async function renderSignupsPanel(){
-  const isLeader = window._userRole === 'small_group_leader';
   [_cachedSignups, _cachedSignupGroups, _semestersForSignups] = await Promise.all([
     SupaDB.adminGetAllSignups(), SupaDB.adminGetAllGroups(), SupaDB.getSemesters()
   ]);
   // Populate filter dropdown once after data loads — don't touch it on filter changes
-  const visibleGroups = isLeader ? _cachedSignupGroups.filter(g => window._myGroupIds.includes(g.id)) : _cachedSignupGroups;
   const sel=document.getElementById('signupFilterGroup');
-  // Single-group leaders don't need "All" since there's nothing else to show
-  const showAllOption = !isLeader || visibleGroups.length > 1;
-  sel.innerHTML=(showAllOption?'<option value="">All Groups</option>':'')+visibleGroups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
-  if (isLeader && visibleGroups.length === 1) sel.value = String(visibleGroups[0].id);
-  sel.disabled = isLeader && visibleGroups.length <= 1;
+  sel.innerHTML='<option value="">All Groups</option>'+_cachedSignupGroups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
   const semSelEl = document.getElementById('signupFilterSemester');
   if (semSelEl && semSelEl.options.length <= 2) {
     semSelEl.innerHTML = '<option value="">All Semesters</option><option value="__current__">Current Semester</option>'
@@ -3128,14 +3097,10 @@ async function renderSignupsPanel(){
   applySignupsFilter();
 }
 async function applySignupsFilter(){
-  const isLeader = window._userRole === 'small_group_leader';
   const filterGroupId=document.getElementById('signupFilterGroup').value;
   const filterStatus=document.getElementById('signupFilterStatus').value;
   const filterSemester=document.getElementById('signupFilterSemester').value;
   let signups=[..._cachedSignups];
-  // Leaders: first restrict to their own groups, then apply dropdown selection
-  if (isLeader) signups=signups.filter(s=>window._myGroupIds.includes(s.groupId));
-  // Apply group dropdown for everyone (leaders picking one of their groups, admins picking any)
   if(filterGroupId)signups=signups.filter(s=>String(s.groupId)===String(filterGroupId));
   if(filterStatus==='new')signups=signups.filter(s=>!s.contacted);
   if(filterStatus==='contacted')signups=signups.filter(s=>s.contacted);
@@ -5866,7 +5831,7 @@ function escapeHtml(s) {
   }[c]));
 }
 
-let _pplProfiles = [], _pplLatest = {}; // _pplLatest[userId] = {disc, gifts} -- used by memberTable() (My Group)
+let _pplProfiles = [];
 
 function latestByUser(attempts) {
   const map = {};
@@ -6279,9 +6244,7 @@ function applyPeopleFilter() {
 
 // The Membership tab's own table -- just who's a member and since when.
 // The full profile (groups, Growth Track, assessments, impact teams) lives
-// one click away via "View". Distinct from memberTable() below, which the
-// small-group leader's "My Group" tab still uses and which does show
-// Personality/Gifts -- that's the leader's own read, not membership status.
+// one click away via "View".
 function membershipTable(rows) {
   if (!rows.length) return '<p style="color:var(--text-muted); padding:20px;">No members match.</p>';
   const isAdmin = window._userRole === 'admin';
@@ -6295,25 +6258,6 @@ function membershipTable(rows) {
       <td>${fmt(p.memberSince)}</td>
       <td>${isAdmin ? `<a class="btn btn-secondary btn-sm" href="member-dashboard.html?id=${encodeURIComponent(p.userId)}">View</a>` : ''}</td>
     </tr>`).join('')}</tbody></table>`;
-}
-
-function memberTable(rows) {
-  if (!rows.length) return '<p style="color:var(--text-muted); padding:20px;">No members match.</p>';
-  const isAdmin = window._userRole === 'admin';
-  return `<table><thead><tr>
-    <th>Name</th><th>Group</th><th>Personality</th><th>Top Gifts</th><th>Last Test</th><th></th>
-  </tr></thead><tbody>${rows.map(p => {
-    const d = (_pplLatest[p.userId] || {}).disc, g = (_pplLatest[p.userId] || {}).gifts;
-    const last = [d, g].filter(Boolean).map(a => a.completedAt).sort().pop();
-    return `<tr>
-      <td><strong>${escapeHtml(p.name)}</strong><br><span style="font-size:.8rem; color:var(--text-muted);">${escapeHtml(p.email)}</span></td>
-      <td>${escapeHtml(groupName(p.groupId))}</td>
-      <td>${d ? escapeHtml(d.result) : '—'}</td>
-      <td>${g ? giftNames(g).slice(0,3).map(escapeHtml).join(', ') : '—'}</td>
-      <td>${last ? new Date(last).toLocaleDateString() : '—'}</td>
-      <td>${isAdmin ? `<a class="btn btn-secondary btn-sm" href="member-dashboard.html?id=${encodeURIComponent(p.userId)}">View</a>` : ''}</td>
-    </tr>`;
-  }).join('')}</tbody></table>`;
 }
 
 // opts: { name, email, phone, date, notes } -- all optional prefill values.
@@ -6429,19 +6373,6 @@ async function deleteMember(userId) {
   if (r.error) { showToast(r.error, true); return; }
   showToast('Member deleted');
   renderPeoplePanel();
-}
-
-
-/* MY GROUP (leader view — RLS already scopes the data) */
-async function renderMyGroupPanel() {
-  const [profiles, attempts] = await Promise.all([
-    SupaDB.getVisibleMemberProfiles(), SupaDB.getVisibleAttempts(),
-  ]);
-  const me = (window._currentUser && window._currentUser.id) || '';
-  _pplProfiles = profiles.filter(p => p.userId !== me);
-  _pplLatest = latestByUser(attempts);
-  window._pplGroups = window._myGroups || [];
-  document.getElementById('myGroupTableWrap').innerHTML = memberTable(_pplProfiles);
 }
 
 /* GROWTH TRACK */
@@ -7085,8 +7016,8 @@ async function renderEmailHistory() {
 
 /* ── USER PERMISSIONS ─────────────────────────────────────── */
 let _cachedUsers = [];
-const _roleLabels = { admin:'Admin', event_manager:'Event Manager', small_group_leader:'Small Group Leader' };
-const _roleBadgeClass = { admin:'badge-blue', event_manager:'badge-amber', small_group_leader:'badge-green' };
+const _roleLabels = { admin:'Admin', event_manager:'Event Manager' };
+const _roleBadgeClass = { admin:'badge-blue', event_manager:'badge-amber' };
 
 async function renderUsersTable() {
   _cachedUsers = await SupaDB.adminGetAllUserRoles();
