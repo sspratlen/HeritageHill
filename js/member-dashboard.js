@@ -180,12 +180,15 @@ const MemberDashboard = {
   // opts:
   //   memberSince, baptizedAt: date strings or null/undefined
   //   groupMemberships, groups, email: same shape as renderGroupHistory,
-  //     used to build the Filled roster (member + led rows)
+  //     used to build the Filled roster -- attended groups only. Leading a
+  //     group is service, not attendance, so it's folded into Forged
+  //     instead (as its own "<Group> (Small Group)" row).
   //   gtRegistrations: result of getGrowthTrackRegistrationsForUser
   //   discAttempt, giftsAttempt: latest attempt or falsy
   //   teamMemberships, teams: same shape as groupMemberships/groups, for
   //     the Forged roster (member + led rows), each row also showing
-  //     whether that person is trained for that team
+  //     whether that person is trained for that team -- plus any group
+  //     `email` leads, appended the same way
   renderJourneyPipeline(containerEl, opts) {
     // Some dates here are plain `date` columns ("2026-09-12") and some are
     // `timestamptz` columns rendered as full ISO strings ("2026-09-12T00:
@@ -199,22 +202,18 @@ const MemberDashboard = {
       ? `<span class="jp-yes">✓${dateStr ? ' · ' + this.escapeHtml(fmt(dateStr)) : ''}</span>`
       : `<span class="jp-no">✗</span>`;
 
-    // ── Filled: small group roster (leader + member rows), same merge
-    // logic as renderGroupHistory.
+    // ── Filled: small groups this person actively attends. Leading a group
+    // is an act of service, not attendance -- that goes under Forged
+    // instead, alongside impact teams.
     const groups = opts.groups || [];
     const memberships = opts.groupMemberships || [];
     const email = opts.email || '';
-    const led = (email
-      ? groups.filter(g => g.leaderEmail && g.leaderEmail.toLowerCase() === email.toLowerCase())
-      : []
-    ).filter(g => !memberships.some(m => String(m.groupId) === String(g.id)))
-     .map(g => ({ name: g.name, role: 'leader' }));
     const groupRows = memberships
       .filter(m => !m.leftAt)
-      .map(m => ({ name: (groups.find(g => String(g.id) === String(m.groupId)) || {}).name || 'Unknown Group', role: 'member' }))
-      .concat(led);
+      .map(m => ({ name: (groups.find(g => String(g.id) === String(m.groupId)) || {}).name || 'Unknown Group' }));
 
-    // ── Forged: impact team roster (leader + member rows), same shape.
+    // ── Forged: impact team roster (leader + member rows), plus any small
+    // group this person leads, shown as a team of its own.
     const teams = opts.teams || [];
     const teamMemberships = (opts.teamMemberships || []).filter(m => !m.leftAt);
     const teamRows = teamMemberships.map(m => ({
@@ -222,6 +221,11 @@ const MemberDashboard = {
       role: m.role === 'leader' ? 'leader' : 'member',
       trained: m.trained, trainedAt: m.trainedAt,
     }));
+    const ledGroupRows = (email
+      ? groups.filter(g => g.leaderEmail && g.leaderEmail.toLowerCase() === email.toLowerCase())
+      : []
+    ).map(g => ({ name: g.name + ' (Small Group)', role: 'leader', trained: undefined }));
+    const forgedRows = teamRows.concat(ledGroupRows);
 
     // ── Freed: Growth Track history, in fixed part order.
     const byPart = {};
@@ -259,7 +263,6 @@ const MemberDashboard = {
             ${rosterOrEmpty(groupRows, 'Not in a small group yet.', g => `
               <div class="jp-roster-row">
                 <span class="jp-roster-name">${this.escapeHtml(g.name)}</span>
-                <span class="jp-role-tag ${g.role === 'leader' ? 'jp-leads' : 'jp-member'}">${g.role === 'leader' ? 'Leads' : 'Member'}</span>
               </div>`)}
           </div>
         </div>
@@ -280,12 +283,12 @@ const MemberDashboard = {
           <div class="jp-stage-head"><span class="jp-stage-name">Forged</span><span class="jp-stage-verse">for mission</span></div>
           <div class="jp-card">
             <div class="jp-label">Impact teams</div>
-            ${rosterOrEmpty(teamRows, 'Not on an impact team yet.', t => `
+            ${rosterOrEmpty(forgedRows, 'Not serving on a team yet.', t => `
               <div class="jp-roster-row">
                 <span class="jp-roster-name">${this.escapeHtml(t.name)}</span>
                 <span class="jp-role-tag ${t.role === 'leader' ? 'jp-leads' : 'jp-member'}">${t.role === 'leader' ? 'Leads' : 'Member'}</span>
               </div>
-              <div class="jp-roster-sub" style="padding:0 0 6px;">${t.trained ? `✓ Trained${t.trainedAt ? ' · ' + this.escapeHtml(fmt(t.trainedAt)) : ''}` : 'Not yet trained'}</div>`)}
+              ${t.trained === undefined ? '' : `<div class="jp-roster-sub" style="padding:0 0 6px;">${t.trained ? `✓ Trained${t.trainedAt ? ' · ' + this.escapeHtml(fmt(t.trainedAt)) : ''}` : 'Not yet trained'}</div>`}`)}
           </div>
         </div>
       </div>`;
