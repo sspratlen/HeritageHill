@@ -115,6 +115,8 @@
 }
 .jp-card td { padding: 10px 10px 10px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
 .jp-card tr:last-child td { border-bottom: none; }
+.jp-card tr.jp-row-clickable { cursor: pointer; }
+.jp-card tr.jp-row-clickable:hover td { background: rgba(188,122,30,.05); }
 .jp-card th:last-child, .jp-card td:last-child { padding-right: 0; }
 
 .jp-card .badge {

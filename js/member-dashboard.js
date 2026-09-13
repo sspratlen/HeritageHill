@@ -47,7 +47,9 @@ const MemberDashboard = {
   // semester name (e.g. "Fall 2026") in the Joined column for a leader row,
   // since there's no tracked join date for leading (only for real
   // memberships, which keep their real joined date).
-  renderGroupHistory(containerEl, memberships, groups, email, semesters) {
+  // onGroupClick: optional (groupId) => void -- when given, each row
+  // becomes clickable (e.g. to open that group's details).
+  renderGroupHistory(containerEl, memberships, groups, email, semesters, onGroupClick) {
     const led = (email
       ? groups.filter(g => g.leaderEmail && g.leaderEmail.toLowerCase() === email.toLowerCase())
       : []
@@ -69,13 +71,19 @@ const MemberDashboard = {
       return s ? s.name : '—';
     };
     const fmt = d => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+    const clickable = typeof onGroupClick === 'function';
     containerEl.innerHTML = `<table><thead><tr><th>Group</th><th>Joined</th><th>Status</th></tr></thead><tbody>` +
       rows.map(m => `
-        <tr>
+        <tr${clickable ? ` class="jp-row-clickable" data-group-id="${this.escapeHtml(String(m.groupId))}"` : ''}>
           <td>${this.escapeHtml(groupName(m.groupId))}</td>
           <td>${m.isLeader ? this.escapeHtml(semesterName(m.semesterId)) : fmt(m.joinedAt)}</td>
           <td>${m.isLeader ? '<span class="badge badge-blue">Leader</span>' : (m.leftAt ? 'Left ' + fmt(m.leftAt) : '<span class="badge badge-green">Current</span>')}</td>
         </tr>`).join('') + '</tbody></table>';
+    if (clickable) {
+      containerEl.querySelectorAll('tr[data-group-id]').forEach(row => {
+        row.addEventListener('click', () => onGroupClick(row.dataset.groupId));
+      });
+    }
   },
 
   // Inline accordion row/detail pair, shared by renderDiscResult and
@@ -356,11 +364,11 @@ const MemberDashboard = {
     if (btn && opts.onPrintCertificate) btn.addEventListener('click', opts.onPrintCertificate);
   },
 
-  // opts: { memberships, groups, email, semesters } -- same shape as
-  // renderGroupHistory, which does the actual rendering.
+  // opts: { memberships, groups, email, semesters, onGroupClick } --
+  // same shape as renderGroupHistory, which does the actual rendering.
   renderGroupsCard(containerEl, opts) {
     containerEl.innerHTML = '<div class="jp-card"><div class="jp-label">Small groups</div><div id="_jpGroupsInner"></div></div>';
-    this.renderGroupHistory(containerEl.querySelector('#_jpGroupsInner'), opts.memberships || [], opts.groups || [], opts.email || '', opts.semesters || []);
+    this.renderGroupHistory(containerEl.querySelector('#_jpGroupsInner'), opts.memberships || [], opts.groups || [], opts.email || '', opts.semesters || [], opts.onGroupClick);
   },
 
   // opts: { gtRegistrations, memberSince, discAttempt, giftsAttempt,

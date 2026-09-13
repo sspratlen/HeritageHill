@@ -166,6 +166,15 @@
   </div>
 </div>
 
+<!-- GROUP DETAILS MODAL -->
+<div class="modal-overlay" id="groupDetailsModal">
+  <div class="modal">
+    <div class="modal-header"><h3 id="groupDetailsTitle">Group</h3><button class="modal-close" onclick="closeGroupDetails()">✕</button></div>
+    <div class="modal-body" id="groupDetailsBody"></div>
+    <div class="modal-footer"><button class="btn-ghost" onclick="closeGroupDetails()">Close</button></div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../js/supabase-client.js"></script>
 <script src="../js/db.js"></script>
@@ -240,7 +249,118 @@ function renderGroupsPanel() {
   MemberDashboard.renderGroupsCard(document.getElementById('groupsCardBox'), {
     memberships: _journeyData.memberships, groups: _journeyData.groups,
     email: _profile.email, semesters: _journeyData.semesters,
+    onGroupClick: openGroupDetails,
   });
+}
+
+/* ── GROUP DETAILS + LEADER ROSTER ─────────────────────────────────── */
+let _rosterGroupId = null, _rosterMembers = [], _editingMembershipId = null;
+
+function openGroupDetails(groupId) {
+  const group = _journeyData.groups.find(g => String(g.id) === String(groupId));
+  if (!group) return;
+  const myEmail = (_profile.email || '').toLowerCase();
+  const isLeader = !!(group.leaderEmail && myEmail && group.leaderEmail.toLowerCase() === myEmail);
+
+  document.getElementById('groupDetailsTitle').textContent = group.name;
+  document.getElementById('groupDetailsBody').innerHTML = `
+    <p style="color:var(--text-muted);margin-bottom:10px;">${escapeHtml(group.day || '')} ${escapeHtml(group.time || '')}${group.location ? ' · ' + escapeHtml(group.location) : ''}</p>
+    ${group.description ? `<p style="margin-bottom:14px;">${escapeHtml(group.description)}</p>` : ''}
+    <p style="margin-bottom:4px;"><strong>Leader:</strong> ${escapeHtml(group.leader || '—')}
+      ${group.leaderEmail && !isLeader ? ` · <a href="mailto:${escapeHtml(group.leaderEmail)}" style="color:var(--primary);">Email Leader</a>` : ''}
+    </p>
+    ${isLeader ? '<div id="leaderRosterBox"></div>' : ''}
+  `;
+  document.getElementById('groupDetailsModal').classList.add('open');
+  if (isLeader) loadLeaderRoster(groupId);
+}
+function closeGroupDetails() { document.getElementById('groupDetailsModal').classList.remove('open'); }
+
+async function loadLeaderRoster(groupId) {
+  _rosterGroupId = groupId;
+  _editingMembershipId = null;
+  const box = document.getElementById('leaderRosterBox');
+  box.innerHTML = `
+    <h4 style="font-size:.9rem;font-weight:700;margin:16px 0 10px;">Manage Members</h4>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div class="form-group" style="margin:0;"><label>Name</label><input id="mpRmName" /></div>
+        <div class="form-group" style="margin:0;"><label>Email</label><input id="mpRmEmail" type="email" /></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div class="form-group" style="margin:0;"><label>Phone</label><input id="mpRmPhone" type="tel" /></div>
+        <div class="form-group" style="margin:0;"><label>Note</label><input id="mpRmNote" /></div>
+      </div>
+      <div class="msg-error" id="mpRmError"></div>
+      <button class="btn-primary" id="mpRmSaveBtn" onclick="saveRosterMember()">Add to Group</button>
+      <button class="btn-ghost" id="mpRmCancelBtn" onclick="cancelEditRosterMember()" style="display:none;margin-left:8px;">Cancel</button>
+    </div>
+    <div id="mpRosterList"><p style="color:var(--text-muted);">Loading…</p></div>
+  `;
+  await renderLeaderRoster();
+}
+
+async function renderLeaderRoster() {
+  const members = await SupaDB.adminGetGroupMembers(_rosterGroupId);
+  _rosterMembers = members;
+  const box = document.getElementById('mpRosterList');
+  if (!members.length) { box.innerHTML = '<p style="color:var(--text-muted);">No members yet.</p>'; return; }
+  box.innerHTML = `
+    <table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Joined</th><th></th></tr></thead>
+    <tbody>${members.map(m => `
+      <tr>
+        <td>${escapeHtml(m.name)}</td>
+        <td><a href="mailto:${escapeHtml(m.email)}" style="color:var(--primary);">${escapeHtml(m.email)}</a></td>
+        <td>${escapeHtml(m.phone || '—')}</td>
+        <td>${m.joinedAt ? new Date(m.joinedAt + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn-ghost" style="padding:.3rem .7rem;font-size:.78rem;" onclick="editRosterMember('${m.id}')">Edit</button>
+          <button class="btn-ghost" style="padding:.3rem .7rem;font-size:.78rem;color:var(--error);" onclick="removeRosterMember('${m.id}')">Remove</button>
+        </td>
+      </tr>`).join('')}</tbody></table>`;
+}
+
+function editRosterMember(id) {
+  const m = _rosterMembers.find(x => String(x.id) === String(id));
+  if (!m) return;
+  _editingMembershipId = id;
+  document.getElementById('mpRmName').value = m.name;
+  document.getElementById('mpRmEmail').value = m.email;
+  document.getElementById('mpRmPhone').value = m.phone || '';
+  document.getElementById('mpRmNote').value = m.notes || '';
+  document.getElementById('mpRmSaveBtn').textContent = 'Save Changes';
+  document.getElementById('mpRmCancelBtn').style.display = '';
+}
+function cancelEditRosterMember() {
+  _editingMembershipId = null;
+  document.getElementById('mpRmName').value = '';
+  document.getElementById('mpRmEmail').value = '';
+  document.getElementById('mpRmPhone').value = '';
+  document.getElementById('mpRmNote').value = '';
+  document.getElementById('mpRmSaveBtn').textContent = 'Add to Group';
+  document.getElementById('mpRmCancelBtn').style.display = 'none';
+}
+async function saveRosterMember() {
+  const name = document.getElementById('mpRmName').value.trim();
+  const email = document.getElementById('mpRmEmail').value.trim();
+  const phone = document.getElementById('mpRmPhone').value.trim();
+  const note = document.getElementById('mpRmNote').value.trim();
+  const errEl = document.getElementById('mpRmError');
+  errEl.classList.remove('show'); errEl.textContent = '';
+  if (!name) { errEl.textContent = 'Name is required.'; errEl.classList.add('show'); return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = 'A valid email is required.'; errEl.classList.add('show'); return; }
+
+  const result = _editingMembershipId
+    ? await SupaDB.adminUpdateGroupMember(_editingMembershipId, { name, email, phone, notes: note })
+    : await SupaDB.adminAddGroupMember({ groupId: _rosterGroupId, name, email, phone, notes: note });
+  if (result?.error) { errEl.textContent = result.error; errEl.classList.add('show'); return; }
+  cancelEditRosterMember();
+  await renderLeaderRoster();
+}
+async function removeRosterMember(id) {
+  if (!confirm('Remove this member from the group?')) return;
+  await SupaDB.adminRemoveGroupMember(id);
+  await renderLeaderRoster();
 }
 function renderGrowthTrackPanel() {
   MemberDashboard.renderGrowthTrackCard(document.getElementById('growthtrackCardBox'), {
