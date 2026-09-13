@@ -103,6 +103,7 @@
 
       <div class="shell-panel" id="panelGroups">
         <div id="groupsCardBox"><p style="color:var(--text-muted);">Loading…</p></div>
+        <div id="ledGroupsBox"></div>
       </div>
 
       <div class="shell-panel" id="panelGrowthtrack">
@@ -191,9 +192,10 @@ const PANEL_TITLES = { baptism: 'Baptism', groups: 'Small Groups', growthtrack: 
   const user = await SupaDB.getUser();
   if (!user) { window.location.href = 'login.html?next=my-profile.html'; return; }
 
-  // Staff get a Dashboard link in the sidebar
+  // Staff get a Dashboard link in the sidebar -- except small_group_leader,
+  // which no longer has a dashboard to go to (redirects right back here).
   const roleData = await SupaDB.getUserRoleByEmail(user.email);
-  if (roleData) document.getElementById('dashLink').style.display = '';
+  if (roleData && roleData.role !== 'small_group_leader') document.getElementById('dashLink').style.display = '';
 
   // Lazy-create profile (covers both fresh registrations and existing staff)
   _profile = await SupaDB.getMyProfile();
@@ -253,137 +255,148 @@ function renderGroupsPanel() {
     email: _profile.email, semesters: _journeyData.semesters,
     onGroupClick: openGroupDetails,
   });
+  renderMyLedGroups();
 }
 
-/* ── GROUP DETAILS + LEADER ROSTER ─────────────────────────────────── */
-let _rosterGroupId = null, _rosterMembers = [], _editingMembershipId = null;
-
-let _detailsGroupId = null;
-
+/* ── GROUP DETAILS MODAL ──────────────────────────────────────────────
+   Read-only info + Email Leader, for a group you just attend. Leader
+   tools live inline on the page instead (see renderMyLedGroups below) --
+   no click needed for your own group. ── */
 function openGroupDetails(groupId) {
   const group = _journeyData.groups.find(g => String(g.id) === String(groupId));
   if (!group) return;
-  _detailsGroupId = groupId;
-  const myEmail = (_profile.email || '').toLowerCase();
-  const isLeader = !!(group.leaderEmail && myEmail && group.leaderEmail.toLowerCase() === myEmail);
-
   document.getElementById('groupDetailsTitle').textContent = group.name;
   document.getElementById('groupDetailsBody').innerHTML = `
-    <div id="groupInfoBox"></div>
-    ${isLeader ? `
-      <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;">
-        <h4 style="font-size:.9rem;font-weight:700;margin-bottom:10px;">Manage Members</h4>
-        <div id="leaderRosterBox"></div>
-      </div>
-      <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;">
-        <h4 style="font-size:.9rem;font-weight:700;margin-bottom:10px;">Attendance</h4>
-        <div id="leaderAttendanceBox"></div>
-      </div>
-      <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;">
-        <h4 style="font-size:.9rem;font-weight:700;margin-bottom:10px;">Email Group</h4>
-        <div id="leaderEmailBox"></div>
-      </div>
-    ` : ''}
+    <p style="color:var(--text-muted);margin-bottom:10px;">${escapeHtml(group.day || '')} ${escapeHtml(group.time || '')}${group.location ? ' · ' + escapeHtml(group.location) : ''}</p>
+    ${group.description ? `<p style="margin-bottom:14px;">${escapeHtml(group.description)}</p>` : ''}
+    <p style="margin-bottom:4px;"><strong>Leader:</strong> ${escapeHtml(group.leader || '—')}
+      ${group.leaderEmail ? ` · <a href="mailto:${escapeHtml(group.leaderEmail)}" style="color:var(--primary);">Email Leader</a>` : ''}
+    </p>
   `;
-  renderGroupInfo(group, isLeader);
   document.getElementById('groupDetailsModal').classList.add('open');
-  if (isLeader) {
-    loadLeaderRoster(groupId);
-    loadLeaderAttendance(groupId);
-    renderEmailGroupForm(groupId);
-  }
 }
 function closeGroupDetails() { document.getElementById('groupDetailsModal').classList.remove('open'); }
 
-function renderGroupInfo(group, isLeader) {
-  const box = document.getElementById('groupInfoBox');
-  box.innerHTML = `
-    <div id="groupInfoView">
-      <p style="color:var(--text-muted);margin-bottom:10px;">${escapeHtml(group.day || '')} ${escapeHtml(group.time || '')}${group.location ? ' · ' + escapeHtml(group.location) : ''}</p>
-      ${group.description ? `<p style="margin-bottom:10px;">${escapeHtml(group.description)}</p>` : ''}
-      <p style="margin-bottom:4px;"><strong>Leader:</strong> ${escapeHtml(group.leader || '—')}
-        ${group.leaderEmail && !isLeader ? ` · <a href="mailto:${escapeHtml(group.leaderEmail)}" style="color:var(--primary);">Email Leader</a>` : ''}
-      </p>
-      <p style="margin-bottom:0;">${group.open ? '<span style="color:var(--success);">Open to new members</span>' : '<span style="color:var(--text-muted);">Not currently accepting new members</span>'}</p>
-      ${isLeader ? '<button type="button" class="btn-ghost" style="margin-top:12px;" onclick="editGroupInfo()">Edit Details</button>' : ''}
-    </div>
-  `;
+/* ── MY LED GROUPS: full leader toolset, inline on the page ───────────
+   Every element/state key below is suffixed with the group's id, since
+   a person can lead more than one group and all of them render at once
+   here (unlike the old modal, which only ever showed one at a time). */
+const _ledId = (base, gid) => `${base}-${gid}`;
+
+function renderMyLedGroups() {
+  const email = (_profile.email || '').toLowerCase();
+  const led = email ? _journeyData.groups.filter(g => g.leaderEmail && g.leaderEmail.toLowerCase() === email) : [];
+  const box = document.getElementById('ledGroupsBox');
+  if (!led.length) { box.innerHTML = ''; return; }
+  box.innerHTML = led.map(g => `
+    <div class="portal-card" style="margin-top:20px;">
+      <h2>Leading: ${escapeHtml(g.name)}</h2>
+      <div id="${_ledId('groupInfo', g.id)}"></div>
+      <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;">
+        <h4 style="font-size:.9rem;font-weight:700;margin-bottom:10px;">Manage Members</h4>
+        <div id="${_ledId('rosterForm', g.id)}"></div>
+        <div id="${_ledId('rosterList', g.id)}"><p style="color:var(--text-muted);">Loading…</p></div>
+      </div>
+      <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;">
+        <h4 style="font-size:.9rem;font-weight:700;margin-bottom:10px;">Attendance</h4>
+        <div id="${_ledId('attForm', g.id)}"></div>
+        <div id="${_ledId('attList', g.id)}"><p style="color:var(--text-muted);">Loading…</p></div>
+      </div>
+      <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;">
+        <h4 style="font-size:.9rem;font-weight:700;margin-bottom:10px;">Email Group</h4>
+        <div id="${_ledId('emailForm', g.id)}"></div>
+      </div>
+    </div>`).join('');
+  led.forEach(g => {
+    renderGroupInfoFor(g.id);
+    initRosterFor(g.id);
+    initAttendanceFor(g.id);
+    initEmailFor(g.id);
+  });
 }
 
-function editGroupInfo() {
-  const group = _journeyData.groups.find(g => String(g.id) === String(_detailsGroupId));
-  if (!group) return;
-  document.getElementById('groupInfoBox').innerHTML = `
+/* Edit Details */
+function renderGroupInfoFor(gid) {
+  const group = _journeyData.groups.find(g => String(g.id) === String(gid));
+  const box = document.getElementById(_ledId('groupInfo', gid));
+  box.innerHTML = `
+    <p style="color:var(--text-muted);margin-bottom:10px;">${escapeHtml(group.day || '')} ${escapeHtml(group.time || '')}${group.location ? ' · ' + escapeHtml(group.location) : ''}</p>
+    ${group.description ? `<p style="margin-bottom:10px;">${escapeHtml(group.description)}</p>` : ''}
+    <p style="margin-bottom:0;">${group.open ? '<span style="color:var(--success);">Open to new members</span>' : '<span style="color:var(--text-muted);">Not currently accepting new members</span>'}</p>
+    <button type="button" class="btn-ghost" style="margin-top:12px;" onclick="editGroupInfoFor(${gid})">Edit Details</button>
+  `;
+}
+function editGroupInfoFor(gid) {
+  const group = _journeyData.groups.find(g => String(g.id) === String(gid));
+  document.getElementById(_ledId('groupInfo', gid)).innerHTML = `
     <div class="form-group"><label>Day</label>
-      <select id="giDay">
+      <select id="${_ledId('giDay', gid)}">
         ${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map(d => `<option ${group.day === d ? 'selected' : ''}>${d}</option>`).join('')}
       </select>
     </div>
-    <div class="form-group"><label>Time</label><input id="giTime" value="${escapeHtml(group.time || '')}" /></div>
-    <div class="form-group"><label>Location</label><input id="giLocation" value="${escapeHtml(group.location || '')}" /></div>
-    <div class="form-group"><label>Description</label><textarea id="giDescription" rows="4">${escapeHtml(group.description || '')}</textarea></div>
+    <div class="form-group"><label>Time</label><input id="${_ledId('giTime', gid)}" value="${escapeHtml(group.time || '')}" /></div>
+    <div class="form-group"><label>Location</label><input id="${_ledId('giLocation', gid)}" value="${escapeHtml(group.location || '')}" /></div>
+    <div class="form-group"><label>Description</label><textarea id="${_ledId('giDescription', gid)}" rows="4">${escapeHtml(group.description || '')}</textarea></div>
     <div class="toggle-row" style="margin:14px 0;">
       <div><strong>Open to new members</strong></div>
-      <input type="checkbox" id="giOpen" ${group.open ? 'checked' : ''} style="width:22px;height:22px;" />
+      <input type="checkbox" id="${_ledId('giOpen', gid)}" ${group.open ? 'checked' : ''} style="width:22px;height:22px;" />
     </div>
-    <div class="msg-error" id="giError"></div>
-    <button class="btn-primary" onclick="saveGroupInfo()">Save Changes</button>
-    <button class="btn-ghost" onclick="renderGroupInfo(_journeyData.groups.find(g=>String(g.id)===String(_detailsGroupId)), true)" style="margin-left:8px;">Cancel</button>
+    <div class="msg-error" id="${_ledId('giError', gid)}"></div>
+    <button class="btn-primary" onclick="saveGroupInfoFor(${gid})">Save Changes</button>
+    <button class="btn-ghost" onclick="renderGroupInfoFor(${gid})" style="margin-left:8px;">Cancel</button>
   `;
 }
-
-async function saveGroupInfo() {
-  const group = _journeyData.groups.find(g => String(g.id) === String(_detailsGroupId));
+async function saveGroupInfoFor(gid) {
+  const group = _journeyData.groups.find(g => String(g.id) === String(gid));
   if (!group) return;
   const updated = Object.assign({}, group, {
-    day: document.getElementById('giDay').value,
-    time: document.getElementById('giTime').value.trim(),
-    location: document.getElementById('giLocation').value.trim(),
-    description: document.getElementById('giDescription').value.trim(),
-    open: document.getElementById('giOpen').checked,
+    day: document.getElementById(_ledId('giDay', gid)).value,
+    time: document.getElementById(_ledId('giTime', gid)).value.trim(),
+    location: document.getElementById(_ledId('giLocation', gid)).value.trim(),
+    description: document.getElementById(_ledId('giDescription', gid)).value.trim(),
+    open: document.getElementById(_ledId('giOpen', gid)).checked,
   });
   const result = await SupaDB.saveGroup(updated);
   if (result?.error) {
-    const errEl = document.getElementById('giError');
+    const errEl = document.getElementById(_ledId('giError', gid));
     errEl.textContent = result.error; errEl.classList.add('show');
     return;
   }
   Object.assign(group, updated);
-  renderGroupInfo(group, true);
+  renderGroupInfoFor(gid);
 }
 
-async function loadLeaderRoster(groupId) {
-  _rosterGroupId = groupId;
-  _editingMembershipId = null;
-  const box = document.getElementById('leaderRosterBox');
-  box.innerHTML = `
-    <h4 style="font-size:.9rem;font-weight:700;margin:16px 0 10px;">Manage Members</h4>
+/* Manage Members */
+let _rosterMembersByGroup = {}, _editingMembershipByGroup = {};
+
+function initRosterFor(gid) {
+  _editingMembershipByGroup[gid] = null;
+  document.getElementById(_ledId('rosterForm', gid)).innerHTML = `
     <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-        <div class="form-group" style="margin:0;"><label>Name</label><input id="mpRmName" /></div>
-        <div class="form-group" style="margin:0;"><label>Email</label><input id="mpRmEmail" type="email" /></div>
+        <div class="form-group" style="margin:0;"><label>Name</label><input id="${_ledId('rmName', gid)}" /></div>
+        <div class="form-group" style="margin:0;"><label>Email</label><input id="${_ledId('rmEmail', gid)}" type="email" /></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-        <div class="form-group" style="margin:0;"><label>Phone</label><input id="mpRmPhone" type="tel" /></div>
-        <div class="form-group" style="margin:0;"><label>Note</label><input id="mpRmNote" /></div>
+        <div class="form-group" style="margin:0;"><label>Phone</label><input id="${_ledId('rmPhone', gid)}" type="tel" /></div>
+        <div class="form-group" style="margin:0;"><label>Note</label><input id="${_ledId('rmNote', gid)}" /></div>
       </div>
-      <div class="msg-error" id="mpRmError"></div>
-      <button class="btn-primary" id="mpRmSaveBtn" onclick="saveRosterMember()">Add to Group</button>
-      <button class="btn-ghost" id="mpRmCancelBtn" onclick="cancelEditRosterMember()" style="display:none;margin-left:8px;">Cancel</button>
+      <div class="msg-error" id="${_ledId('rmError', gid)}"></div>
+      <button class="btn-primary" id="${_ledId('rmSaveBtn', gid)}" onclick="saveRosterMemberFor(${gid})">Add to Group</button>
+      <button class="btn-ghost" id="${_ledId('rmCancelBtn', gid)}" onclick="cancelEditRosterMemberFor(${gid})" style="display:none;margin-left:8px;">Cancel</button>
     </div>
-    <div id="mpRosterList"><p style="color:var(--text-muted);">Loading…</p></div>
   `;
-  await renderLeaderRoster();
+  renderLeaderRosterFor(gid);
 }
 
-async function renderLeaderRoster() {
-  const members = await SupaDB.adminGetGroupMembers(_rosterGroupId);
-  _rosterMembers = members;
-  const box = document.getElementById('mpRosterList');
+async function renderLeaderRosterFor(gid) {
+  const members = await SupaDB.adminGetGroupMembers(gid);
+  _rosterMembersByGroup[gid] = members;
+  const box = document.getElementById(_ledId('rosterList', gid));
   if (!members.length) { box.innerHTML = '<p style="color:var(--text-muted);">No members yet.</p>'; return; }
   box.innerHTML = `
     <div style="text-align:right;margin-bottom:8px;">
-      <button class="btn-ghost" style="padding:.3rem .7rem;font-size:.78rem;" onclick="exportRosterCsv()">⬇ Export CSV</button>
+      <button class="btn-ghost" style="padding:.3rem .7rem;font-size:.78rem;" onclick="exportRosterCsvFor(${gid})">⬇ Export CSV</button>
     </div>
     <table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Joined</th><th></th></tr></thead>
     <tbody>${members.map(m => `
@@ -393,21 +406,65 @@ async function renderLeaderRoster() {
         <td>${escapeHtml(m.phone || '—')}</td>
         <td>${m.joinedAt ? new Date(m.joinedAt + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</td>
         <td style="white-space:nowrap;">
-          <button class="btn-ghost" style="padding:.3rem .7rem;font-size:.78rem;" onclick="editRosterMember('${m.id}')">Edit</button>
-          <button class="btn-ghost" style="padding:.3rem .7rem;font-size:.78rem;color:var(--error);" onclick="removeRosterMember('${m.id}')">Remove</button>
+          <button class="btn-ghost" style="padding:.3rem .7rem;font-size:.78rem;" onclick="editRosterMemberFor(${gid},'${m.id}')">Edit</button>
+          <button class="btn-ghost" style="padding:.3rem .7rem;font-size:.78rem;color:var(--error);" onclick="removeRosterMemberFor(${gid},'${m.id}')">Remove</button>
         </td>
       </tr>`).join('')}</tbody></table>`;
 }
 
+function editRosterMemberFor(gid, id) {
+  const m = (_rosterMembersByGroup[gid] || []).find(x => String(x.id) === String(id));
+  if (!m) return;
+  _editingMembershipByGroup[gid] = id;
+  document.getElementById(_ledId('rmName', gid)).value = m.name;
+  document.getElementById(_ledId('rmEmail', gid)).value = m.email;
+  document.getElementById(_ledId('rmPhone', gid)).value = m.phone || '';
+  document.getElementById(_ledId('rmNote', gid)).value = m.notes || '';
+  document.getElementById(_ledId('rmSaveBtn', gid)).textContent = 'Save Changes';
+  document.getElementById(_ledId('rmCancelBtn', gid)).style.display = '';
+}
+function cancelEditRosterMemberFor(gid) {
+  _editingMembershipByGroup[gid] = null;
+  document.getElementById(_ledId('rmName', gid)).value = '';
+  document.getElementById(_ledId('rmEmail', gid)).value = '';
+  document.getElementById(_ledId('rmPhone', gid)).value = '';
+  document.getElementById(_ledId('rmNote', gid)).value = '';
+  document.getElementById(_ledId('rmSaveBtn', gid)).textContent = 'Add to Group';
+  document.getElementById(_ledId('rmCancelBtn', gid)).style.display = 'none';
+}
+async function saveRosterMemberFor(gid) {
+  const name = document.getElementById(_ledId('rmName', gid)).value.trim();
+  const email = document.getElementById(_ledId('rmEmail', gid)).value.trim();
+  const phone = document.getElementById(_ledId('rmPhone', gid)).value.trim();
+  const note = document.getElementById(_ledId('rmNote', gid)).value.trim();
+  const errEl = document.getElementById(_ledId('rmError', gid));
+  errEl.classList.remove('show'); errEl.textContent = '';
+  if (!name) { errEl.textContent = 'Name is required.'; errEl.classList.add('show'); return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = 'A valid email is required.'; errEl.classList.add('show'); return; }
+
+  const editingId = _editingMembershipByGroup[gid];
+  const result = editingId
+    ? await SupaDB.adminUpdateGroupMember(editingId, { name, email, phone, notes: note })
+    : await SupaDB.adminAddGroupMember({ groupId: gid, name, email, phone, notes: note });
+  if (result?.error) { errEl.textContent = result.error; errEl.classList.add('show'); return; }
+  cancelEditRosterMemberFor(gid);
+  await renderLeaderRosterFor(gid);
+}
+async function removeRosterMemberFor(gid, id) {
+  if (!confirm('Remove this member from the group?')) return;
+  await SupaDB.adminRemoveGroupMember(id);
+  await renderLeaderRosterFor(gid);
+}
 function csvSafe(v) {
   const s = String(v == null ? '' : v);
   return /^[=+\-@]/.test(s) ? "'" + s : s;
 }
-function exportRosterCsv() {
-  if (!_rosterMembers.length) return;
-  const group = _journeyData.groups.find(g => String(g.id) === String(_rosterGroupId));
+function exportRosterCsvFor(gid) {
+  const members = _rosterMembersByGroup[gid] || [];
+  if (!members.length) return;
+  const group = _journeyData.groups.find(g => String(g.id) === String(gid));
   const headers = ['Name', 'Email', 'Phone', 'Note', 'Joined'];
-  const rows = _rosterMembers.map(m => [
+  const rows = members.map(m => [
     m.name, m.email, m.phone || '', m.notes || '',
     m.joinedAt ? new Date(m.joinedAt + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '',
   ]);
@@ -420,152 +477,107 @@ function exportRosterCsv() {
   a.click();
 }
 
-function editRosterMember(id) {
-  const m = _rosterMembers.find(x => String(x.id) === String(id));
-  if (!m) return;
-  _editingMembershipId = id;
-  document.getElementById('mpRmName').value = m.name;
-  document.getElementById('mpRmEmail').value = m.email;
-  document.getElementById('mpRmPhone').value = m.phone || '';
-  document.getElementById('mpRmNote').value = m.notes || '';
-  document.getElementById('mpRmSaveBtn').textContent = 'Save Changes';
-  document.getElementById('mpRmCancelBtn').style.display = '';
-}
-function cancelEditRosterMember() {
-  _editingMembershipId = null;
-  document.getElementById('mpRmName').value = '';
-  document.getElementById('mpRmEmail').value = '';
-  document.getElementById('mpRmPhone').value = '';
-  document.getElementById('mpRmNote').value = '';
-  document.getElementById('mpRmSaveBtn').textContent = 'Add to Group';
-  document.getElementById('mpRmCancelBtn').style.display = 'none';
-}
-async function saveRosterMember() {
-  const name = document.getElementById('mpRmName').value.trim();
-  const email = document.getElementById('mpRmEmail').value.trim();
-  const phone = document.getElementById('mpRmPhone').value.trim();
-  const note = document.getElementById('mpRmNote').value.trim();
-  const errEl = document.getElementById('mpRmError');
-  errEl.classList.remove('show'); errEl.textContent = '';
-  if (!name) { errEl.textContent = 'Name is required.'; errEl.classList.add('show'); return; }
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = 'A valid email is required.'; errEl.classList.add('show'); return; }
+/* Attendance */
+let _attendanceByGroup = {}, _editingAttendanceByGroup = {};
 
-  const result = _editingMembershipId
-    ? await SupaDB.adminUpdateGroupMember(_editingMembershipId, { name, email, phone, notes: note })
-    : await SupaDB.adminAddGroupMember({ groupId: _rosterGroupId, name, email, phone, notes: note });
-  if (result?.error) { errEl.textContent = result.error; errEl.classList.add('show'); return; }
-  cancelEditRosterMember();
-  await renderLeaderRoster();
-}
-async function removeRosterMember(id) {
-  if (!confirm('Remove this member from the group?')) return;
-  await SupaDB.adminRemoveGroupMember(id);
-  await renderLeaderRoster();
-}
-
-/* ── LEADER: ATTENDANCE ────────────────────────────────────────────── */
-let _attGroupId = null, _cachedAttendance = [], _editingAttendanceId = null;
-
-async function loadLeaderAttendance(groupId) {
-  _attGroupId = groupId;
-  _editingAttendanceId = null;
-  const box = document.getElementById('leaderAttendanceBox');
-  box.innerHTML = `
+function initAttendanceFor(gid) {
+  _editingAttendanceByGroup[gid] = null;
+  document.getElementById(_ledId('attForm', gid)).innerHTML = `
     <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
-        <div class="form-group" style="margin:0;"><label>Date</label><input type="date" id="attDate" /></div>
-        <div class="form-group" style="margin:0;"><label>Headcount</label><input type="number" id="attCount" min="0" placeholder="0" /></div>
-        <div class="form-group" style="margin:0;"><label>Notes</label><input id="attNotes" placeholder="Optional" /></div>
+        <div class="form-group" style="margin:0;"><label>Date</label><input type="date" id="${_ledId('attDate', gid)}" /></div>
+        <div class="form-group" style="margin:0;"><label>Headcount</label><input type="number" id="${_ledId('attCount', gid)}" min="0" placeholder="0" /></div>
+        <div class="form-group" style="margin:0;"><label>Notes</label><input id="${_ledId('attNotes', gid)}" placeholder="Optional" /></div>
       </div>
-      <div class="msg-error" id="attError"></div>
-      <button class="btn-primary" id="attSaveBtn" onclick="saveAttendanceEntry()">Add Entry</button>
-      <button class="btn-ghost" id="attCancelBtn" onclick="cancelEditAttendance()" style="display:none;margin-left:8px;">Cancel</button>
+      <div class="msg-error" id="${_ledId('attError', gid)}"></div>
+      <button class="btn-primary" id="${_ledId('attSaveBtn', gid)}" onclick="saveAttendanceEntryFor(${gid})">Add Entry</button>
+      <button class="btn-ghost" id="${_ledId('attCancelBtn', gid)}" onclick="cancelEditAttendanceFor(${gid})" style="display:none;margin-left:8px;">Cancel</button>
     </div>
-    <div id="attList"><p style="color:var(--text-muted);">Loading…</p></div>
   `;
-  await renderAttendanceList();
+  renderAttendanceListFor(gid);
 }
 
-async function renderAttendanceList() {
+async function renderAttendanceListFor(gid) {
   const all = await SupaDB.adminGetAllGroupAttendance();
-  _cachedAttendance = all.filter(r => String(r.groupId) === String(_attGroupId));
-  const box = document.getElementById('attList');
+  const records = all.filter(r => String(r.groupId) === String(gid));
+  _attendanceByGroup[gid] = records;
+  const box = document.getElementById(_ledId('attList', gid));
   const fmt = d => { if (!d) return '—'; const [y, m, day] = d.split('-'); return new Date(y, m - 1, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); };
-  if (!_cachedAttendance.length) { box.innerHTML = '<p style="color:var(--text-muted);">No attendance recorded yet.</p>'; return; }
+  if (!records.length) { box.innerHTML = '<p style="color:var(--text-muted);">No attendance recorded yet.</p>'; return; }
   box.innerHTML = `
     <table><thead><tr><th>Date</th><th>Headcount</th><th>Notes</th><th></th></tr></thead>
-    <tbody>${_cachedAttendance.map(r => `
+    <tbody>${records.map(r => `
       <tr>
         <td>${fmt(r.meetingDate)}</td>
         <td><strong>${r.headcount}</strong></td>
         <td style="color:var(--text-muted);font-size:.85rem;">${escapeHtml(r.notes || '—')}</td>
         <td style="white-space:nowrap;">
-          <button class="btn-ghost" style="padding:.3rem .7rem;font-size:.78rem;" onclick="editAttendanceEntry('${r.id}')">Edit</button>
-          <button class="btn-ghost" style="padding:.3rem .7rem;font-size:.78rem;color:var(--error);" onclick="deleteAttendanceEntry('${r.id}')">Delete</button>
+          <button class="btn-ghost" style="padding:.3rem .7rem;font-size:.78rem;" onclick="editAttendanceEntryFor(${gid},'${r.id}')">Edit</button>
+          <button class="btn-ghost" style="padding:.3rem .7rem;font-size:.78rem;color:var(--error);" onclick="deleteAttendanceEntryFor(${gid},'${r.id}')">Delete</button>
         </td>
       </tr>`).join('')}</tbody></table>`;
 }
 
-function editAttendanceEntry(id) {
-  const r = _cachedAttendance.find(x => String(x.id) === String(id));
+function editAttendanceEntryFor(gid, id) {
+  const r = (_attendanceByGroup[gid] || []).find(x => String(x.id) === String(id));
   if (!r) return;
-  _editingAttendanceId = id;
-  document.getElementById('attDate').value = r.meetingDate;
-  document.getElementById('attCount').value = r.headcount;
-  document.getElementById('attNotes').value = r.notes || '';
-  document.getElementById('attSaveBtn').textContent = 'Save Changes';
-  document.getElementById('attCancelBtn').style.display = '';
+  _editingAttendanceByGroup[gid] = id;
+  document.getElementById(_ledId('attDate', gid)).value = r.meetingDate;
+  document.getElementById(_ledId('attCount', gid)).value = r.headcount;
+  document.getElementById(_ledId('attNotes', gid)).value = r.notes || '';
+  document.getElementById(_ledId('attSaveBtn', gid)).textContent = 'Save Changes';
+  document.getElementById(_ledId('attCancelBtn', gid)).style.display = '';
 }
-function cancelEditAttendance() {
-  _editingAttendanceId = null;
-  document.getElementById('attDate').value = '';
-  document.getElementById('attCount').value = '';
-  document.getElementById('attNotes').value = '';
-  document.getElementById('attSaveBtn').textContent = 'Add Entry';
-  document.getElementById('attCancelBtn').style.display = 'none';
+function cancelEditAttendanceFor(gid) {
+  _editingAttendanceByGroup[gid] = null;
+  document.getElementById(_ledId('attDate', gid)).value = '';
+  document.getElementById(_ledId('attCount', gid)).value = '';
+  document.getElementById(_ledId('attNotes', gid)).value = '';
+  document.getElementById(_ledId('attSaveBtn', gid)).textContent = 'Add Entry';
+  document.getElementById(_ledId('attCancelBtn', gid)).style.display = 'none';
 }
-async function saveAttendanceEntry() {
-  const date = document.getElementById('attDate').value;
-  const count = document.getElementById('attCount').value;
-  const notes = document.getElementById('attNotes').value.trim();
-  const errEl = document.getElementById('attError');
+async function saveAttendanceEntryFor(gid) {
+  const date = document.getElementById(_ledId('attDate', gid)).value;
+  const count = document.getElementById(_ledId('attCount', gid)).value;
+  const notes = document.getElementById(_ledId('attNotes', gid)).value.trim();
+  const errEl = document.getElementById(_ledId('attError', gid));
   errEl.classList.remove('show'); errEl.textContent = '';
   if (!date) { errEl.textContent = 'Pick a date.'; errEl.classList.add('show'); return; }
   if (count === '') { errEl.textContent = 'Enter a headcount.'; errEl.classList.add('show'); return; }
 
-  const group = _journeyData.groups.find(g => String(g.id) === String(_attGroupId));
-  const result = _editingAttendanceId
-    ? await SupaDB.adminUpdateGroupAttendance(_editingAttendanceId, { meetingDate: date, headcount: parseInt(count), notes })
-    : await SupaDB.adminAddGroupAttendance({ groupId: _attGroupId, groupName: group ? group.name : '', meetingDate: date, headcount: parseInt(count), notes });
+  const group = _journeyData.groups.find(g => String(g.id) === String(gid));
+  const editingId = _editingAttendanceByGroup[gid];
+  const result = editingId
+    ? await SupaDB.adminUpdateGroupAttendance(editingId, { meetingDate: date, headcount: parseInt(count), notes })
+    : await SupaDB.adminAddGroupAttendance({ groupId: gid, groupName: group ? group.name : '', meetingDate: date, headcount: parseInt(count), notes });
   if (result?.error) { errEl.textContent = result.error; errEl.classList.add('show'); return; }
-  cancelEditAttendance();
-  await renderAttendanceList();
+  cancelEditAttendanceFor(gid);
+  await renderAttendanceListFor(gid);
 }
-async function deleteAttendanceEntry(id) {
+async function deleteAttendanceEntryFor(gid, id) {
   if (!confirm('Delete this attendance entry?')) return;
   await SupaDB.adminDeleteGroupAttendance(id);
-  await renderAttendanceList();
+  await renderAttendanceListFor(gid);
 }
 
-/* ── LEADER: EMAIL GROUP ──────────────────────────────────────────── */
-// Rich-text body via Quill, same as the admin dashboard's Email Group --
-// same send-group-email function and recipient logic.
-let _profileEmailQuill = null;
-async function renderEmailGroupForm(groupId) {
-  const box = document.getElementById('leaderEmailBox');
-  const members = await SupaDB.adminGetGroupMembers(groupId);
+/* Email Group */
+let _emailQuillByGroup = {};
+
+async function initEmailFor(gid) {
+  const box = document.getElementById(_ledId('emailForm', gid));
+  const members = await SupaDB.adminGetGroupMembers(gid);
   const emails = [...new Set(members.map(m => m.email).filter(Boolean))];
   box.innerHTML = `
-    <div class="form-group"><label>To</label><textarea id="emailTo" rows="2">${escapeHtml(emails.join('\n'))}</textarea></div>
-    <div class="form-group"><label>Subject</label><input id="emailSubject" /></div>
+    <div class="form-group"><label>To</label><textarea id="${_ledId('emailTo', gid)}" rows="2">${escapeHtml(emails.join('\n'))}</textarea></div>
+    <div class="form-group"><label>Subject</label><input id="${_ledId('emailSubject', gid)}" /></div>
     <div class="form-group"><label>Message</label>
-      <div id="emailEditor" style="background:#fff;min-height:160px;"></div>
+      <div id="${_ledId('emailEditor', gid)}" style="background:#fff;min-height:160px;"></div>
     </div>
-    <div class="msg-error" id="emailError"></div>
-    <div class="msg-success" id="emailSuccess">Sent.</div>
-    <button class="btn-primary" id="emailSendBtn" onclick="sendGroupEmailFromProfile()" style="margin-top:10px;">Send Email</button>
+    <div class="msg-error" id="${_ledId('emailError', gid)}"></div>
+    <div class="msg-success" id="${_ledId('emailSuccess', gid)}">Sent.</div>
+    <button class="btn-primary" id="${_ledId('emailSendBtn', gid)}" onclick="sendGroupEmailFor(${gid})" style="margin-top:10px;">Send Email</button>
   `;
-  _profileEmailQuill = new Quill('#emailEditor', {
+  _emailQuillByGroup[gid] = new Quill('#' + _ledId('emailEditor', gid), {
     theme: 'snow',
     modules: { toolbar: [
       [{ header: [1, 2, 3, false] }],
@@ -576,25 +588,26 @@ async function renderEmailGroupForm(groupId) {
   });
 }
 
-async function sendGroupEmailFromProfile() {
-  const toRaw = document.getElementById('emailTo').value;
+async function sendGroupEmailFor(gid) {
+  const toRaw = document.getElementById(_ledId('emailTo', gid)).value;
   const recipients = toRaw.split(/[\n,]+/).map(e => e.trim()).filter(e => e.includes('@'));
-  const subject = document.getElementById('emailSubject').value.trim();
-  const htmlBody = _profileEmailQuill ? _profileEmailQuill.root.innerHTML : '';
-  const errEl = document.getElementById('emailError'), okEl = document.getElementById('emailSuccess');
+  const subject = document.getElementById(_ledId('emailSubject', gid)).value.trim();
+  const quill = _emailQuillByGroup[gid];
+  const htmlBody = quill ? quill.root.innerHTML : '';
+  const errEl = document.getElementById(_ledId('emailError', gid)), okEl = document.getElementById(_ledId('emailSuccess', gid));
   errEl.classList.remove('show'); okEl.classList.remove('show');
 
   if (!recipients.length) { errEl.textContent = 'Add at least one recipient email.'; errEl.classList.add('show'); return; }
   if (!subject) { errEl.textContent = 'Subject is required.'; errEl.classList.add('show'); return; }
   if (!htmlBody || htmlBody === '<p><br></p>') { errEl.textContent = 'Message cannot be empty.'; errEl.classList.add('show'); return; }
 
-  const group = _journeyData.groups.find(g => String(g.id) === String(_detailsGroupId));
+  const group = _journeyData.groups.find(g => String(g.id) === String(gid));
   const senderEmail = (_profile.email || '').toLowerCase();
   const onDomain = senderEmail.endsWith('@heritagehill.church');
   const fromEmail = onDomain ? senderEmail : 'noreply@heritagehill.church';
   const replyTo = onDomain ? '' : senderEmail;
 
-  const btn = document.getElementById('emailSendBtn');
+  const btn = document.getElementById(_ledId('emailSendBtn', gid));
   btn.disabled = true; btn.textContent = 'Sending…';
   try {
     const res = await fetch(SUPABASE_URL + '/functions/v1/send-group-email', {
@@ -609,8 +622,8 @@ async function sendGroupEmailFromProfile() {
     const json = await res.json();
     if (json.error) { errEl.textContent = 'Error: ' + json.error; errEl.classList.add('show'); return; }
     okEl.classList.add('show');
-    document.getElementById('emailSubject').value = '';
-    if (_profileEmailQuill) _profileEmailQuill.setContents([]);
+    document.getElementById(_ledId('emailSubject', gid)).value = '';
+    if (quill) quill.setContents([]);
     setTimeout(() => okEl.classList.remove('show'), 3000);
   } catch (e) {
     errEl.textContent = (e && e.message) || 'Could not send the email.'; errEl.classList.add('show');
