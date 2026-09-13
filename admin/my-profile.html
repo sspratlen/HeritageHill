@@ -256,25 +256,99 @@ function renderGroupsPanel() {
 /* ── GROUP DETAILS + LEADER ROSTER ─────────────────────────────────── */
 let _rosterGroupId = null, _rosterMembers = [], _editingMembershipId = null;
 
+let _detailsGroupId = null;
+
 function openGroupDetails(groupId) {
   const group = _journeyData.groups.find(g => String(g.id) === String(groupId));
   if (!group) return;
+  _detailsGroupId = groupId;
   const myEmail = (_profile.email || '').toLowerCase();
   const isLeader = !!(group.leaderEmail && myEmail && group.leaderEmail.toLowerCase() === myEmail);
 
   document.getElementById('groupDetailsTitle').textContent = group.name;
   document.getElementById('groupDetailsBody').innerHTML = `
-    <p style="color:var(--text-muted);margin-bottom:10px;">${escapeHtml(group.day || '')} ${escapeHtml(group.time || '')}${group.location ? ' · ' + escapeHtml(group.location) : ''}</p>
-    ${group.description ? `<p style="margin-bottom:14px;">${escapeHtml(group.description)}</p>` : ''}
-    <p style="margin-bottom:4px;"><strong>Leader:</strong> ${escapeHtml(group.leader || '—')}
-      ${group.leaderEmail && !isLeader ? ` · <a href="mailto:${escapeHtml(group.leaderEmail)}" style="color:var(--primary);">Email Leader</a>` : ''}
-    </p>
-    ${isLeader ? '<div id="leaderRosterBox"></div>' : ''}
+    <div id="groupInfoBox"></div>
+    ${isLeader ? `
+      <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;">
+        <h4 style="font-size:.9rem;font-weight:700;margin-bottom:10px;">Manage Members</h4>
+        <div id="leaderRosterBox"></div>
+      </div>
+      <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;">
+        <h4 style="font-size:.9rem;font-weight:700;margin-bottom:10px;">Attendance</h4>
+        <div id="leaderAttendanceBox"></div>
+      </div>
+      <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;">
+        <h4 style="font-size:.9rem;font-weight:700;margin-bottom:10px;">Email Group</h4>
+        <div id="leaderEmailBox"></div>
+      </div>
+    ` : ''}
   `;
+  renderGroupInfo(group, isLeader);
   document.getElementById('groupDetailsModal').classList.add('open');
-  if (isLeader) loadLeaderRoster(groupId);
+  if (isLeader) {
+    loadLeaderRoster(groupId);
+    loadLeaderAttendance(groupId);
+    renderEmailGroupForm(groupId);
+  }
 }
 function closeGroupDetails() { document.getElementById('groupDetailsModal').classList.remove('open'); }
+
+function renderGroupInfo(group, isLeader) {
+  const box = document.getElementById('groupInfoBox');
+  box.innerHTML = `
+    <div id="groupInfoView">
+      <p style="color:var(--text-muted);margin-bottom:10px;">${escapeHtml(group.day || '')} ${escapeHtml(group.time || '')}${group.location ? ' · ' + escapeHtml(group.location) : ''}</p>
+      ${group.description ? `<p style="margin-bottom:10px;">${escapeHtml(group.description)}</p>` : ''}
+      <p style="margin-bottom:4px;"><strong>Leader:</strong> ${escapeHtml(group.leader || '—')}
+        ${group.leaderEmail && !isLeader ? ` · <a href="mailto:${escapeHtml(group.leaderEmail)}" style="color:var(--primary);">Email Leader</a>` : ''}
+      </p>
+      <p style="margin-bottom:0;">${group.open ? '<span style="color:var(--success);">Open to new members</span>' : '<span style="color:var(--text-muted);">Not currently accepting new members</span>'}</p>
+      ${isLeader ? '<button type="button" class="btn-ghost" style="margin-top:12px;" onclick="editGroupInfo()">Edit Details</button>' : ''}
+    </div>
+  `;
+}
+
+function editGroupInfo() {
+  const group = _journeyData.groups.find(g => String(g.id) === String(_detailsGroupId));
+  if (!group) return;
+  document.getElementById('groupInfoBox').innerHTML = `
+    <div class="form-group"><label>Day</label>
+      <select id="giDay">
+        ${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map(d => `<option ${group.day === d ? 'selected' : ''}>${d}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group"><label>Time</label><input id="giTime" value="${escapeHtml(group.time || '')}" /></div>
+    <div class="form-group"><label>Location</label><input id="giLocation" value="${escapeHtml(group.location || '')}" /></div>
+    <div class="form-group"><label>Description</label><textarea id="giDescription" rows="4">${escapeHtml(group.description || '')}</textarea></div>
+    <div class="toggle-row" style="margin:14px 0;">
+      <div><strong>Open to new members</strong></div>
+      <input type="checkbox" id="giOpen" ${group.open ? 'checked' : ''} style="width:22px;height:22px;" />
+    </div>
+    <div class="msg-error" id="giError"></div>
+    <button class="btn-primary" onclick="saveGroupInfo()">Save Changes</button>
+    <button class="btn-ghost" onclick="renderGroupInfo(_journeyData.groups.find(g=>String(g.id)===String(_detailsGroupId)), true)" style="margin-left:8px;">Cancel</button>
+  `;
+}
+
+async function saveGroupInfo() {
+  const group = _journeyData.groups.find(g => String(g.id) === String(_detailsGroupId));
+  if (!group) return;
+  const updated = Object.assign({}, group, {
+    day: document.getElementById('giDay').value,
+    time: document.getElementById('giTime').value.trim(),
+    location: document.getElementById('giLocation').value.trim(),
+    description: document.getElementById('giDescription').value.trim(),
+    open: document.getElementById('giOpen').checked,
+  });
+  const result = await SupaDB.saveGroup(updated);
+  if (result?.error) {
+    const errEl = document.getElementById('giError');
+    errEl.textContent = result.error; errEl.classList.add('show');
+    return;
+  }
+  Object.assign(group, updated);
+  renderGroupInfo(group, true);
+}
 
 async function loadLeaderRoster(groupId) {
   _rosterGroupId = groupId;
@@ -361,6 +435,152 @@ async function removeRosterMember(id) {
   if (!confirm('Remove this member from the group?')) return;
   await SupaDB.adminRemoveGroupMember(id);
   await renderLeaderRoster();
+}
+
+/* ── LEADER: ATTENDANCE ────────────────────────────────────────────── */
+let _attGroupId = null, _cachedAttendance = [], _editingAttendanceId = null;
+
+async function loadLeaderAttendance(groupId) {
+  _attGroupId = groupId;
+  _editingAttendanceId = null;
+  const box = document.getElementById('leaderAttendanceBox');
+  box.innerHTML = `
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div class="form-group" style="margin:0;"><label>Date</label><input type="date" id="attDate" /></div>
+        <div class="form-group" style="margin:0;"><label>Headcount</label><input type="number" id="attCount" min="0" placeholder="0" /></div>
+        <div class="form-group" style="margin:0;"><label>Notes</label><input id="attNotes" placeholder="Optional" /></div>
+      </div>
+      <div class="msg-error" id="attError"></div>
+      <button class="btn-primary" id="attSaveBtn" onclick="saveAttendanceEntry()">Add Entry</button>
+      <button class="btn-ghost" id="attCancelBtn" onclick="cancelEditAttendance()" style="display:none;margin-left:8px;">Cancel</button>
+    </div>
+    <div id="attList"><p style="color:var(--text-muted);">Loading…</p></div>
+  `;
+  await renderAttendanceList();
+}
+
+async function renderAttendanceList() {
+  const all = await SupaDB.adminGetAllGroupAttendance();
+  _cachedAttendance = all.filter(r => String(r.groupId) === String(_attGroupId));
+  const box = document.getElementById('attList');
+  const fmt = d => { if (!d) return '—'; const [y, m, day] = d.split('-'); return new Date(y, m - 1, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); };
+  if (!_cachedAttendance.length) { box.innerHTML = '<p style="color:var(--text-muted);">No attendance recorded yet.</p>'; return; }
+  box.innerHTML = `
+    <table><thead><tr><th>Date</th><th>Headcount</th><th>Notes</th><th></th></tr></thead>
+    <tbody>${_cachedAttendance.map(r => `
+      <tr>
+        <td>${fmt(r.meetingDate)}</td>
+        <td><strong>${r.headcount}</strong></td>
+        <td style="color:var(--text-muted);font-size:.85rem;">${escapeHtml(r.notes || '—')}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn-ghost" style="padding:.3rem .7rem;font-size:.78rem;" onclick="editAttendanceEntry('${r.id}')">Edit</button>
+          <button class="btn-ghost" style="padding:.3rem .7rem;font-size:.78rem;color:var(--error);" onclick="deleteAttendanceEntry('${r.id}')">Delete</button>
+        </td>
+      </tr>`).join('')}</tbody></table>`;
+}
+
+function editAttendanceEntry(id) {
+  const r = _cachedAttendance.find(x => String(x.id) === String(id));
+  if (!r) return;
+  _editingAttendanceId = id;
+  document.getElementById('attDate').value = r.meetingDate;
+  document.getElementById('attCount').value = r.headcount;
+  document.getElementById('attNotes').value = r.notes || '';
+  document.getElementById('attSaveBtn').textContent = 'Save Changes';
+  document.getElementById('attCancelBtn').style.display = '';
+}
+function cancelEditAttendance() {
+  _editingAttendanceId = null;
+  document.getElementById('attDate').value = '';
+  document.getElementById('attCount').value = '';
+  document.getElementById('attNotes').value = '';
+  document.getElementById('attSaveBtn').textContent = 'Add Entry';
+  document.getElementById('attCancelBtn').style.display = 'none';
+}
+async function saveAttendanceEntry() {
+  const date = document.getElementById('attDate').value;
+  const count = document.getElementById('attCount').value;
+  const notes = document.getElementById('attNotes').value.trim();
+  const errEl = document.getElementById('attError');
+  errEl.classList.remove('show'); errEl.textContent = '';
+  if (!date) { errEl.textContent = 'Pick a date.'; errEl.classList.add('show'); return; }
+  if (count === '') { errEl.textContent = 'Enter a headcount.'; errEl.classList.add('show'); return; }
+
+  const group = _journeyData.groups.find(g => String(g.id) === String(_attGroupId));
+  const result = _editingAttendanceId
+    ? await SupaDB.adminUpdateGroupAttendance(_editingAttendanceId, { meetingDate: date, headcount: parseInt(count), notes })
+    : await SupaDB.adminAddGroupAttendance({ groupId: _attGroupId, groupName: group ? group.name : '', meetingDate: date, headcount: parseInt(count), notes });
+  if (result?.error) { errEl.textContent = result.error; errEl.classList.add('show'); return; }
+  cancelEditAttendance();
+  await renderAttendanceList();
+}
+async function deleteAttendanceEntry(id) {
+  if (!confirm('Delete this attendance entry?')) return;
+  await SupaDB.adminDeleteGroupAttendance(id);
+  await renderAttendanceList();
+}
+
+/* ── LEADER: EMAIL GROUP ──────────────────────────────────────────── */
+// Plain-text body (wrapped as paragraphs), not the rich-text editor the
+// admin dashboard's Email Group uses -- same send-group-email function
+// and recipient logic, just a lighter compose form.
+async function renderEmailGroupForm(groupId) {
+  const box = document.getElementById('leaderEmailBox');
+  const members = await SupaDB.adminGetGroupMembers(groupId);
+  const emails = [...new Set(members.map(m => m.email).filter(Boolean))];
+  box.innerHTML = `
+    <div class="form-group"><label>To</label><textarea id="emailTo" rows="2">${escapeHtml(emails.join('\n'))}</textarea></div>
+    <div class="form-group"><label>Subject</label><input id="emailSubject" /></div>
+    <div class="form-group"><label>Message</label><textarea id="emailBody" rows="6"></textarea></div>
+    <div class="msg-error" id="emailError"></div>
+    <div class="msg-success" id="emailSuccess">Sent.</div>
+    <button class="btn-primary" id="emailSendBtn" onclick="sendGroupEmailFromProfile()">Send Email</button>
+  `;
+}
+
+async function sendGroupEmailFromProfile() {
+  const toRaw = document.getElementById('emailTo').value;
+  const recipients = toRaw.split(/[\n,]+/).map(e => e.trim()).filter(e => e.includes('@'));
+  const subject = document.getElementById('emailSubject').value.trim();
+  const bodyText = document.getElementById('emailBody').value.trim();
+  const errEl = document.getElementById('emailError'), okEl = document.getElementById('emailSuccess');
+  errEl.classList.remove('show'); okEl.classList.remove('show');
+
+  if (!recipients.length) { errEl.textContent = 'Add at least one recipient email.'; errEl.classList.add('show'); return; }
+  if (!subject) { errEl.textContent = 'Subject is required.'; errEl.classList.add('show'); return; }
+  if (!bodyText) { errEl.textContent = 'Message cannot be empty.'; errEl.classList.add('show'); return; }
+
+  const htmlBody = bodyText.split(/\n{2,}/).map(p => `<p>${escapeHtml(p).replace(/\n/g, '<br>')}</p>`).join('');
+  const group = _journeyData.groups.find(g => String(g.id) === String(_detailsGroupId));
+  const senderEmail = (_profile.email || '').toLowerCase();
+  const onDomain = senderEmail.endsWith('@heritagehill.church');
+  const fromEmail = onDomain ? senderEmail : 'noreply@heritagehill.church';
+  const replyTo = onDomain ? '' : senderEmail;
+
+  const btn = document.getElementById('emailSendBtn');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const res = await fetch(SUPABASE_URL + '/functions/v1/send-group-email', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        subject, htmlBody, recipients,
+        fromName: (group && group.leader) || _profile.name,
+        fromEmail, replyTo,
+      }),
+    });
+    const json = await res.json();
+    if (json.error) { errEl.textContent = 'Error: ' + json.error; errEl.classList.add('show'); return; }
+    okEl.classList.add('show');
+    document.getElementById('emailSubject').value = '';
+    document.getElementById('emailBody').value = '';
+    setTimeout(() => okEl.classList.remove('show'), 3000);
+  } catch (e) {
+    errEl.textContent = (e && e.message) || 'Could not send the email.'; errEl.classList.add('show');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send Email';
+  }
 }
 function renderGrowthTrackPanel() {
   MemberDashboard.renderGrowthTrackCard(document.getElementById('growthtrackCardBox'), {

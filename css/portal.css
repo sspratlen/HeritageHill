@@ -29,11 +29,12 @@ body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--t
 .portal-card .sub { color: var(--text-muted); font-size: .9rem; margin-bottom: 20px; }
 .form-group { margin-bottom: 16px; }
 .form-group label { display: block; font-size: .85rem; font-weight: 600; margin-bottom: 6px; }
-.form-group input, .form-group select {
+.form-group input, .form-group select, .form-group textarea {
   width: 100%; padding: .65rem 1rem; border: 1.5px solid var(--border); border-radius: 10px;
   font-family: inherit; font-size: .9375rem; outline: none; background: #fff; transition: border-color .2s;
 }
-.form-group input:focus, .form-group select:focus {
+.form-group textarea { resize: vertical; min-height: 44px; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
   border-color: var(--primary); box-shadow: 0 0 0 3px rgba(188,122,30,.15);
 }
 .btn-primary {

@@ -69,6 +69,15 @@
 .modal-close:hover { background: var(--border); }
 .modal-body { padding: 20px 24px; }
 .modal-footer { padding: 14px 24px 20px; display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.modal-body table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.modal-body th {
+  text-align: left; padding: 7px 10px 7px 0;
+  font-size: .66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-muted); border-bottom: 1px solid var(--border);
+}
+.modal-body td { padding: 10px 10px 10px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.modal-body tr:last-child td { border-bottom: none; }
+.modal-body th:last-child, .modal-body td:last-child { padding-right: 0; }
 
 @media (max-width: 900px) { .shell-sidebar { width: 200px; } .shell-main { margin-left: 200px; } }
 @media (max-width: 680px) {
