@@ -288,19 +288,24 @@ function openGroupDetails(groupId) {
     `;
   } else {
     document.getElementById('groupDetailsBody').innerHTML = `
-      <div id="${_ledId('groupInfo', group.id)}"></div>
-      <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;">
-        <h4 style="font-size:.9rem;font-weight:700;margin-bottom:10px;">Manage Members</h4>
+      <div class="gd-tabs">
+        <button type="button" class="gd-tab active" onclick="switchGroupTab(this,'description')">Description</button>
+        <button type="button" class="gd-tab" onclick="switchGroupTab(this,'members')">Members</button>
+        <button type="button" class="gd-tab" onclick="switchGroupTab(this,'attendance')">Attendance</button>
+        <button type="button" class="gd-tab" onclick="switchGroupTab(this,'email')">Email Group</button>
+      </div>
+      <div class="gd-tab-panel active" id="gdPanel-description">
+        <div id="${_ledId('groupInfo', group.id)}"></div>
+      </div>
+      <div class="gd-tab-panel" id="gdPanel-members">
         <div id="${_ledId('rosterForm', group.id)}"></div>
         <div id="${_ledId('rosterList', group.id)}"><p style="color:var(--text-muted);">Loading…</p></div>
       </div>
-      <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;">
-        <h4 style="font-size:.9rem;font-weight:700;margin-bottom:10px;">Attendance</h4>
+      <div class="gd-tab-panel" id="gdPanel-attendance">
         <div id="${_ledId('attForm', group.id)}"></div>
         <div id="${_ledId('attList', group.id)}"><p style="color:var(--text-muted);">Loading…</p></div>
       </div>
-      <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;">
-        <h4 style="font-size:.9rem;font-weight:700;margin-bottom:10px;">Email Group</h4>
+      <div class="gd-tab-panel" id="gdPanel-email">
         <div id="${_ledId('emailForm', group.id)}"></div>
       </div>
     `;
@@ -313,21 +318,51 @@ function openGroupDetails(groupId) {
 }
 function closeGroupDetails() { document.getElementById('groupDetailsModal').classList.remove('open'); }
 
-/* Edit Details */
+function switchGroupTab(btnEl, tab) {
+  const tabsRow = btnEl.closest('.gd-tabs');
+  tabsRow.querySelectorAll('.gd-tab').forEach(b => b.classList.remove('active'));
+  btnEl.classList.add('active');
+  tabsRow.parentElement.querySelectorAll('.gd-tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('gdPanel-' + tab).classList.add('active');
+}
+
+/* Description tab: always-editable group details + the same 3-way image
+   picker (URL/Upload/AI) the admin dashboard's group editor uses. */
 function renderGroupInfoFor(gid) {
   const group = _journeyData.groups.find(g => String(g.id) === String(gid));
   const box = document.getElementById(_ledId('groupInfo', gid));
+  const hasUrlImage = !!(group.image && !group.image.startsWith('data:'));
   box.innerHTML = `
-    ${group.image ? `<img src="${escapeHtml(group.image)}" alt="${escapeHtml(group.name)}" style="width:100%;max-height:280px;object-fit:cover;border-radius:10px;margin-bottom:14px;" />` : ''}
-    <p style="color:var(--text-muted);margin-bottom:10px;">${escapeHtml(group.day || '')} ${escapeHtml(group.time || '')}${group.location ? ' · ' + escapeHtml(group.location) : ''}</p>
-    ${group.description ? `<p style="margin-bottom:10px;">${escapeHtml(group.description)}</p>` : ''}
-    <p style="margin-bottom:0;">${group.open ? '<span style="color:var(--success);">Open to new members</span>' : '<span style="color:var(--text-muted);">Not currently accepting new members</span>'}</p>
-    <button type="button" class="btn-ghost" style="margin-top:12px;" onclick="editGroupInfoFor(${gid})">Edit Details</button>
-  `;
-}
-function editGroupInfoFor(gid) {
-  const group = _journeyData.groups.find(g => String(g.id) === String(gid));
-  document.getElementById(_ledId('groupInfo', gid)).innerHTML = `
+    <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:8px;">Group Photo</label>
+    <div class="img-picker">
+      <div class="img-picker-tabs">
+        <button type="button" class="img-tab active" onclick="switchGroupImgTab(${gid},'url',this)">🔗 Paste URL</button>
+        <button type="button" class="img-tab" onclick="switchGroupImgTab(${gid},'upload',this)">⬆️ Upload Photo</button>
+        <button type="button" class="img-tab" onclick="switchGroupImgTab(${gid},'ai',this)">✨ AI Generate</button>
+      </div>
+      <div class="img-panel active" id="${_ledId('imgPanelUrl', gid)}">
+        <div class="form-group" style="margin:0;"><input type="url" id="${_ledId('giImageUrl', gid)}" placeholder="https://…" value="${hasUrlImage ? escapeHtml(group.image) : ''}" oninput="previewGroupImageFromUrl(${gid}, this.value)" /></div>
+        <div class="img-preview"><p class="img-preview-label">Preview</p><img id="${_ledId('previewUrl', gid)}" alt="Preview" class="${hasUrlImage ? 'visible' : ''}" src="${hasUrlImage ? escapeHtml(group.image) : ''}" /></div>
+      </div>
+      <div class="img-panel" id="${_ledId('imgPanelUpload', gid)}">
+        <div class="upload-drop" id="${_ledId('uploadDrop', gid)}" onclick="document.getElementById('${_ledId('giImageFile', gid)}').click()" ondragover="handleGroupDragOver(event,'${_ledId('uploadDrop', gid)}')" ondragleave="handleGroupDragLeave(event,'${_ledId('uploadDrop', gid)}')" ondrop="handleGroupDrop(event,${gid})">
+          <p><strong>Click to upload</strong> or drag &amp; drop</p><p style="font-size:.75rem;margin-top:4px;">JPG, PNG, WEBP · Auto-optimized</p>
+          <input type="file" id="${_ledId('giImageFile', gid)}" accept="image/*" onchange="handleGroupImageUpload(${gid}, this)" />
+        </div>
+        <div class="img-preview"><p class="img-preview-label">Preview (optimized)</p><img id="${_ledId('previewUpload', gid)}" alt="Upload preview" /></div>
+      </div>
+      <div class="img-panel" id="${_ledId('imgPanelAi', gid)}">
+        <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:10px;">Describe the image you want, or use the group description.</p>
+        <div class="ai-row">
+          <div class="form-group"><textarea id="${_ledId('giAiPrompt', gid)}" rows="2" placeholder="e.g. Small group studying Bible together…" style="min-height:60px;"></textarea></div>
+          <button type="button" class="btn-ghost" onclick="generateGroupAIImage(${gid})" id="${_ledId('aiGenBtn', gid)}" style="white-space:nowrap;height:fit-content;align-self:center;">Generate</button>
+        </div>
+        <div class="ai-status" id="${_ledId('aiStatus', gid)}"></div>
+        <div class="img-preview"><p class="img-preview-label">Generated image</p><img id="${_ledId('previewAi', gid)}" alt="AI preview" /></div>
+      </div>
+    </div>
+    <input type="hidden" id="${_ledId('giImageFinal', gid)}" value="${escapeHtml(group.image || '')}" />
+
     <div class="form-group"><label>Day</label>
       <select id="${_ledId('giDay', gid)}">
         ${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map(d => `<option ${group.day === d ? 'selected' : ''}>${d}</option>`).join('')}
@@ -341,28 +376,112 @@ function editGroupInfoFor(gid) {
       <input type="checkbox" id="${_ledId('giOpen', gid)}" ${group.open ? 'checked' : ''} style="width:22px;height:22px;" />
     </div>
     <div class="msg-error" id="${_ledId('giError', gid)}"></div>
+    <div class="msg-success" id="${_ledId('giSaved', gid)}">Saved.</div>
     <button class="btn-primary" onclick="saveGroupInfoFor(${gid})">Save Changes</button>
-    <button class="btn-ghost" onclick="renderGroupInfoFor(${gid})" style="margin-left:8px;">Cancel</button>
   `;
 }
+
+function switchGroupImgTab(gid, tab, btnEl) {
+  const root = btnEl.closest('.img-picker');
+  root.querySelectorAll('.img-tab').forEach(b => b.classList.remove('active'));
+  root.querySelectorAll('.img-panel').forEach(p => p.classList.remove('active'));
+  btnEl.classList.add('active');
+  const panels = { url: 'imgPanelUrl', upload: 'imgPanelUpload', ai: 'imgPanelAi' };
+  document.getElementById(_ledId(panels[tab], gid)).classList.add('active');
+}
+function previewGroupImageFromUrl(gid, url) {
+  const img = document.getElementById(_ledId('previewUrl', gid));
+  const finalEl = document.getElementById(_ledId('giImageFinal', gid));
+  if (url) { img.src = url; img.classList.add('visible'); finalEl.value = url; }
+  else { img.classList.remove('visible'); finalEl.value = ''; }
+}
+function handleGroupDragOver(e, dropId) { e.preventDefault(); document.getElementById(dropId).classList.add('dragover'); }
+function handleGroupDragLeave(e, dropId) { document.getElementById(dropId).classList.remove('dragover'); }
+function handleGroupDrop(e, gid) {
+  e.preventDefault();
+  document.getElementById(_ledId('uploadDrop', gid)).classList.remove('dragover');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) processGroupImageFile(gid, f);
+}
+function handleGroupImageUpload(gid, input) {
+  if (input.files && input.files[0]) processGroupImageFile(gid, input.files[0]);
+}
+function processGroupImageFile(gid, file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 900;
+      let w = img.width, h = img.height;
+      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.80);
+      const sizeKB = Math.round(dataUrl.length * 0.75 / 1024);
+      const preview = document.getElementById(_ledId('previewUpload', gid));
+      preview.src = dataUrl; preview.classList.add('visible');
+      document.getElementById(_ledId('giImageFinal', gid)).value = dataUrl;
+      document.getElementById(_ledId('uploadDrop', gid)).querySelector('p').innerHTML = `<strong>✓ Image optimized</strong> — ${w}×${h}px · ~${sizeKB}KB`;
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function generateGroupAIImage(gid) {
+  const prompt = document.getElementById(_ledId('giAiPrompt', gid)).value.trim()
+    || document.getElementById(_ledId('giDescription', gid)).value.trim();
+  if (!prompt) { alert('Enter a description or prompt first.'); return; }
+  const btn = document.getElementById(_ledId('aiGenBtn', gid));
+  const status = document.getElementById(_ledId('aiStatus', gid));
+  const preview = document.getElementById(_ledId('previewAi', gid));
+  btn.disabled = true; btn.textContent = 'Generating…';
+  status.className = 'ai-status loading'; status.textContent = 'Creating your image — this takes 10–20 seconds…';
+  preview.classList.remove('visible');
+  const seed = Math.floor(Math.random() * 99999);
+  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt + ', warm church community, photorealistic, natural lighting')}?width=800&height=500&nologo=true&seed=${seed}`;
+  const finish = dataUrl => {
+    preview.src = dataUrl || url; preview.classList.add('visible');
+    document.getElementById(_ledId('giImageFinal', gid)).value = dataUrl || url;
+    status.className = 'ai-status'; status.textContent = '✓ Image generated! Save to keep it.';
+    btn.disabled = false; btn.textContent = 'Regenerate';
+  };
+  const testImg = new Image();
+  testImg.crossOrigin = 'anonymous';
+  testImg.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = testImg.naturalWidth || 800; canvas.height = testImg.naturalHeight || 500;
+    canvas.getContext('2d').drawImage(testImg, 0, 0);
+    let dataUrl; try { dataUrl = canvas.toDataURL('image/jpeg', 0.82); } catch (e) { dataUrl = url; }
+    finish(dataUrl);
+  };
+  testImg.onerror = () => finish(url);
+  testImg.src = url;
+}
+
 async function saveGroupInfoFor(gid) {
   const group = _journeyData.groups.find(g => String(g.id) === String(gid));
   if (!group) return;
+  const image = document.getElementById(_ledId('giImageFinal', gid)).value.trim() || group.image;
   const updated = Object.assign({}, group, {
+    image,
     day: document.getElementById(_ledId('giDay', gid)).value,
     time: document.getElementById(_ledId('giTime', gid)).value.trim(),
     location: document.getElementById(_ledId('giLocation', gid)).value.trim(),
     description: document.getElementById(_ledId('giDescription', gid)).value.trim(),
     open: document.getElementById(_ledId('giOpen', gid)).checked,
   });
+  const errEl = document.getElementById(_ledId('giError', gid));
+  errEl.classList.remove('show'); errEl.textContent = '';
   const result = await SupaDB.saveGroup(updated);
   if (result?.error) {
-    const errEl = document.getElementById(_ledId('giError', gid));
     errEl.textContent = result.error; errEl.classList.add('show');
     return;
   }
   Object.assign(group, updated);
-  renderGroupInfoFor(gid);
+  const okEl = document.getElementById(_ledId('giSaved', gid));
+  okEl.classList.add('show');
+  setTimeout(() => okEl.classList.remove('show'), 2500);
 }
 
 /* Manage Members */

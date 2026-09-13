@@ -80,6 +80,43 @@
 .modal-body tr:last-child td { border-bottom: none; }
 .modal-body th:last-child, .modal-body td:last-child { padding-right: 0; }
 
+/* Tabs inside the group-details modal (Description/Members/Attendance/
+   Email Group). */
+.gd-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--border); margin-bottom: 18px; flex-wrap: wrap; }
+.gd-tab {
+  background: none; border: none; cursor: pointer; font-family: inherit;
+  padding: 10px 4px; margin-right: 18px; font-size: .9rem; font-weight: 600;
+  color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.gd-tab:hover { color: var(--text, #1C1C1E); }
+.gd-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+.gd-tab-panel { display: none; }
+.gd-tab-panel.active { display: block; }
+
+/* Image picker, ported from admin/dashboard.html's group edit modal so a
+   leader can change their own group's picture the same way an admin can. */
+.img-picker { border: 1.5px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 16px; }
+.img-picker-tabs { display: flex; border-bottom: 1px solid var(--border); }
+.img-tab { flex: 1; padding: 9px 8px; border: none; background: var(--bg, #F4F4F2); font-family: inherit; font-size: .82rem; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: all .2s; border-right: 1px solid var(--border); }
+.img-tab:last-child { border-right: none; }
+.img-tab.active { background: #fff; color: var(--primary); }
+.img-tab:hover:not(.active) { background: #eee; }
+.img-panel { display: none; padding: 14px; }
+.img-panel.active { display: block; }
+.img-preview { margin-top: 10px; }
+.img-preview img { width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); display: none; }
+.img-preview img.visible { display: block; }
+.img-preview-label { font-size: .75rem; color: var(--text-muted); margin-bottom: 6px; }
+.upload-drop { border: 2px dashed var(--border); border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; }
+.upload-drop:hover, .upload-drop.dragover { border-color: var(--primary); background: rgba(188,122,30,.04); }
+.upload-drop p { font-size: .85rem; color: var(--text-muted); }
+.upload-drop strong { color: var(--primary); }
+.upload-drop input[type="file"] { display: none; }
+.ai-row { display: flex; gap: 8px; align-items: flex-end; }
+.ai-row .form-group { flex: 1; margin: 0; }
+.ai-status { font-size: .78rem; color: var(--text-muted); margin-top: 6px; min-height: 18px; }
+.ai-status.loading { color: var(--primary); }
+
 @media (max-width: 900px) { .shell-sidebar { width: 200px; } .shell-main { margin-left: 200px; } }
 @media (max-width: 680px) {
   .shell-sidebar { transform: translateX(-100%); transition: transform .25s ease; z-index: 200; }
