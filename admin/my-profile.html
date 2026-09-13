@@ -103,7 +103,6 @@
 
       <div class="shell-panel" id="panelGroups">
         <div id="groupsCardBox"><p style="color:var(--text-muted);">Loading…</p></div>
-        <div id="ledGroupsBox"></div>
       </div>
 
       <div class="shell-panel" id="panelGrowthtrack">
@@ -168,9 +167,10 @@
   </div>
 </div>
 
-<!-- GROUP DETAILS MODAL -->
+<!-- GROUP DETAILS MODAL (near-full-screen -- full admin toolset for the
+     group's leader, read-only info + Email Leader for anyone else) -->
 <div class="modal-overlay" id="groupDetailsModal">
-  <div class="modal">
+  <div class="modal modal-full">
     <div class="modal-header"><h3 id="groupDetailsTitle">Group</h3><button class="modal-close" onclick="closeGroupDetails()">✕</button></div>
     <div class="modal-body" id="groupDetailsBody"></div>
     <div class="modal-footer"><button class="btn-ghost" onclick="closeGroupDetails()">Close</button></div>
@@ -255,65 +255,62 @@ function renderGroupsPanel() {
     email: _profile.email, semesters: _journeyData.semesters,
     onGroupClick: openGroupDetails,
   });
-  renderMyLedGroups();
 }
 
-/* ── GROUP DETAILS MODAL ──────────────────────────────────────────────
-   Read-only info + Email Leader, for a group you just attend. Leader
-   tools live inline on the page instead (see renderMyLedGroups below) --
-   no click needed for your own group. ── */
+/* ── GROUP DETAILS MODAL (near-full-screen) ───────────────────────────
+   Clicking any group opens this. A member just sees read-only info +
+   Email Leader; the group's leader gets the full toolset (Edit Details/
+   Manage Members/Attendance/Email Group) built right into the same
+   modal. Every element/state key those leader-tool functions use is
+   suffixed with the group's id (_ledId) so nothing collides if this is
+   reopened for a different group, or if the same person leads more
+   than one (each open is a fresh render either way, but the ids stay
+   unique on principle). */
+const _ledId = (base, gid) => `${base}-${gid}`;
+
 function openGroupDetails(groupId) {
   const group = _journeyData.groups.find(g => String(g.id) === String(groupId));
   if (!group) return;
+  const myEmail = (_profile.email || '').toLowerCase();
+  const isLeader = !!(group.leaderEmail && myEmail && group.leaderEmail.toLowerCase() === myEmail);
+
   document.getElementById('groupDetailsTitle').textContent = group.name;
-  document.getElementById('groupDetailsBody').innerHTML = `
-    <p style="color:var(--text-muted);margin-bottom:10px;">${escapeHtml(group.day || '')} ${escapeHtml(group.time || '')}${group.location ? ' · ' + escapeHtml(group.location) : ''}</p>
-    ${group.description ? `<p style="margin-bottom:14px;">${escapeHtml(group.description)}</p>` : ''}
-    <p style="margin-bottom:4px;"><strong>Leader:</strong> ${escapeHtml(group.leader || '—')}
-      ${group.leaderEmail ? ` · <a href="mailto:${escapeHtml(group.leaderEmail)}" style="color:var(--primary);">Email Leader</a>` : ''}
-    </p>
-  `;
-  document.getElementById('groupDetailsModal').classList.add('open');
-}
-function closeGroupDetails() { document.getElementById('groupDetailsModal').classList.remove('open'); }
 
-/* ── MY LED GROUPS: full leader toolset, inline on the page ───────────
-   Every element/state key below is suffixed with the group's id, since
-   a person can lead more than one group and all of them render at once
-   here (unlike the old modal, which only ever showed one at a time). */
-const _ledId = (base, gid) => `${base}-${gid}`;
-
-function renderMyLedGroups() {
-  const email = (_profile.email || '').toLowerCase();
-  const led = email ? _journeyData.groups.filter(g => g.leaderEmail && g.leaderEmail.toLowerCase() === email) : [];
-  const box = document.getElementById('ledGroupsBox');
-  if (!led.length) { box.innerHTML = ''; return; }
-  box.innerHTML = led.map(g => `
-    <div class="portal-card" style="margin-top:20px;">
-      <h2>Leading: ${escapeHtml(g.name)}</h2>
-      <div id="${_ledId('groupInfo', g.id)}"></div>
+  if (!isLeader) {
+    document.getElementById('groupDetailsBody').innerHTML = `
+      <p style="color:var(--text-muted);margin-bottom:10px;">${escapeHtml(group.day || '')} ${escapeHtml(group.time || '')}${group.location ? ' · ' + escapeHtml(group.location) : ''}</p>
+      ${group.description ? `<p style="margin-bottom:14px;">${escapeHtml(group.description)}</p>` : ''}
+      <p style="margin-bottom:4px;"><strong>Leader:</strong> ${escapeHtml(group.leader || '—')}
+        ${group.leaderEmail ? ` · <a href="mailto:${escapeHtml(group.leaderEmail)}" style="color:var(--primary);">Email Leader</a>` : ''}
+      </p>
+      <p style="margin-bottom:0;">${group.open ? '<span style="color:var(--success);">Open to new members</span>' : '<span style="color:var(--text-muted);">Not currently accepting new members</span>'}</p>
+    `;
+  } else {
+    document.getElementById('groupDetailsBody').innerHTML = `
+      <div id="${_ledId('groupInfo', group.id)}"></div>
       <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;">
         <h4 style="font-size:.9rem;font-weight:700;margin-bottom:10px;">Manage Members</h4>
-        <div id="${_ledId('rosterForm', g.id)}"></div>
-        <div id="${_ledId('rosterList', g.id)}"><p style="color:var(--text-muted);">Loading…</p></div>
+        <div id="${_ledId('rosterForm', group.id)}"></div>
+        <div id="${_ledId('rosterList', group.id)}"><p style="color:var(--text-muted);">Loading…</p></div>
       </div>
       <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;">
         <h4 style="font-size:.9rem;font-weight:700;margin-bottom:10px;">Attendance</h4>
-        <div id="${_ledId('attForm', g.id)}"></div>
-        <div id="${_ledId('attList', g.id)}"><p style="color:var(--text-muted);">Loading…</p></div>
+        <div id="${_ledId('attForm', group.id)}"></div>
+        <div id="${_ledId('attList', group.id)}"><p style="color:var(--text-muted);">Loading…</p></div>
       </div>
       <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;">
         <h4 style="font-size:.9rem;font-weight:700;margin-bottom:10px;">Email Group</h4>
-        <div id="${_ledId('emailForm', g.id)}"></div>
+        <div id="${_ledId('emailForm', group.id)}"></div>
       </div>
-    </div>`).join('');
-  led.forEach(g => {
-    renderGroupInfoFor(g.id);
-    initRosterFor(g.id);
-    initAttendanceFor(g.id);
-    initEmailFor(g.id);
-  });
+    `;
+    renderGroupInfoFor(group.id);
+    initRosterFor(group.id);
+    initAttendanceFor(group.id);
+    initEmailFor(group.id);
+  }
+  document.getElementById('groupDetailsModal').classList.add('open');
 }
+function closeGroupDetails() { document.getElementById('groupDetailsModal').classList.remove('open'); }
 
 /* Edit Details */
 function renderGroupInfoFor(gid) {
