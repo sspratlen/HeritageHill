@@ -101,3 +101,27 @@
   font-weight: 700;
   width: fit-content;
 }
+
+/* Tables rendered by shared MemberDashboard methods (e.g.
+   renderGroupHistory) land inside a .jp-card on pages that only load
+   this stylesheet (not admin/dashboard.html's own table/badge rules) --
+   style them here so they aren't left as unstyled browser default
+   tables wherever that happens. */
+.jp-card table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.jp-card th {
+  text-align: left; padding: 7px 10px 7px 0;
+  font-size: .66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--text-muted); border-bottom: 1px solid var(--border);
+}
+.jp-card td { padding: 10px 10px 10px 0; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.jp-card tr:last-child td { border-bottom: none; }
+.jp-card th:last-child, .jp-card td:last-child { padding-right: 0; }
+
+.jp-card .badge {
+  display: inline-block; padding: 3px 9px; border-radius: 999px;
+  font-size: .7rem; font-weight: 700; letter-spacing: .02em; white-space: nowrap;
+}
+.jp-card .badge-green { background: rgba(22,163,74,.1); color: var(--success); }
+.jp-card .badge-blue  { background: rgba(21,92,162,.1); color: #155CA2; }
+.jp-card .badge-amber { background: rgba(188,122,30,.12); color: var(--primary); }
+.jp-card .badge-gray  { background: rgba(0,0,0,.07); color: #555; }
