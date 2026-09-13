@@ -12,77 +12,157 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/portal.css" />
   <link rel="stylesheet" href="../css/journey-pipeline.css" />
+  <link rel="stylesheet" href="../css/dashboard-shell.css" />
+  <style>
+    /* my-profile.html doesn't use portal.css's centered single-column
+       layout anymore -- the shell handles page structure instead. */
+    .portal-page { max-width: none; margin: 0; padding: 0; }
+    .portal-card { margin-bottom: 20px; }
+    .portal-card:last-child { margin-bottom: 0; }
+  </style>
 </head>
 <body>
 
-<div class="portal-topbar">
-  <span class="bar-title">My Profile — Heritage Hill</span>
-  <div class="bar-actions">
-    <a href="dashboard.html" id="dashLink" style="display:none;">Dashboard</a>
-    <a href="../index.html">Website</a>
-    <button onclick="signOut()">Sign Out</button>
-  </div>
-</div>
-
-<div class="portal-page">
-  <div id="pendingBanner" class="banner-pending" style="display:none;">
-    Your profile is awaiting approval from church staff. You can take your
-    assessments now — results will appear to staff once you're approved.
-  </div>
-
-  <div class="portal-card" id="profileCard">
-    <h2>My Information</h2>
-    <p class="sub">Keep your contact info and group up to date.</p>
-    <div class="form-group"><label>Full Name</label><input id="pfName" /></div>
-    <div class="form-group"><label>Email</label><input id="pfEmail" disabled /></div>
-    <div class="form-group"><label>Phone</label><input id="pfPhone" /></div>
-    <div class="form-group"><label>Small Group</label><select id="pfGroup"></select></div>
-    <div class="form-group"><label>How long at Heritage Hill?</label>
-      <select id="pfYears">
-        <option value="">— Select —</option>
-        <option>Less than 1 year</option><option>1–3 years</option>
-        <option>3–5 years</option><option>More than 5 years</option>
-      </select></div>
-    <div class="toggle-row" style="margin:18px 0;">
-      <div><strong>Share my results with my group leader</strong>
-        <div class="sub" style="margin:0;">Your leader can see your personality and gifts to help you find your place.</div></div>
-      <input type="checkbox" id="pfShare" style="width:22px;height:22px;" />
+<div class="shell">
+  <aside class="shell-sidebar" id="shellSidebar">
+    <div class="shell-sidebar-brand">
+      <img src="../assets/logos/logo-left-full-dark.png" alt="Heritage Hill" onerror="this.style.display='none'" />
+      <span>My Profile</span>
     </div>
-    <button class="btn-primary" onclick="saveProfile()">Save Changes</button>
-    <div class="msg-success" id="pfSaved">Saved.</div>
-    <div class="msg-error" id="pfError"></div>
-  </div>
+    <nav class="shell-nav">
+      <div class="nav-section nav-stage" id="navFound">
+        <span class="nav-stage-circle">01</span>
+        <span class="nav-stage-text"><span class="nav-stage-name">Found</span><span class="nav-section-verse">by God</span></span>
+      </div>
+      <a onclick="switchPanel('baptism')" id="navBaptism" data-panel="baptism" class="active">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 12a6 6 0 0 0 12 0"/><path d="M8 12V6a4 4 0 0 1 8 0v6"/><line x1="3" y1="20" x2="21" y2="20"/><circle cx="12" cy="4" r="1.5"/></svg>
+        Baptism
+      </a>
 
-  <div class="portal-card">
-    <h2>Profile Photo</h2>
-    <p class="sub">Shown next to your name across the site.</p>
-    <div style="display:flex; align-items:center; gap:16px; margin-bottom:14px;">
-      <div id="avatarPreview" style="width:80px; height:80px; border-radius:50%; background:#F4F4F2; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;"></div>
-      <div>
-        <input type="file" id="avatarFile" accept="image/*" onchange="handleAvatarFile(this)" style="display:none;" />
-        <button type="button" class="btn-primary" onclick="document.getElementById('avatarFile').click()">Choose Photo</button>
-        <button type="button" class="btn-ghost" onclick="saveAvatar()" id="avatarSaveBtn" style="display:none; margin-left:8px;">Save Photo</button>
-        <br />
-        <button type="button" class="btn-ghost" onclick="removeAvatar()" id="avatarRemoveBtn" style="margin-top:8px; display:none;">Remove Photo</button>
+      <div class="nav-section nav-stage" id="navFilled">
+        <span class="nav-stage-circle">02</span>
+        <span class="nav-stage-text"><span class="nav-stage-name">Filled</span><span class="nav-section-verse">by the Spirit</span></span>
+      </div>
+      <a onclick="switchPanel('groups')" id="navGroups" data-panel="groups">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Small Groups
+      </a>
+
+      <div class="nav-section nav-stage" id="navFreed">
+        <span class="nav-stage-circle">03</span>
+        <span class="nav-stage-text"><span class="nav-stage-name">Freed</span><span class="nav-section-verse">to live like Jesus</span></span>
+      </div>
+      <a onclick="switchPanel('growthtrack')" id="navGrowthtrack" data-panel="growthtrack">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Growth Track
+      </a>
+
+      <div class="nav-section nav-stage" id="navForged">
+        <span class="nav-stage-circle">04</span>
+        <span class="nav-stage-text"><span class="nav-stage-name">Forged</span><span class="nav-section-verse">for mission</span></span>
+      </div>
+      <a onclick="switchPanel('impactteams')" id="navImpactteams" data-panel="impactteams">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+        Impact Teams
+      </a>
+
+      <div class="nav-section" id="navAccountSection">Account</div>
+      <a onclick="switchPanel('account')" id="navAccount" data-panel="account">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        My Info
+      </a>
+    </nav>
+    <div class="shell-sidebar-footer">
+      <a href="dashboard.html" id="dashLink" style="display:none;">Dashboard</a>
+      <a href="../index.html">View Website</a>
+      <button onclick="signOut()">Sign Out</button>
+    </div>
+  </aside>
+  <div class="shell-sidebar-backdrop" id="shellBackdrop" onclick="closeShellSidebar()"></div>
+
+  <div class="shell-main">
+    <div class="shell-topbar">
+      <div style="display:flex;align-items:center;">
+        <button class="shell-mobile-hamburger" onclick="toggleShellSidebar()" aria-label="Toggle navigation">
+          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <h1 id="shellTitle">Baptism</h1>
       </div>
     </div>
-    <div class="msg-success" id="avatarSaved">Saved.</div>
-    <div class="msg-error" id="avatarError"></div>
-  </div>
 
-  <div class="portal-card">
-    <h2>My Journey</h2>
-    <p class="sub">Found by God, filled by the Spirit, freed to live like Jesus, forged for mission.</p>
-    <div id="journeyBox"></div>
-  </div>
+    <div class="shell-content">
+      <div id="pendingBanner" class="banner-pending" style="display:none;">
+        Your profile is awaiting approval from church staff. You can take your
+        assessments now — results will appear to staff once you're approved.
+      </div>
 
-  <div class="portal-card">
-    <h2>Change Password</h2>
-    <div class="form-group"><label>New Password</label><input type="password" id="pwNew" /></div>
-    <div class="form-group"><label>Confirm</label><input type="password" id="pwConfirm" /></div>
-    <button class="btn-primary" onclick="changePassword()">Update Password</button>
-    <div class="msg-success" id="pwSaved">Password updated.</div>
-    <div class="msg-error" id="pwError"></div>
+      <div class="shell-panel active" id="panelBaptism">
+        <div id="baptismCardBox"><p style="color:var(--text-muted);">Loading…</p></div>
+      </div>
+
+      <div class="shell-panel" id="panelGroups">
+        <div id="groupsCardBox"><p style="color:var(--text-muted);">Loading…</p></div>
+      </div>
+
+      <div class="shell-panel" id="panelGrowthtrack">
+        <div id="growthtrackCardBox"><p style="color:var(--text-muted);">Loading…</p></div>
+      </div>
+
+      <div class="shell-panel" id="panelImpactteams">
+        <div id="impactteamsCardBox"><p style="color:var(--text-muted);">Loading…</p></div>
+      </div>
+
+      <div class="shell-panel" id="panelAccount">
+        <div class="portal-card" id="profileCard">
+          <h2>My Information</h2>
+          <p class="sub">Keep your contact info and group up to date.</p>
+          <div class="form-group"><label>Full Name</label><input id="pfName" /></div>
+          <div class="form-group"><label>Email</label><input id="pfEmail" disabled /></div>
+          <div class="form-group"><label>Phone</label><input id="pfPhone" /></div>
+          <div class="form-group"><label>Small Group</label><select id="pfGroup"></select></div>
+          <div class="form-group"><label>How long at Heritage Hill?</label>
+            <select id="pfYears">
+              <option value="">— Select —</option>
+              <option>Less than 1 year</option><option>1–3 years</option>
+              <option>3–5 years</option><option>More than 5 years</option>
+            </select></div>
+          <div class="toggle-row" style="margin:18px 0;">
+            <div><strong>Share my results with my group leader</strong>
+              <div class="sub" style="margin:0;">Your leader can see your personality and gifts to help you find your place.</div></div>
+            <input type="checkbox" id="pfShare" style="width:22px;height:22px;" />
+          </div>
+          <button class="btn-primary" onclick="saveProfile()">Save Changes</button>
+          <div class="msg-success" id="pfSaved">Saved.</div>
+          <div class="msg-error" id="pfError"></div>
+        </div>
+
+        <div class="portal-card">
+          <h2>Profile Photo</h2>
+          <p class="sub">Shown next to your name across the site.</p>
+          <div style="display:flex; align-items:center; gap:16px; margin-bottom:14px;">
+            <div id="avatarPreview" style="width:80px; height:80px; border-radius:50%; background:#F4F4F2; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;"></div>
+            <div>
+              <input type="file" id="avatarFile" accept="image/*" onchange="handleAvatarFile(this)" style="display:none;" />
+              <button type="button" class="btn-primary" onclick="document.getElementById('avatarFile').click()">Choose Photo</button>
+              <button type="button" class="btn-ghost" onclick="saveAvatar()" id="avatarSaveBtn" style="display:none; margin-left:8px;">Save Photo</button>
+              <br />
+              <button type="button" class="btn-ghost" onclick="removeAvatar()" id="avatarRemoveBtn" style="margin-top:8px; display:none;">Remove Photo</button>
+            </div>
+          </div>
+          <div class="msg-success" id="avatarSaved">Saved.</div>
+          <div class="msg-error" id="avatarError"></div>
+        </div>
+
+        <div class="portal-card">
+          <h2>Change Password</h2>
+          <div class="form-group"><label>New Password</label><input type="password" id="pwNew" /></div>
+          <div class="form-group"><label>Confirm</label><input type="password" id="pwConfirm" /></div>
+          <button class="btn-primary" onclick="changePassword()">Update Password</button>
+          <div class="msg-success" id="pwSaved">Password updated.</div>
+          <div class="msg-error" id="pwError"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -92,13 +172,15 @@
 <script src="../js/assessments.js"></script>
 <script src="../js/member-dashboard.js"></script>
 <script>
-let _profile = null, _content = null;
+let _profile = null, _journeyData = null;
+const PANELS = ['baptism', 'groups', 'growthtrack', 'impactteams', 'account'];
+const PANEL_TITLES = { baptism: 'Baptism', groups: 'Small Groups', growthtrack: 'Growth Track', impactteams: 'Impact Teams', account: 'My Info' };
 
 (async () => {
   const user = await SupaDB.getUser();
   if (!user) { window.location.href = 'login.html?next=my-profile.html'; return; }
 
-  // Staff get a Dashboard link in the topbar
+  // Staff get a Dashboard link in the sidebar
   const roleData = await SupaDB.getUserRoleByEmail(user.email);
   if (roleData) document.getElementById('dashLink').style.display = '';
 
@@ -113,7 +195,7 @@ let _profile = null, _content = null;
   if (_profile.status === 'pending' && !roleData)
     document.getElementById('pendingBanner').style.display = '';
 
-  // Fill form
+  // Fill Account form
   document.getElementById('pfName').value  = _profile.name;
   document.getElementById('pfEmail').value = _profile.email;
   document.getElementById('pfPhone').value = _profile.phone;
@@ -127,7 +209,7 @@ let _profile = null, _content = null;
     groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
   sel.value = _profile.groupId || '';
 
-  // Results
+  // Load everything the four journey cards need, once.
   const [attempts, content, gtRegs, memberships, semesters, teamMemberships, teams, milestones] = await Promise.all([
     SupaDB.getMyAttempts(), SupaDB.getAssessmentContent(),
     SupaDB.getGrowthTrackRegistrationsForUser(user.id), SupaDB.getGroupMembershipsForUser(user.id),
@@ -135,22 +217,61 @@ let _profile = null, _content = null;
     SupaDB.getImpactTeamMembershipsForUser(user.id), SupaDB.getPublishedImpactTeams(),
     SupaDB.getMyMilestones(_profile.personId),
   ]);
-  _content = Assessments.splitContent(content);
-  const discAttempts = attempts.filter(a => a.assessmentType === 'disc');
-  const giftsAttempts = attempts.filter(a => a.assessmentType === 'gifts');
+  _journeyData = {
+    content: Assessments.splitContent(content), gtRegs, memberships, groups, semesters, teamMemberships, teams,
+    discAttempts: attempts.filter(a => a.assessmentType === 'disc'),
+    giftsAttempts: attempts.filter(a => a.assessmentType === 'gifts'),
+    baptism: milestones.find(m => m.milestone === 'baptized'),
+  };
 
-  const baptism = milestones.find(m => m.milestone === 'baptized');
-  MemberDashboard.renderJourneyPipeline(document.getElementById('journeyBox'), {
-    memberSince: _profile.memberSince, baptizedAt: baptism ? baptism.achievedAt : null,
-    groupMemberships: memberships, groups, email: _profile.email,
-    gtRegistrations: gtRegs,
-    discAttempt: discAttempts[0], giftsAttempt: giftsAttempts[0],
-    discAttemptCount: discAttempts.length, giftsAttemptCount: giftsAttempts.length,
-    discBlends: _content.discBlends, giftsContent: _content.gifts,
-    assessmentCtaHrefs: { disc: 'test-personality.html', gifts: 'test-gifts.html' },
-    teamMemberships, teams,
-  });
+  renderBaptismPanel();
+  renderGroupsPanel();
+  renderGrowthTrackPanel();
+  renderImpactTeamsPanel();
 })();
+
+function renderBaptismPanel() {
+  MemberDashboard.renderBaptismCard(document.getElementById('baptismCardBox'), {
+    baptism: _journeyData.baptism,
+    onPrintCertificate: () => alert('Printable certificates are coming soon.'),
+  });
+}
+function renderGroupsPanel() {
+  MemberDashboard.renderGroupsCard(document.getElementById('groupsCardBox'), {
+    memberships: _journeyData.memberships, groups: _journeyData.groups,
+    email: _profile.email, semesters: _journeyData.semesters,
+  });
+}
+function renderGrowthTrackPanel() {
+  MemberDashboard.renderGrowthTrackCard(document.getElementById('growthtrackCardBox'), {
+    gtRegistrations: _journeyData.gtRegs, memberSince: _profile.memberSince,
+    discAttempt: _journeyData.discAttempts[0], giftsAttempt: _journeyData.giftsAttempts[0],
+    discAttemptCount: _journeyData.discAttempts.length, giftsAttemptCount: _journeyData.giftsAttempts.length,
+    discBlends: _journeyData.content.discBlends, giftsContent: _journeyData.content.gifts,
+    assessmentCtaHrefs: { disc: 'test-personality.html', gifts: 'test-gifts.html' },
+    onPrintMemberCard: () => alert('Printable member cards are coming soon.'),
+    onLearnImpactTeams: () => switchPanel('impactteams'),
+  });
+}
+function renderImpactTeamsPanel() {
+  MemberDashboard.renderImpactTeamsCard(document.getElementById('impactteamsCardBox'), {
+    teamMemberships: _journeyData.teamMemberships, teams: _journeyData.teams,
+    groups: _journeyData.groups, email: _profile.email,
+  });
+}
+
+function switchPanel(name) {
+  closeShellSidebar();
+  PANELS.forEach(p => {
+    document.getElementById('panel' + p[0].toUpperCase() + p.slice(1)).classList.remove('active');
+    document.getElementById('nav' + p[0].toUpperCase() + p.slice(1)).classList.remove('active');
+  });
+  document.getElementById('panel' + name[0].toUpperCase() + name.slice(1)).classList.add('active');
+  document.getElementById('nav' + name[0].toUpperCase() + name.slice(1)).classList.add('active');
+  document.getElementById('shellTitle').textContent = PANEL_TITLES[name] || name;
+}
+function toggleShellSidebar() { document.getElementById('shellSidebar').classList.toggle('open'); document.getElementById('shellBackdrop').classList.toggle('open'); }
+function closeShellSidebar() { document.getElementById('shellSidebar').classList.remove('open'); document.getElementById('shellBackdrop').classList.remove('open'); }
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({

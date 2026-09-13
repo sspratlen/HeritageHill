@@ -329,4 +329,125 @@ const MemberDashboard = {
       }
     }
   },
+
+  // ── Standalone Found/Filled/Freed/Forged cards, one stage at a time --
+  // used by pages that put each stage in its own nav destination (e.g. a
+  // Found/Filled/Freed/Forged sidebar) rather than one consolidated page
+  // like renderJourneyPipeline above. Same jp-* CSS, same date-formatting
+  // rule (timestamptz strings only ever carry a calendar date -- take the
+  // first 10 chars and parse as local midnight, never the raw ISO string).
+  _jpFmt(d) {
+    return d ? new Date(d.slice(0, 10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+  },
+
+  // opts: { baptism: a person_milestones row or null, onPrintCertificate }
+  renderBaptismCard(containerEl, opts) {
+    const baptism = opts.baptism;
+    containerEl.innerHTML = `
+      <div class="jp-card">
+        <div class="jp-label">Attendance</div>
+        ${baptism
+          ? `<div class="jp-field"><span>Baptism</span><span class="jp-yes">✓ · ${this.escapeHtml(this._jpFmt(baptism.achievedAt))}</span></div>
+             ${baptism.notes ? `<div class="jp-field"><span>Notes</span><span class="jp-val">${this.escapeHtml(baptism.notes)}</span></div>` : ''}`
+          : `<p class="jp-empty">Not on record yet — talk to a staff member to get your baptism added.</p>`}
+        ${baptism && opts.onPrintCertificate ? '<button type="button" class="jp-cta" id="jpPrintCertBtn" style="margin-top:10px;border:none;cursor:pointer;">Print Certificate</button>' : ''}
+      </div>`;
+    const btn = containerEl.querySelector('#jpPrintCertBtn');
+    if (btn && opts.onPrintCertificate) btn.addEventListener('click', opts.onPrintCertificate);
+  },
+
+  // opts: { memberships, groups, email, semesters } -- same shape as
+  // renderGroupHistory, which does the actual rendering.
+  renderGroupsCard(containerEl, opts) {
+    containerEl.innerHTML = '<div class="jp-card"><div class="jp-label">Small groups</div><div id="_jpGroupsInner"></div></div>';
+    this.renderGroupHistory(containerEl.querySelector('#_jpGroupsInner'), opts.memberships || [], opts.groups || [], opts.email || '', opts.semesters || []);
+  },
+
+  // opts: { gtRegistrations, memberSince, discAttempt, giftsAttempt,
+  //   discAttemptCount, giftsAttemptCount, discBlends, giftsContent,
+  //   assessmentCtaHrefs: {disc, gifts}, onPrintMemberCard, onLearnImpactTeams }
+  renderGrowthTrackCard(containerEl, opts) {
+    const fmt = d => this._jpFmt(d);
+    const attendedByPart = { about_us: [], about_you: [], get_involved: [] };
+    (opts.gtRegistrations || []).forEach(r => { if (r.attended && attendedByPart[r.part]) attendedByPart[r.part].push(r.sessionDate); });
+    const datesLine = part => {
+      const dates = attendedByPart[part].filter(Boolean).sort();
+      return dates.length
+        ? `<div class="jp-val" style="margin:2px 0 8px;">Attended: ${dates.map(fmt).join(', ')}</div>`
+        : `<div class="jp-val" style="margin:2px 0 8px;">Not attended yet.</div>`;
+    };
+
+    const plantExtra = opts.memberSince
+      ? `<div class="jp-val">Member since ${this.escapeHtml(fmt(opts.memberSince))}${opts.onPrintMemberCard ? ' · <button type=\"button\" class=\"jp-cta\" id=\"jpPrintMemberBtn\" style=\"border:none;cursor:pointer;\">Print Member Card</button>' : ''}</div>`
+      : `<div class="jp-val">Attend Plant to become a member.</div>`;
+
+    const ctaHrefs = opts.assessmentCtaHrefs || {};
+    const discoverExtra = (ctaHrefs.disc || ctaHrefs.gifts) ? `
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 8px;">
+        ${ctaHrefs.disc ? `<a href="${this.escapeHtml(ctaHrefs.disc)}" class="jp-cta">${opts.discAttempt ? 'Retake' : 'Take'} DISC Survey</a>` : ''}
+        ${ctaHrefs.gifts ? `<a href="${this.escapeHtml(ctaHrefs.gifts)}" class="jp-cta">${opts.giftsAttempt ? 'Retake' : 'Take'} Spiritual Gifts Survey</a>` : ''}
+      </div>` : '';
+
+    const growExtra = opts.onLearnImpactTeams
+      ? '<button type="button" class="jp-cta" id="jpLearnTeamsBtn" style="border:none;cursor:pointer;">See what Impact Teams are available</button>'
+      : '';
+
+    containerEl.innerHTML = `
+      <div class="jp-card">
+        <div class="jp-label">Growth Track history</div>
+        <div class="jp-roster-row"><span class="jp-roster-name">Plant</span></div>
+        ${datesLine('about_us')}${plantExtra}
+        <div class="jp-roster-row" style="border-top:1px solid var(--border);"><span class="jp-roster-name">Discover</span></div>
+        ${datesLine('about_you')}${discoverExtra}
+        <div class="jp-roster-row" style="border-top:1px solid var(--border);"><span class="jp-roster-name">Grow</span></div>
+        ${datesLine('get_involved')}${growExtra}
+        <div class="jp-label" style="margin-top:6px;">Spiritual Gifts</div>
+        <div id="_jpGiftsInner"></div>
+        <div class="jp-label" style="margin-top:6px;">Personality (DISC)</div>
+        <div id="_jpDiscInner"></div>
+      </div>`;
+
+    const printBtn = containerEl.querySelector('#jpPrintMemberBtn');
+    if (printBtn && opts.onPrintMemberCard) printBtn.addEventListener('click', opts.onPrintMemberCard);
+    const learnBtn = containerEl.querySelector('#jpLearnTeamsBtn');
+    if (learnBtn && opts.onLearnImpactTeams) learnBtn.addEventListener('click', opts.onLearnImpactTeams);
+
+    const giftsBox = containerEl.querySelector('#_jpGiftsInner');
+    if (opts.giftsAttempt && opts.giftsContent) this.renderGiftsResult(giftsBox, opts.giftsAttempt, opts.giftsContent, opts.giftsAttemptCount);
+    else giftsBox.innerHTML = '<p class="jp-empty">Not taken yet.</p>';
+
+    const discBox = containerEl.querySelector('#_jpDiscInner');
+    if (opts.discAttempt && opts.discBlends) this.renderDiscResult(discBox, opts.discAttempt, opts.discBlends, opts.discAttemptCount);
+    else discBox.innerHTML = '<p class="jp-empty">Not taken yet.</p>';
+  },
+
+  // opts: { teamMemberships, teams, groups, email } -- groups/email are
+  // used to also surface any small group this person leads, the same way
+  // as renderJourneyPipeline's Forged stage (leading is service too).
+  renderImpactTeamsCard(containerEl, opts) {
+    const fmt = d => this._jpFmt(d);
+    const teams = opts.teams || [];
+    const rows = (opts.teamMemberships || []).filter(m => !m.leftAt).map(m => ({
+      name: (teams.find(t => String(t.id) === String(m.teamId)) || {}).name || 'Unknown Team',
+      role: m.role === 'leader' ? 'leader' : 'member', trained: m.trained, trainedAt: m.trainedAt,
+    }));
+    const email = opts.email || '';
+    const ledGroups = (email
+      ? (opts.groups || []).filter(g => g.leaderEmail && g.leaderEmail.toLowerCase() === email.toLowerCase())
+      : []
+    ).map(g => ({ name: g.name + ' (Small Group)', role: 'leader', trained: undefined }));
+    const allRows = rows.concat(ledGroups);
+
+    containerEl.innerHTML = `
+      <div class="jp-card">
+        <div class="jp-label">Impact teams</div>
+        ${allRows.length ? `<div class="jp-roster">${allRows.map(t => `
+          <div class="jp-roster-row">
+            <span class="jp-roster-name">${this.escapeHtml(t.name)}</span>
+            <span class="jp-role-tag ${t.role === 'leader' ? 'jp-leads' : 'jp-member'}">${t.role === 'leader' ? 'Leads' : 'Member'}</span>
+          </div>
+          ${t.trained === undefined ? '' : `<div class="jp-roster-sub" style="padding:0 0 6px;">${t.trained ? `✓ Trained${t.trainedAt ? ' · ' + this.escapeHtml(fmt(t.trainedAt)) : ''}` : 'Not yet trained'}</div>`}`).join('')}</div>`
+          : '<p class="jp-empty">Not serving on a team yet.</p>'}
+      </div>`;
+  },
 };

@@ -1,0 +1,67 @@
+/* Persistent Found/Filled/Freed/Forged sidebar shell for member-facing
+   pages (my-profile.html) -- same navigable structure as
+   admin/dashboard.html's sidebar, without any admin management tools.
+   Relies on --primary/--border/--text/--radius already defined by the
+   host page (e.g. css/portal.css); classes are "shell-" prefixed so
+   nothing here collides with the host page's own component classes. */
+
+.shell { display: flex; min-height: 100vh; }
+
+.shell-sidebar {
+  width: 240px; background: #111318; color: #fff; flex-shrink: 0;
+  display: flex; flex-direction: column;
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+}
+.shell-sidebar-brand { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,.08); }
+.shell-sidebar-brand img { height: 52px; }
+.shell-sidebar-brand span { display: block; font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.35); margin-top: 6px; }
+
+.shell-nav { padding: 16px 12px; flex: 1; overflow-y: auto; }
+.shell-nav a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: rgba(255,255,255,.6); text-decoration: none; font-size: .9rem; font-weight: 500; transition: background .2s, color .2s; margin-bottom: 2px; cursor: pointer; }
+.shell-nav a:hover { background: rgba(255,255,255,.08); color: #fff; }
+.shell-nav a.active { background: var(--primary); color: #fff; }
+.shell-nav a svg { flex-shrink: 0; opacity: .75; }
+.shell-nav a.active svg { opacity: 1; }
+.shell-nav .nav-section { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,.4); padding: 16px 12px 6px; }
+.shell-nav .nav-section:first-child { padding-top: 4px; }
+.shell-nav .nav-section-verse { text-transform: none; font-weight: 400; font-style: italic; letter-spacing: 0; color: rgba(255,255,255,.22); margin-left: 4px; }
+.shell-nav .nav-section.nav-stage { display: flex; align-items: center; gap: 10px; padding: 20px 12px 10px; }
+.shell-nav .nav-section.nav-stage:first-child { padding-top: 6px; }
+.shell-nav .nav-stage-circle {
+  width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%;
+  border: 1.5px solid var(--primary); background: rgba(188,122,30,.12); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .68rem; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+.shell-nav .nav-stage-text { display: flex; flex-direction: column; gap: 1px; }
+.shell-nav .nav-stage-name { font-size: .82rem; font-weight: 700; letter-spacing: .02em; color: #fff; }
+.shell-nav .nav-stage .nav-section-verse { margin-left: 0; font-size: .72rem; }
+
+.shell-sidebar-footer { padding: 16px 12px; border-top: 1px solid rgba(255,255,255,.08); }
+.shell-sidebar-footer a, .shell-sidebar-footer button {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 8px;
+  color: rgba(255,255,255,.5); font-size: .85rem; text-decoration: none; transition: all .2s;
+  background: none; border: none; font-family: inherit; cursor: pointer; text-align: left;
+}
+.shell-sidebar-footer a:hover, .shell-sidebar-footer button:hover { background: rgba(255,255,255,.08); color: #fff; }
+
+.shell-main { margin-left: 240px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+.shell-topbar {
+  background: #fff; border-bottom: 1px solid var(--border); padding: 0 28px; height: 60px;
+  display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50;
+}
+.shell-topbar h1 { font-size: 1.1rem; font-weight: 700; color: var(--text, #1C1C1E); }
+.shell-mobile-hamburger { display: none; align-items: center; justify-content: center; width: 36px; height: 36px; background: transparent; border: none; cursor: pointer; color: var(--text, #1C1C1E); margin-right: 12px; padding: 0; }
+.shell-sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 150; }
+.shell-sidebar-backdrop.open { display: block; }
+.shell-content { padding: 28px; flex: 1; max-width: 900px; }
+.shell-panel { display: none; }
+.shell-panel.active { display: block; }
+
+@media (max-width: 900px) { .shell-sidebar { width: 200px; } .shell-main { margin-left: 200px; } }
+@media (max-width: 680px) {
+  .shell-sidebar { transform: translateX(-100%); transition: transform .25s ease; z-index: 200; }
+  .shell-sidebar.open { transform: translateX(0); }
+  .shell-main { margin-left: 0; }
+  .shell-mobile-hamburger { display: flex; }
+}
