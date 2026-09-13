@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet" />
   <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/journey-pipeline.css" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -215,11 +216,15 @@
     <span>Admin Dashboard</span>
   </div>
   <nav class="sidebar-nav">
+    <a onclick="switchTab('myjourney')" id="sideMyjourney" data-tab="myjourney" class="active" style="margin-bottom:14px;">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+      My Journey
+    </a>
     <div class="nav-section nav-stage" id="navSectionFound">
       <span class="nav-stage-circle">01</span>
       <span class="nav-stage-text"><span class="nav-stage-name">Found</span><span class="nav-section-verse">by God</span></span>
     </div>
-    <a onclick="switchTab('people')" id="sidePeople" data-tab="people" class="active">
+    <a onclick="switchTab('people')" id="sidePeople" data-tab="people">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       Members <span id="peopleBadge" style="display:none; background:#BC7A1E; color:#fff; border-radius:10px; font-size:.7rem; padding:1px 7px; margin-left:auto;">0</span>
     </a>
@@ -333,7 +338,7 @@
       <button class="mobile-hamburger" onclick="toggleSidebar()" aria-label="Toggle navigation">
         <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
-      <h1 id="topbarTitle">Membership</h1>
+      <h1 id="topbarTitle">My Journey</h1>
     </div>
     <div style="display:flex;align-items:center;gap:12px;">
       <span class="admin-badge" id="roleBadge">Admin</span>
@@ -350,6 +355,14 @@
       <div class="stat-card"><div class="num" id="statSignups">–</div><div class="lbl">Sign-Up Requests</div></div>
       <div class="stat-card"><div class="num" id="statApplications">–</div><div class="lbl">Pending Applications</div></div>
       <div class="stat-card"><div class="num" id="statSubscribers">–</div><div class="lbl">Newsletter Subscribers</div></div>
+    </div>
+
+    <!-- MY JOURNEY (everyone's own Found/Filled/Freed/Forged) -->
+    <div class="tab-panel active" id="panelMyjourney">
+      <div class="action-bar">
+        <h2>My Journey</h2>
+      </div>
+      <div id="myJourneyBox"><p style="color:var(--text-muted);padding:20px;">Loading…</p></div>
     </div>
 
     <!-- EVENTS -->
@@ -1219,7 +1232,7 @@
     </div>
 
     <!-- PEOPLE (admin) -->
-    <div class="tab-panel active" id="panelPeople">
+    <div class="tab-panel" id="panelPeople">
       <div class="action-bar">
         <h2>Membership</h2>
         <div style="display:flex; gap:8px;">
@@ -2257,13 +2270,15 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../js/supabase-client.js"></script>
 <script src="../js/db.js"></script>
+<script src="../js/assessments.js"></script>
+<script src="../js/member-dashboard.js"></script>
 <script src="../js/main.js"></script>
 <script>
 // Role-based access map
 const ROLE_TABS = {
-  admin:               ['people','baptism','groups','attendance','growthtrack','analytics','impactteams','events','signups','applications','subscribers','rsvps','prayer','retreat','sermons','email','settings','users'],
-  event_manager:       ['events','rsvps','sermons','email'],
-  small_group_leader:  ['groups','signups','mygroup'],
+  admin:               ['myjourney','people','baptism','groups','attendance','growthtrack','analytics','impactteams','events','signups','applications','subscribers','rsvps','prayer','retreat','sermons','email','settings','users'],
+  event_manager:       ['myjourney','events','rsvps','sermons','email'],
+  small_group_leader:  ['myjourney','groups','signups','mygroup'],
 };
 const ROLE_LABELS = { admin:'Admin', event_manager:'Event Manager', small_group_leader:'Small Group Leader' };
 
@@ -2340,7 +2355,7 @@ function applyRoleVisibility() {
   }
 })();
 
-const ALL_TABS = ['people','baptism','groups','attendance','mygroup','growthtrack','analytics','impactteams','events','signups','applications','subscribers','rsvps','prayer','retreat','sermons','email','settings','users'];
+const ALL_TABS = ['myjourney','people','baptism','groups','attendance','mygroup','growthtrack','analytics','impactteams','events','signups','applications','subscribers','rsvps','prayer','retreat','sermons','email','settings','users'];
 function toggleSidebar() {
   document.querySelector('.sidebar').classList.toggle('open');
   document.getElementById('sidebarBackdrop').classList.toggle('open');
@@ -2363,9 +2378,10 @@ function switchTab(tab) {
   const c = tab[0].toUpperCase()+tab.slice(1);
   const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
   if(p) p.classList.add('active'); if(s) s.classList.add('active');
-  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings',users:'User Permissions',people:'Membership',baptism:'Baptism',analytics:'Analytics',mygroup:'My Group',growthtrack:'Growth Track',impactteams:'Impact Teams'};
+  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings',users:'User Permissions',people:'Membership',baptism:'Baptism',analytics:'Analytics',mygroup:'My Group',growthtrack:'Growth Track',impactteams:'Impact Teams',myjourney:'My Journey'};
   document.getElementById('topbarTitle').textContent = titles[tab]||tab;
-  if(tab==='events') renderEventsTable();
+  if(tab==='myjourney') renderMyJourneyTab();
+  else if(tab==='events') renderEventsTable();
   else if(tab==='groups') renderGroupsTable();
   else if(tab==='signups') renderSignupsPanel();
   else if(tab==='applications') renderApplicationsTable();
@@ -6088,6 +6104,43 @@ async function bulkRegisterLeadersAttendees() {
   } finally {
     btn.disabled = false; btn.textContent = 'Register Leaders & Attendees';
   }
+}
+
+/* ── MY JOURNEY (every signed-in user's own Found/Filled/Freed/Forged) ── */
+async function renderMyJourneyTab() {
+  const container = document.getElementById('myJourneyBox');
+  container.innerHTML = '<p style="color:var(--text-muted);padding:20px;">Loading…</p>';
+
+  // Lazy-create the profile/person row, same as my-profile.html -- staff
+  // logging in here for the first time won't already have one.
+  let profile = await SupaDB.getMyProfile();
+  if (!profile) {
+    await SupaDB.createMyProfile();
+    profile = await SupaDB.getMyProfile();
+  }
+  if (!profile) { container.innerHTML = '<p style="color:var(--text-muted);padding:20px;">Could not load your journey. Please try again.</p>'; return; }
+
+  const [attempts, content, gtRegs, memberships, groups, teamMemberships, teams, milestones] = await Promise.all([
+    SupaDB.getMyAttempts(), SupaDB.getAssessmentContent(),
+    SupaDB.getGrowthTrackRegistrationsForUser(profile.userId), SupaDB.getGroupMembershipsForUser(profile.userId),
+    SupaDB.getPublishedGroups(), SupaDB.getImpactTeamMembershipsForUser(profile.userId), SupaDB.getPublishedImpactTeams(),
+    SupaDB.getMyMilestones(profile.personId),
+  ]);
+  const parsed = Assessments.splitContent(content);
+  const discAttempts = attempts.filter(a => a.assessmentType === 'disc');
+  const giftsAttempts = attempts.filter(a => a.assessmentType === 'gifts');
+  const baptism = milestones.find(m => m.milestone === 'baptized');
+
+  MemberDashboard.renderJourneyPipeline(container, {
+    memberSince: profile.memberSince, baptizedAt: baptism ? baptism.achievedAt : null,
+    groupMemberships: memberships, groups, email: profile.email,
+    gtRegistrations: gtRegs,
+    discAttempt: discAttempts[0], giftsAttempt: giftsAttempts[0],
+    discAttemptCount: discAttempts.length, giftsAttemptCount: giftsAttempts.length,
+    discBlends: parsed.discBlends, giftsContent: parsed.gifts,
+    assessmentCtaHrefs: { disc: 'test-personality.html', gifts: 'test-gifts.html' },
+    teamMemberships, teams,
+  });
 }
 
 async function renderPeoplePanel() {
