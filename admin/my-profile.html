@@ -333,6 +333,9 @@ function renderGroupInfoFor(gid) {
   const box = document.getElementById(_ledId('groupInfo', gid));
   const hasUrlImage = !!(group.image && !group.image.startsWith('data:'));
   box.innerHTML = `
+    <p class="gd-preview-label">This is how your group looks to visitors on the Small Groups page:</p>
+    <div class="gd-preview-card" id="${_ledId('previewCard', gid)}"></div>
+
     <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:8px;">Group Photo</label>
     <div class="img-picker">
       <div class="img-picker-tabs">
@@ -364,21 +367,64 @@ function renderGroupInfoFor(gid) {
     <input type="hidden" id="${_ledId('giImageFinal', gid)}" value="${escapeHtml(group.image || '')}" />
 
     <div class="form-group"><label>Day</label>
-      <select id="${_ledId('giDay', gid)}">
+      <select id="${_ledId('giDay', gid)}" onchange="updateGroupPreview(${gid})">
         ${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map(d => `<option ${group.day === d ? 'selected' : ''}>${d}</option>`).join('')}
       </select>
     </div>
-    <div class="form-group"><label>Time</label><input id="${_ledId('giTime', gid)}" value="${escapeHtml(group.time || '')}" /></div>
-    <div class="form-group"><label>Location</label><input id="${_ledId('giLocation', gid)}" value="${escapeHtml(group.location || '')}" /></div>
-    <div class="form-group"><label>Description</label><textarea id="${_ledId('giDescription', gid)}" rows="4">${escapeHtml(group.description || '')}</textarea></div>
+    <div class="form-group"><label>Time</label><input id="${_ledId('giTime', gid)}" value="${escapeHtml(group.time || '')}" oninput="updateGroupPreview(${gid})" /></div>
+    <div class="form-group"><label>Location</label><input id="${_ledId('giLocation', gid)}" value="${escapeHtml(group.location || '')}" oninput="updateGroupPreview(${gid})" /></div>
+    <div class="form-group"><label>Description</label><textarea id="${_ledId('giDescription', gid)}" rows="4" oninput="updateGroupPreview(${gid})">${escapeHtml(group.description || '')}</textarea></div>
     <div class="toggle-row" style="margin:14px 0;">
       <div><strong>Open to new members</strong></div>
-      <input type="checkbox" id="${_ledId('giOpen', gid)}" ${group.open ? 'checked' : ''} style="width:22px;height:22px;" />
+      <input type="checkbox" id="${_ledId('giOpen', gid)}" ${group.open ? 'checked' : ''} style="width:22px;height:22px;" onchange="updateGroupPreview(${gid})" />
     </div>
     <div class="msg-error" id="${_ledId('giError', gid)}"></div>
     <div class="msg-success" id="${_ledId('giSaved', gid)}">Saved.</div>
     <button class="btn-primary" onclick="saveGroupInfoFor(${gid})">Save Changes</button>
   `;
+  updateGroupPreview(gid);
+}
+
+// Builds the same markup shape as small-groups.html's renderGroupCard(),
+// just with scoped .gd-preview-* classes instead of that page's .card/
+// .group-card/.group-tag (which live in css/style.css, not loaded here).
+function groupPreviewHtml(g) {
+  const openBadge = g.open
+    ? `<span class="gd-preview-tag" style="background:rgba(22,163,74,.1);color:#16a34a;">Open</span>`
+    : `<span class="gd-preview-tag" style="background:rgba(239,68,68,.1);color:#ef4444;">Full</span>`;
+  const img = g.image || 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80';
+  return `
+    <div class="gd-preview-img"><img src="${escapeHtml(img)}" alt="" /></div>
+    <div class="gd-preview-body">
+      <div class="gd-preview-tags">
+        ${openBadge}
+        ${g.type ? `<span class="gd-preview-tag">${escapeHtml(g.type)}</span>` : ''}
+        ${g.audience ? `<span class="gd-preview-tag" style="background:rgba(21,92,162,.1);color:#155CA2;">${escapeHtml(g.audience)}</span>` : ''}
+      </div>
+      <h3>${escapeHtml(g.name)}</h3>
+      <div class="gd-preview-meta">
+        <span>📅 ${escapeHtml(g.day || '')}s at ${escapeHtml(g.time || '')}</span>
+        <span>📍 ${escapeHtml((g.location || '').split('–')[0].trim())}</span>
+      </div>
+      <p class="gd-preview-desc">${escapeHtml(g.description || '')}</p>
+      <div class="gd-preview-footer">
+        <span>Led by ${escapeHtml(g.leader || '')}</span>
+        <span class="gd-preview-btn">Join Group</span>
+      </div>
+    </div>`;
+}
+function updateGroupPreview(gid) {
+  const group = _journeyData.groups.find(g => String(g.id) === String(gid));
+  if (!group) return;
+  const overrides = Object.assign({}, group, {
+    day: document.getElementById(_ledId('giDay', gid)).value,
+    time: document.getElementById(_ledId('giTime', gid)).value,
+    location: document.getElementById(_ledId('giLocation', gid)).value,
+    description: document.getElementById(_ledId('giDescription', gid)).value,
+    open: document.getElementById(_ledId('giOpen', gid)).checked,
+    image: document.getElementById(_ledId('giImageFinal', gid)).value || group.image,
+  });
+  document.getElementById(_ledId('previewCard', gid)).innerHTML = groupPreviewHtml(overrides);
 }
 
 function switchGroupImgTab(gid, tab, btnEl) {
@@ -394,6 +440,7 @@ function previewGroupImageFromUrl(gid, url) {
   const finalEl = document.getElementById(_ledId('giImageFinal', gid));
   if (url) { img.src = url; img.classList.add('visible'); finalEl.value = url; }
   else { img.classList.remove('visible'); finalEl.value = ''; }
+  updateGroupPreview(gid);
 }
 function handleGroupDragOver(e, dropId) { e.preventDefault(); document.getElementById(dropId).classList.add('dragover'); }
 function handleGroupDragLeave(e, dropId) { document.getElementById(dropId).classList.remove('dragover'); }
@@ -423,6 +470,7 @@ function processGroupImageFile(gid, file) {
       preview.src = dataUrl; preview.classList.add('visible');
       document.getElementById(_ledId('giImageFinal', gid)).value = dataUrl;
       document.getElementById(_ledId('uploadDrop', gid)).querySelector('p').innerHTML = `<strong>✓ Image optimized</strong> — ${w}×${h}px · ~${sizeKB}KB`;
+      updateGroupPreview(gid);
     };
     img.src = e.target.result;
   };
@@ -445,6 +493,7 @@ function generateGroupAIImage(gid) {
     document.getElementById(_ledId('giImageFinal', gid)).value = dataUrl || url;
     status.className = 'ai-status'; status.textContent = '✓ Image generated! Save to keep it.';
     btn.disabled = false; btn.textContent = 'Regenerate';
+    updateGroupPreview(gid);
   };
   const testImg = new Image();
   testImg.crossOrigin = 'anonymous';
