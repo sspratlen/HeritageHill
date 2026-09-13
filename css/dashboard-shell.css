@@ -122,11 +122,14 @@
    lets a leader see exactly what their edits will look like to a
    visitor, without pulling the whole public site's stylesheet (and
    its nav/body/typography rules) into this page. */
+.gd-preview-row { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 4px; }
+.gd-preview-row .gd-preview-col { flex: 0 1 360px; }
+.gd-preview-row .gd-photo-col { flex: 1 1 320px; min-width: 280px; }
 .gd-preview-label { font-size: .75rem; color: var(--text-muted); margin-bottom: 8px; }
 .gd-preview-card {
   background: #fff; border-radius: 16px; overflow: hidden;
   box-shadow: 0 2px 14px rgba(0,0,0,.08); border: 1px solid var(--border);
-  max-width: 360px; margin-bottom: 20px;
+  max-width: 360px;
 }
 .gd-preview-img { aspect-ratio: 16/9; overflow: hidden; background: var(--bg, #F4F4F2); }
 .gd-preview-img img { width: 100%; height: 100%; object-fit: cover; display: block; }

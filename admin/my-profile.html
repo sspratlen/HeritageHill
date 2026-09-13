@@ -333,38 +333,43 @@ function renderGroupInfoFor(gid) {
   const box = document.getElementById(_ledId('groupInfo', gid));
   const hasUrlImage = !!(group.image && !group.image.startsWith('data:'));
   box.innerHTML = `
-    <p class="gd-preview-label">This is how your group looks to visitors on the Small Groups page:</p>
-    <div class="gd-preview-card" id="${_ledId('previewCard', gid)}"></div>
-
-    <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:8px;">Group Photo</label>
-    <div class="img-picker">
-      <div class="img-picker-tabs">
-        <button type="button" class="img-tab active" onclick="switchGroupImgTab(${gid},'url',this)">🔗 Paste URL</button>
-        <button type="button" class="img-tab" onclick="switchGroupImgTab(${gid},'upload',this)">⬆️ Upload Photo</button>
-        <button type="button" class="img-tab" onclick="switchGroupImgTab(${gid},'ai',this)">✨ AI Generate</button>
+    <div class="gd-preview-row">
+      <div class="gd-preview-col">
+        <p class="gd-preview-label">This is how your group looks to visitors on the Small Groups page:</p>
+        <div class="gd-preview-card" id="${_ledId('previewCard', gid)}"></div>
       </div>
-      <div class="img-panel active" id="${_ledId('imgPanelUrl', gid)}">
-        <div class="form-group" style="margin:0;"><input type="url" id="${_ledId('giImageUrl', gid)}" placeholder="https://…" value="${hasUrlImage ? escapeHtml(group.image) : ''}" oninput="previewGroupImageFromUrl(${gid}, this.value)" /></div>
-        <div class="img-preview"><p class="img-preview-label">Preview</p><img id="${_ledId('previewUrl', gid)}" alt="Preview" class="${hasUrlImage ? 'visible' : ''}" src="${hasUrlImage ? escapeHtml(group.image) : ''}" /></div>
-      </div>
-      <div class="img-panel" id="${_ledId('imgPanelUpload', gid)}">
-        <div class="upload-drop" id="${_ledId('uploadDrop', gid)}" onclick="document.getElementById('${_ledId('giImageFile', gid)}').click()" ondragover="handleGroupDragOver(event,'${_ledId('uploadDrop', gid)}')" ondragleave="handleGroupDragLeave(event,'${_ledId('uploadDrop', gid)}')" ondrop="handleGroupDrop(event,${gid})">
-          <p><strong>Click to upload</strong> or drag &amp; drop</p><p style="font-size:.75rem;margin-top:4px;">JPG, PNG, WEBP · Auto-optimized</p>
-          <input type="file" id="${_ledId('giImageFile', gid)}" accept="image/*" onchange="handleGroupImageUpload(${gid}, this)" />
+      <div class="gd-photo-col">
+        <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:8px;">Group Photo</label>
+        <div class="img-picker">
+          <div class="img-picker-tabs">
+            <button type="button" class="img-tab active" onclick="switchGroupImgTab(${gid},'url',this)">🔗 Paste URL</button>
+            <button type="button" class="img-tab" onclick="switchGroupImgTab(${gid},'upload',this)">⬆️ Upload Photo</button>
+            <button type="button" class="img-tab" onclick="switchGroupImgTab(${gid},'ai',this)">✨ AI Generate</button>
+          </div>
+          <div class="img-panel active" id="${_ledId('imgPanelUrl', gid)}">
+            <div class="form-group" style="margin:0;"><input type="url" id="${_ledId('giImageUrl', gid)}" placeholder="https://…" value="${hasUrlImage ? escapeHtml(group.image) : ''}" oninput="previewGroupImageFromUrl(${gid}, this.value)" /></div>
+            <div class="img-preview"><p class="img-preview-label">Preview</p><img id="${_ledId('previewUrl', gid)}" alt="Preview" class="${hasUrlImage ? 'visible' : ''}" src="${hasUrlImage ? escapeHtml(group.image) : ''}" /></div>
+          </div>
+          <div class="img-panel" id="${_ledId('imgPanelUpload', gid)}">
+            <div class="upload-drop" id="${_ledId('uploadDrop', gid)}" onclick="document.getElementById('${_ledId('giImageFile', gid)}').click()" ondragover="handleGroupDragOver(event,'${_ledId('uploadDrop', gid)}')" ondragleave="handleGroupDragLeave(event,'${_ledId('uploadDrop', gid)}')" ondrop="handleGroupDrop(event,${gid})">
+              <p><strong>Click to upload</strong> or drag &amp; drop</p><p style="font-size:.75rem;margin-top:4px;">JPG, PNG, WEBP · Auto-optimized</p>
+              <input type="file" id="${_ledId('giImageFile', gid)}" accept="image/*" onchange="handleGroupImageUpload(${gid}, this)" />
+            </div>
+            <div class="img-preview"><p class="img-preview-label">Preview (optimized)</p><img id="${_ledId('previewUpload', gid)}" alt="Upload preview" /></div>
+          </div>
+          <div class="img-panel" id="${_ledId('imgPanelAi', gid)}">
+            <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:10px;">Describe the image you want, or use the group description.</p>
+            <div class="ai-row">
+              <div class="form-group"><textarea id="${_ledId('giAiPrompt', gid)}" rows="2" placeholder="e.g. Small group studying Bible together…" style="min-height:60px;"></textarea></div>
+              <button type="button" class="btn-ghost" onclick="generateGroupAIImage(${gid})" id="${_ledId('aiGenBtn', gid)}" style="white-space:nowrap;height:fit-content;align-self:center;">Generate</button>
+            </div>
+            <div class="ai-status" id="${_ledId('aiStatus', gid)}"></div>
+            <div class="img-preview"><p class="img-preview-label">Generated image</p><img id="${_ledId('previewAi', gid)}" alt="AI preview" /></div>
+          </div>
         </div>
-        <div class="img-preview"><p class="img-preview-label">Preview (optimized)</p><img id="${_ledId('previewUpload', gid)}" alt="Upload preview" /></div>
-      </div>
-      <div class="img-panel" id="${_ledId('imgPanelAi', gid)}">
-        <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:10px;">Describe the image you want, or use the group description.</p>
-        <div class="ai-row">
-          <div class="form-group"><textarea id="${_ledId('giAiPrompt', gid)}" rows="2" placeholder="e.g. Small group studying Bible together…" style="min-height:60px;"></textarea></div>
-          <button type="button" class="btn-ghost" onclick="generateGroupAIImage(${gid})" id="${_ledId('aiGenBtn', gid)}" style="white-space:nowrap;height:fit-content;align-self:center;">Generate</button>
-        </div>
-        <div class="ai-status" id="${_ledId('aiStatus', gid)}"></div>
-        <div class="img-preview"><p class="img-preview-label">Generated image</p><img id="${_ledId('previewAi', gid)}" alt="AI preview" /></div>
+        <input type="hidden" id="${_ledId('giImageFinal', gid)}" value="${escapeHtml(group.image || '')}" />
       </div>
     </div>
-    <input type="hidden" id="${_ledId('giImageFinal', gid)}" value="${escapeHtml(group.image || '')}" />
 
     <div class="form-group"><label>Day</label>
       <select id="${_ledId('giDay', gid)}" onchange="updateGroupPreview(${gid})">
