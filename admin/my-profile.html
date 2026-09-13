@@ -70,20 +70,6 @@
     <div class="msg-error" id="avatarError"></div>
   </div>
 
-  <div class="portal-card" id="discCard">
-    <h2>Personality Assessment</h2>
-    <p class="sub">20 questions · about 3 minutes</p>
-    <div id="discResult"></div>
-    <a href="test-personality.html" class="btn-primary" id="discCta">Take the Assessment</a>
-  </div>
-
-  <div class="portal-card" id="giftsCard">
-    <h2>Spiritual Gifts Assessment</h2>
-    <p class="sub">72 questions · about 6 minutes</p>
-    <div id="giftsResult"></div>
-    <a href="test-gifts.html" class="btn-primary" id="giftsCta">Take the Assessment</a>
-  </div>
-
   <div class="portal-card">
     <h2>My Journey</h2>
     <p class="sub">Found by God, filled by the Spirit, freed to live like Jesus, forged for mission.</p>
@@ -152,8 +138,6 @@ let _profile = null, _content = null;
   _content = Assessments.splitContent(content);
   const discAttempts = attempts.filter(a => a.assessmentType === 'disc');
   const giftsAttempts = attempts.filter(a => a.assessmentType === 'gifts');
-  renderResult('disc',  discAttempts);
-  renderResult('gifts', giftsAttempts);
 
   const baptism = milestones.find(m => m.milestone === 'baptized');
   MemberDashboard.renderJourneyPipeline(document.getElementById('journeyBox'), {
@@ -161,6 +145,9 @@ let _profile = null, _content = null;
     groupMemberships: memberships, groups, email: _profile.email,
     gtRegistrations: gtRegs,
     discAttempt: discAttempts[0], giftsAttempt: giftsAttempts[0],
+    discAttemptCount: discAttempts.length, giftsAttemptCount: giftsAttempts.length,
+    discBlends: _content.discBlends, giftsContent: _content.gifts,
+    assessmentCtaHrefs: { disc: 'test-personality.html', gifts: 'test-gifts.html' },
     teamMemberships, teams,
   });
 })();
@@ -169,19 +156,6 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
   }[c]));
-}
-
-function renderResult(type, attempts) {
-  const box = document.getElementById(type === 'disc' ? 'discResult' : 'giftsResult');
-  const cta = document.getElementById(type === 'disc' ? 'discCta' : 'giftsCta');
-  if (!attempts.length) return;
-  cta.textContent = 'Retake';
-  const latest = attempts[0];
-  if (type === 'disc') {
-    MemberDashboard.renderDiscResult(box, latest, _content.discBlends, attempts.length);
-  } else {
-    MemberDashboard.renderGiftsResult(box, latest, _content.gifts, attempts.length);
-  }
 }
 
 async function saveProfile() {

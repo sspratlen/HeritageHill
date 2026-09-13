@@ -148,14 +148,6 @@
     <div id="mdJourney"></div>
   </div>
 
-  <div class="chart-card" style="margin-bottom:24px;">
-    <div class="chart-title">Personality</div>
-    <div id="mdDisc"></div>
-  </div>
-  <div class="chart-card" style="margin-bottom:24px;">
-    <div class="chart-title">Spiritual Gifts</div>
-    <div id="mdGifts"></div>
-  </div>
   <div class="chart-card">
     <div class="chart-title">Recommended Ministries</div>
     <div id="mdMinistries"></div>
@@ -274,17 +266,11 @@ async function loadCurrentMember() {
     groupMemberships: memberships, groups: _groups, email: p.email,
     gtRegistrations: gtRegs,
     discAttempt: d, giftsAttempt: g,
+    discBlends: _content.discBlends, giftsContent: _content.gifts,
     teamMemberships: _allTeamMemberships.filter(m => m.userId === p.userId), teams: _teams,
   });
 
-  const mdDiscBox = document.getElementById('mdDisc');
-  if (d) MemberDashboard.renderDiscResult(mdDiscBox, d, _content.discBlends);
-  else mdDiscBox.innerHTML = '<p style="color:var(--text-muted);">Not taken yet.</p>';
-
   const rec = g ? recommendedMinistries(giftNames(g)) : [];
-  const mdGiftsBox = document.getElementById('mdGifts');
-  if (g) MemberDashboard.renderGiftsResult(mdGiftsBox, g, _content.gifts);
-  else mdGiftsBox.innerHTML = '<p style="color:var(--text-muted);">Not taken yet.</p>';
   document.getElementById('mdMinistries').innerHTML = !g
     ? '<p style="color:var(--text-muted); font-size:.85rem;">Take the gifts assessment to see recommendations.</p>'
     : rec.length ? rec.map(m => `<span class="badge badge-amber" style="margin:0 6px 6px 0;">${escapeHtml(m)}</span>`).join('')

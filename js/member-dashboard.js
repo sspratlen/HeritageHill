@@ -185,6 +185,14 @@ const MemberDashboard = {
   //     instead (as its own "<Group> (Small Group)" row).
   //   gtRegistrations: result of getGrowthTrackRegistrationsForUser
   //   discAttempt, giftsAttempt: latest attempt or falsy
+  //   discAttemptCount, giftsAttemptCount: optional, same convention as
+  //     renderDiscResult/renderGiftsResult's own attemptCount arg
+  //   discBlends, giftsContent: _content.discBlends / _content.gifts --
+  //     required to render the full assessment breakdown; if omitted, the
+  //     Freed stage just shows a taken/not-taken line with no detail
+  //   assessmentCtaHrefs: { disc, gifts } -- when given, renders a Take/
+  //     Retake link under each assessment (only makes sense on a person's
+  //     own profile, so admin/member-dashboard.html omits this)
   //   teamMemberships, teams: same shape as groupMemberships/groups, for
   //     the Forged roster (member + led rows), each row also showing
   //     whether that person is trained for that team -- plus any group
@@ -245,6 +253,10 @@ const MemberDashboard = {
     const rosterOrEmpty = (rows, emptyText, renderRow) =>
       rows.length ? `<div class="jp-roster">${rows.map(renderRow).join('')}</div>` : `<p class="jp-empty">${emptyText}</p>`;
 
+    const ctaHrefs = opts.assessmentCtaHrefs || {};
+    const assessmentCta = (href, taken) => href
+      ? `<a href="${this.escapeHtml(href)}" class="jp-cta">${taken ? 'Retake' : 'Take the Assessment'}</a>` : '';
+
     containerEl.innerHTML = `
       <div class="journey-pipeline">
         <div class="jp-stage">
@@ -273,9 +285,12 @@ const MemberDashboard = {
             <div class="jp-label">Growth Track history</div>
             <div class="jp-roster">${gtRows}</div>
             ${plantAttended ? '<span class="jp-pill">Plant attended → membership</span>' : ''}
-            <div class="jp-label" style="margin-top:2px;">Assessments</div>
-            <div class="jp-field"><span>Spiritual gifts</span>${yesNo(!!opts.giftsAttempt, opts.giftsAttempt && opts.giftsAttempt.completedAt)}</div>
-            <div class="jp-field"><span>DISC profile</span>${yesNo(!!opts.discAttempt, opts.discAttempt && opts.discAttempt.completedAt)}</div>
+            <div class="jp-label" style="margin-top:2px;">Personality (DISC)</div>
+            <div id="jpDiscResult"></div>
+            ${assessmentCta(ctaHrefs.disc, !!opts.discAttempt)}
+            <div class="jp-label" style="margin-top:2px;">Spiritual Gifts</div>
+            <div id="jpGiftsResult"></div>
+            ${assessmentCta(ctaHrefs.gifts, !!opts.giftsAttempt)}
           </div>
         </div>
 
@@ -292,5 +307,26 @@ const MemberDashboard = {
           </div>
         </div>
       </div>`;
+
+    // The DISC/gifts boxes above are placeholders -- fill them in now that
+    // they're actually in the DOM. renderDiscResult/renderGiftsResult are
+    // no-ops on a falsy attempt, so an untaken assessment just gets the
+    // "Not taken yet" fallback below instead.
+    const discBox = containerEl.querySelector('#jpDiscResult');
+    if (discBox) {
+      if (opts.discAttempt && opts.discBlends) {
+        this.renderDiscResult(discBox, opts.discAttempt, opts.discBlends, opts.discAttemptCount);
+      } else {
+        discBox.innerHTML = '<p class="jp-empty">Not taken yet.</p>';
+      }
+    }
+    const giftsBox = containerEl.querySelector('#jpGiftsResult');
+    if (giftsBox) {
+      if (opts.giftsAttempt && opts.giftsContent) {
+        this.renderGiftsResult(giftsBox, opts.giftsAttempt, opts.giftsContent, opts.giftsAttemptCount);
+      } else {
+        giftsBox.innerHTML = '<p class="jp-empty">Not taken yet.</p>';
+      }
+    }
   },
 };

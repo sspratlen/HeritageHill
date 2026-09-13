@@ -77,6 +77,19 @@
 
 .jp-empty { font-size: .82rem; color: var(--text-muted); }
 
+.jp-cta {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: .76rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.jp-cta:hover { opacity: .9; }
+
 .jp-pill {
   display: inline-block;
   font-size: .7rem;
