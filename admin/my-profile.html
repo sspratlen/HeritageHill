@@ -277,6 +277,7 @@ function openGroupDetails(groupId) {
   document.getElementById('groupDetailsTitle').textContent = group.name;
 
   if (!isLeader) {
+    const myMembership = _journeyData.memberships.find(m => String(m.groupId) === String(group.id) && !m.leftAt);
     document.getElementById('groupDetailsBody').innerHTML = `
       ${group.image ? `<img src="${escapeHtml(group.image)}" alt="${escapeHtml(group.name)}" style="width:100%;max-height:280px;object-fit:cover;border-radius:10px;margin-bottom:14px;" />` : ''}
       <p style="color:var(--text-muted);margin-bottom:10px;">${escapeHtml(group.day || '')} ${escapeHtml(group.time || '')}${group.location ? ' · ' + escapeHtml(group.location) : ''}</p>
@@ -285,6 +286,11 @@ function openGroupDetails(groupId) {
         ${group.leaderEmail ? ` · <a href="mailto:${escapeHtml(group.leaderEmail)}" style="color:var(--primary);">Email Leader</a>` : ''}
       </p>
       <p style="margin-bottom:0;">${group.open ? '<span style="color:var(--success);">Open to new members</span>' : '<span style="color:var(--text-muted);">Not currently accepting new members</span>'}</p>
+      ${myMembership ? `
+        <div id="${_ledId('withdrawBox', group.id)}" style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
+          <button type="button" class="btn-ghost" style="color:var(--error);" onclick="showWithdrawForm(${group.id})">Withdraw from Group</button>
+        </div>
+      ` : ''}
     `;
   } else {
     document.getElementById('groupDetailsBody').innerHTML = `
@@ -317,6 +323,59 @@ function openGroupDetails(groupId) {
   document.getElementById('groupDetailsModal').classList.add('open');
 }
 function closeGroupDetails() { document.getElementById('groupDetailsModal').classList.remove('open'); }
+
+/* Withdraw from a group (member's own view only) -- a two-step reveal
+   (click Withdraw -> optional reason + Confirm) rather than a native
+   confirm(), so cancelling is just as easy as confirming. */
+function showWithdrawForm(gid) {
+  document.getElementById(_ledId('withdrawBox', gid)).innerHTML = `
+    <div class="form-group"><label>Reason <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+      <textarea id="${_ledId('withdrawReason', gid)}" rows="2" placeholder="Let the leader know why, if you'd like…"></textarea></div>
+    <div class="msg-error" id="${_ledId('withdrawError', gid)}"></div>
+    <button class="btn-primary" style="background:var(--error);border-color:var(--error);" onclick="confirmWithdraw(${gid})">Confirm Withdrawal</button>
+    <button class="btn-ghost" onclick="cancelWithdraw(${gid})" style="margin-left:8px;">Cancel</button>
+  `;
+}
+function cancelWithdraw(gid) {
+  document.getElementById(_ledId('withdrawBox', gid)).innerHTML = `
+    <button type="button" class="btn-ghost" style="color:var(--error);" onclick="showWithdrawForm(${gid})">Withdraw from Group</button>
+  `;
+}
+async function confirmWithdraw(gid) {
+  const reason = document.getElementById(_ledId('withdrawReason', gid)).value.trim();
+  const membership = _journeyData.memberships.find(m => String(m.groupId) === String(gid) && !m.leftAt);
+  const group = _journeyData.groups.find(g => String(g.id) === String(gid));
+  const errEl = document.getElementById(_ledId('withdrawError', gid));
+  errEl.classList.remove('show'); errEl.textContent = '';
+  if (!membership) { errEl.textContent = 'Could not find your membership record.'; errEl.classList.add('show'); return; }
+
+  const result = await SupaDB.adminRemoveGroupMember(membership.id);
+  if (result?.error) { errEl.textContent = result.error; errEl.classList.add('show'); return; }
+  membership.leftAt = new Date().toISOString().slice(0, 10);
+
+  // Let the leader know -- best-effort, doesn't block the withdrawal if it fails.
+  if (group && group.leaderEmail) {
+    const bodyParts = [`<p>${escapeHtml(_profile.name)} (${escapeHtml(_profile.email)}) has withdrawn from <strong>${escapeHtml(group.name)}</strong>.</p>`];
+    if (reason) bodyParts.push(`<p><strong>Reason given:</strong> ${escapeHtml(reason)}</p>`);
+    try {
+      await fetch(SUPABASE_URL + '/functions/v1/send-group-email', {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: `${_profile.name} has left ${group.name}`,
+          htmlBody: bodyParts.join(''),
+          recipients: [group.leaderEmail],
+          fromName: 'Heritage Hill Church',
+          fromEmail: 'noreply@heritagehill.church',
+          replyTo: _profile.email,
+        }),
+      });
+    } catch (e) { /* non-blocking -- withdrawal already succeeded */ }
+  }
+
+  closeGroupDetails();
+  renderGroupsPanel();
+}
 
 function switchGroupTab(btnEl, tab) {
   const tabsRow = btnEl.closest('.gd-tabs');
