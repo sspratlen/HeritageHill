@@ -216,15 +216,11 @@
     <span>Admin Dashboard</span>
   </div>
   <nav class="sidebar-nav">
-    <a onclick="switchTab('myjourney')" id="sideMyjourney" data-tab="myjourney" class="active" style="margin-bottom:14px;">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
-      My Journey
-    </a>
     <div class="nav-section nav-stage" id="navSectionFound">
       <span class="nav-stage-circle">01</span>
       <span class="nav-stage-text"><span class="nav-stage-name">Found</span><span class="nav-section-verse">by God</span></span>
     </div>
-    <a onclick="switchTab('people')" id="sidePeople" data-tab="people">
+    <a onclick="switchTab('people')" id="sidePeople" data-tab="people" class="active">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       Members <span id="peopleBadge" style="display:none; background:#BC7A1E; color:#fff; border-radius:10px; font-size:.7rem; padding:1px 7px; margin-left:auto;">0</span>
     </a>
@@ -338,7 +334,7 @@
       <button class="mobile-hamburger" onclick="toggleSidebar()" aria-label="Toggle navigation">
         <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
-      <h1 id="topbarTitle">My Journey</h1>
+      <h1 id="topbarTitle">Membership</h1>
     </div>
     <div style="display:flex;align-items:center;gap:12px;">
       <span class="admin-badge" id="roleBadge">Admin</span>
@@ -355,14 +351,6 @@
       <div class="stat-card"><div class="num" id="statSignups">–</div><div class="lbl">Sign-Up Requests</div></div>
       <div class="stat-card"><div class="num" id="statApplications">–</div><div class="lbl">Pending Applications</div></div>
       <div class="stat-card"><div class="num" id="statSubscribers">–</div><div class="lbl">Newsletter Subscribers</div></div>
-    </div>
-
-    <!-- MY JOURNEY (everyone's own Found/Filled/Freed/Forged) -->
-    <div class="tab-panel active" id="panelMyjourney">
-      <div class="action-bar">
-        <h2>My Journey</h2>
-      </div>
-      <div id="myJourneyBox"><p style="color:var(--text-muted);padding:20px;">Loading…</p></div>
     </div>
 
     <!-- EVENTS -->
@@ -385,6 +373,7 @@
 
     <!-- GROUPS -->
     <div class="tab-panel" id="panelGroups">
+      <div id="myGroupsBox"></div>
       <div class="action-bar">
         <h2>Manage Small Groups</h2>
         <select id="groupSemesterFilter" onchange="renderGroupsTable()" style="padding:.45rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;">
@@ -1232,7 +1221,7 @@
     </div>
 
     <!-- PEOPLE (admin) -->
-    <div class="tab-panel" id="panelPeople">
+    <div class="tab-panel active" id="panelPeople">
       <div class="action-bar">
         <h2>Membership</h2>
         <div style="display:flex; gap:8px;">
@@ -1255,6 +1244,7 @@
 
     <!-- BAPTISM -->
     <div class="tab-panel" id="panelBaptism">
+      <div id="myBaptismBox"></div>
       <div class="action-bar">
         <h2>Baptism</h2>
         <button class="btn btn-primary" onclick="openBaptismModal()">
@@ -1286,6 +1276,7 @@
 
     <!-- GROWTH TRACK -->
     <div class="tab-panel" id="panelGrowthtrack">
+      <div id="myGrowthTrackBox"></div>
       <div class="action-bar">
         <h2>Growth Track</h2>
       </div>
@@ -1294,6 +1285,7 @@
 
     <!-- IMPACT TEAMS -->
     <div class="tab-panel" id="panelImpactteams">
+      <div id="myImpactTeamsBox"></div>
       <div class="action-bar">
         <h2>Manage Impact Teams</h2>
         <select id="teamPublishedFilter" onchange="renderImpactTeamsTable()" style="padding:.45rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;">
@@ -2276,9 +2268,9 @@
 <script>
 // Role-based access map
 const ROLE_TABS = {
-  admin:               ['myjourney','people','baptism','groups','attendance','growthtrack','analytics','impactteams','events','signups','applications','subscribers','rsvps','prayer','retreat','sermons','email','settings','users'],
-  event_manager:       ['myjourney','events','rsvps','sermons','email'],
-  small_group_leader:  ['myjourney','groups','signups','mygroup'],
+  admin:               ['people','baptism','groups','attendance','growthtrack','analytics','impactteams','events','signups','applications','subscribers','rsvps','prayer','retreat','sermons','email','settings','users'],
+  event_manager:       ['events','rsvps','sermons','email'],
+  small_group_leader:  ['groups','signups','mygroup'],
 };
 const ROLE_LABELS = { admin:'Admin', event_manager:'Event Manager', small_group_leader:'Small Group Leader' };
 
@@ -2355,7 +2347,7 @@ function applyRoleVisibility() {
   }
 })();
 
-const ALL_TABS = ['myjourney','people','baptism','groups','attendance','mygroup','growthtrack','analytics','impactteams','events','signups','applications','subscribers','rsvps','prayer','retreat','sermons','email','settings','users'];
+const ALL_TABS = ['people','baptism','groups','attendance','mygroup','growthtrack','analytics','impactteams','events','signups','applications','subscribers','rsvps','prayer','retreat','sermons','email','settings','users'];
 function toggleSidebar() {
   document.querySelector('.sidebar').classList.toggle('open');
   document.getElementById('sidebarBackdrop').classList.toggle('open');
@@ -2378,10 +2370,9 @@ function switchTab(tab) {
   const c = tab[0].toUpperCase()+tab.slice(1);
   const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
   if(p) p.classList.add('active'); if(s) s.classList.add('active');
-  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings',users:'User Permissions',people:'Membership',baptism:'Baptism',analytics:'Analytics',mygroup:'My Group',growthtrack:'Growth Track',impactteams:'Impact Teams',myjourney:'My Journey'};
+  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings',users:'User Permissions',people:'Membership',baptism:'Baptism',analytics:'Analytics',mygroup:'My Group',growthtrack:'Growth Track',impactteams:'Impact Teams'};
   document.getElementById('topbarTitle').textContent = titles[tab]||tab;
-  if(tab==='myjourney') renderMyJourneyTab();
-  else if(tab==='events') renderEventsTable();
+  if(tab==='events') renderEventsTable();
   else if(tab==='groups') renderGroupsTable();
   else if(tab==='signups') renderSignupsPanel();
   else if(tab==='applications') renderApplicationsTable();
@@ -2597,6 +2588,7 @@ function openGCalForEvent(id){const ev=_cachedEvents.find(e=>e.id===id);if(ev)wi
 let _cachedGroups = [];
 let _semestersForGroupModal = [];
 async function renderGroupsTable(){
+  renderMyGroupsCard();
   _cachedGroups = await SupaDB.adminGetAllGroups();
   _semestersForGroupModal = await SupaDB.getSemesters();
   const isLeader = window._userRole === 'small_group_leader';
@@ -2835,6 +2827,7 @@ function exportGroupRosterCsv() {
 /* ── IMPACT TEAMS ─────────────────────────────────────────── */
 let _cachedImpactTeams = [];
 async function renderImpactTeamsTable(){
+  renderMyImpactTeamsCard();
   _cachedImpactTeams = await SupaDB.adminGetAllImpactTeams();
   const allMembers = await SupaDB.adminGetAllCurrentImpactTeamMembers();
   let teams = _cachedImpactTeams;
@@ -6106,11 +6099,13 @@ async function bulkRegisterLeadersAttendees() {
   }
 }
 
-/* ── MY JOURNEY (every signed-in user's own Found/Filled/Freed/Forged) ── */
-async function renderMyJourneyTab() {
-  const container = document.getElementById('myJourneyBox');
-  container.innerHTML = '<p style="color:var(--text-muted);padding:20px;">Loading…</p>';
-
+/* ── MY JOURNEY DATA (shared by the personal cards blended into Found/
+   Filled/Freed/Forged below -- Baptism, Small Groups, Growth Track, and
+   Impact Teams each show the viewer's own status alongside the admin
+   tools on that same tab, rather than as one separate page). ── */
+let _myJourneyCache = null;
+async function getMyJourneyData(fresh) {
+  if (_myJourneyCache && !fresh) return _myJourneyCache;
   // Lazy-create the profile/person row, same as my-profile.html -- staff
   // logging in here for the first time won't already have one.
   let profile = await SupaDB.getMyProfile();
@@ -6118,29 +6113,128 @@ async function renderMyJourneyTab() {
     await SupaDB.createMyProfile();
     profile = await SupaDB.getMyProfile();
   }
-  if (!profile) { container.innerHTML = '<p style="color:var(--text-muted);padding:20px;">Could not load your journey. Please try again.</p>'; return; }
+  if (!profile) return null;
 
-  const [attempts, content, gtRegs, memberships, groups, teamMemberships, teams, milestones] = await Promise.all([
+  const [attempts, content, gtRegs, memberships, groups, teamMemberships, teams, milestones, semesters] = await Promise.all([
     SupaDB.getMyAttempts(), SupaDB.getAssessmentContent(),
     SupaDB.getGrowthTrackRegistrationsForUser(profile.userId), SupaDB.getGroupMembershipsForUser(profile.userId),
     SupaDB.getPublishedGroups(), SupaDB.getImpactTeamMembershipsForUser(profile.userId), SupaDB.getPublishedImpactTeams(),
-    SupaDB.getMyMilestones(profile.personId),
+    SupaDB.getMyMilestones(profile.personId), SupaDB.getSemesters(),
   ]);
-  const parsed = Assessments.splitContent(content);
-  const discAttempts = attempts.filter(a => a.assessmentType === 'disc');
-  const giftsAttempts = attempts.filter(a => a.assessmentType === 'gifts');
-  const baptism = milestones.find(m => m.milestone === 'baptized');
+  _myJourneyCache = {
+    profile, attempts, content: Assessments.splitContent(content), gtRegs,
+    memberships, groups, teamMemberships, teams, milestones, semesters,
+  };
+  return _myJourneyCache;
+}
 
-  MemberDashboard.renderJourneyPipeline(container, {
-    memberSince: profile.memberSince, baptizedAt: baptism ? baptism.achievedAt : null,
-    groupMemberships: memberships, groups, email: profile.email,
-    gtRegistrations: gtRegs,
-    discAttempt: discAttempts[0], giftsAttempt: giftsAttempts[0],
-    discAttemptCount: discAttempts.length, giftsAttemptCount: giftsAttempts.length,
-    discBlends: parsed.discBlends, giftsContent: parsed.gifts,
-    assessmentCtaHrefs: { disc: 'test-personality.html', gifts: 'test-gifts.html' },
-    teamMemberships, teams,
+async function renderMyBaptismCard() {
+  const box = document.getElementById('myBaptismBox');
+  const data = await getMyJourneyData();
+  if (!data) { box.innerHTML = ''; return; }
+  const fmt = d => new Date(d.slice(0, 10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const baptism = data.milestones.find(m => m.milestone === 'baptized');
+  box.innerHTML = `
+    <div class="table-wrap" style="padding:20px;margin-bottom:24px;">
+      <h3 style="font-size:.95rem;margin-bottom:10px;">My Baptism</h3>
+      ${baptism
+        ? `<p style="margin-bottom:12px;">Baptized <strong>${fmt(baptism.achievedAt)}</strong>${baptism.notes ? ' · ' + escapeHtml(baptism.notes) : ''}</p>
+           <button class="btn btn-secondary btn-sm" onclick="showToast('Printable certificates are coming soon.')">Print Certificate</button>`
+        : `<p style="color:var(--text-muted);">Not on record yet -- talk to a staff member to get your baptism added.</p>`}
+    </div>`;
+}
+
+async function renderMyGroupsCard() {
+  const box = document.getElementById('myGroupsBox');
+  const data = await getMyJourneyData();
+  if (!data) { box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="table-wrap" style="padding:20px;margin-bottom:24px;"><h3 style="font-size:.95rem;margin-bottom:10px;">My Small Groups</h3><div id="myGroupsHistory"></div></div>`;
+  MemberDashboard.renderGroupHistory(document.getElementById('myGroupsHistory'), data.memberships, data.groups, data.profile.email, data.semesters);
+}
+
+async function renderMyGrowthTrackCard() {
+  const box = document.getElementById('myGrowthTrackBox');
+  const data = await getMyJourneyData();
+  if (!data) { box.innerHTML = ''; return; }
+  const fmt = d => d ? new Date(d.slice(0, 10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+
+  // Every attended date, not just the latest -- someone can attend the same
+  // part more than once.
+  const attendedByPart = { about_us: [], about_you: [], get_involved: [] };
+  data.gtRegs.forEach(r => { if (r.attended && attendedByPart[r.part]) attendedByPart[r.part].push(r.sessionDate); });
+  const datesLine = part => {
+    const dates = attendedByPart[part].filter(Boolean).sort();
+    return dates.length
+      ? `<div style="font-size:.85rem;color:var(--text-muted);margin:4px 0;">Attended: ${dates.map(fmt).join(', ')}</div>`
+      : `<div style="font-size:.85rem;color:var(--text-muted);margin:4px 0;">Not attended yet.</div>`;
+  };
+
+  const memberSince = data.profile.memberSince;
+  const plantExtra = memberSince
+    ? `<div style="font-size:.85rem;">Member since <strong>${fmt(memberSince)}</strong> · <button class="btn btn-ghost btn-sm" onclick="showToast('Printable member cards are coming soon.')">Print Member Card</button></div>`
+    : `<div style="font-size:.85rem;color:var(--text-muted);">Attend Plant to become a member.</div>`;
+
+  const discAttempts = data.attempts.filter(a => a.assessmentType === 'disc');
+  const giftsAttempts = data.attempts.filter(a => a.assessmentType === 'gifts');
+  const discoverExtra = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+      <a href="test-personality.html" class="btn btn-secondary btn-sm">${discAttempts.length ? 'Retake' : 'Take'} DISC Survey</a>
+      <a href="test-gifts.html" class="btn btn-secondary btn-sm">${giftsAttempts.length ? 'Retake' : 'Take'} Spiritual Gifts Survey</a>
+    </div>`;
+
+  const growExtra = `<div style="font-size:.85rem;"><a href="#" onclick="switchTab('impactteams');return false;" style="color:var(--primary);">See what Impact Teams are available →</a></div>`;
+
+  box.innerHTML = `
+    <div class="table-wrap" style="padding:20px;margin-bottom:24px;">
+      <h3 style="font-size:.95rem;margin-bottom:14px;">My Growth Track</h3>
+      <div style="margin-bottom:14px;"><strong>${GT_LABELS.about_us}</strong>${datesLine('about_us')}${plantExtra}</div>
+      <div style="margin-bottom:14px;"><strong>${GT_LABELS.about_you}</strong>${datesLine('about_you')}${discoverExtra}</div>
+      <div style="margin-bottom:4px;"><strong>${GT_LABELS.get_involved}</strong>${datesLine('get_involved')}${growExtra}</div>
+      <div style="margin-top:16px;">
+        <h4 style="font-size:.85rem;font-weight:700;margin-bottom:8px;">My Spiritual Gifts</h4>
+        <div id="myGiftsResult"></div>
+      </div>
+      <div style="margin-top:16px;">
+        <h4 style="font-size:.85rem;font-weight:700;margin-bottom:8px;">My DISC Profile</h4>
+        <div id="myDiscResult"></div>
+      </div>
+    </div>`;
+
+  const discBox = document.getElementById('myDiscResult');
+  if (discAttempts.length) MemberDashboard.renderDiscResult(discBox, discAttempts[0], data.content.discBlends, discAttempts.length);
+  else discBox.innerHTML = '<p style="color:var(--text-muted);font-size:.85rem;">Not taken yet.</p>';
+
+  const giftsBox = document.getElementById('myGiftsResult');
+  if (giftsAttempts.length) MemberDashboard.renderGiftsResult(giftsBox, giftsAttempts[0], data.content.gifts, giftsAttempts.length);
+  else giftsBox.innerHTML = '<p style="color:var(--text-muted);font-size:.85rem;">Not taken yet.</p>';
+}
+
+async function renderMyImpactTeamsCard() {
+  const box = document.getElementById('myImpactTeamsBox');
+  const data = await getMyJourneyData();
+  if (!data) { box.innerHTML = ''; return; }
+  const fmt = d => d ? new Date(d.slice(0, 10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+  const email = data.profile.email || '';
+
+  const rows = data.teamMemberships.filter(m => !m.leftAt).map(m => {
+    const team = data.teams.find(t => String(t.id) === String(m.teamId));
+    return { name: team ? team.name : 'Unknown Team', role: m.role, trained: m.trained, trainedAt: m.trainedAt };
   });
+  const ledGroups = (email
+    ? data.groups.filter(g => g.leaderEmail && g.leaderEmail.toLowerCase() === email.toLowerCase())
+    : []
+  ).map(g => ({ name: g.name + ' (Small Group)', role: 'leader', trained: undefined }));
+  const allRows = rows.concat(ledGroups);
+
+  box.innerHTML = `
+    <div class="table-wrap" style="padding:20px;margin-bottom:24px;">
+      <h3 style="font-size:.95rem;margin-bottom:10px;">My Impact Teams</h3>
+      ${allRows.length ? allRows.map(r => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--border);">
+          <span>${escapeHtml(r.name)} <span class="badge ${r.role === 'leader' ? 'badge-amber' : 'badge-blue'}" style="margin-left:6px;">${r.role === 'leader' ? 'Leads' : 'Member'}</span></span>
+          <span style="font-size:.82rem;color:var(--text-muted);">${r.trained === undefined ? '' : (r.trained ? '✓ Trained' + (r.trainedAt ? ' · ' + fmt(r.trainedAt) : '') : 'Not yet trained')}</span>
+        </div>`).join('') : '<p style="color:var(--text-muted);font-size:.9rem;">You are not on an impact team yet.</p>'}
+    </div>`;
 }
 
 async function renderPeoplePanel() {
@@ -6263,6 +6357,7 @@ async function saveBaptismRecord() {
 /* ── BAPTISM ── */
 let _baptisms = [], _notYetBaptized = [];
 async function renderBaptismTab() {
+  renderMyBaptismCard();
   const [baptisms, profiles] = await Promise.all([
     SupaDB.adminGetAllBaptisms(), SupaDB.adminGetAllMemberProfiles(),
   ]);
@@ -6355,6 +6450,7 @@ const GT_LABELS = { about_us: 'Plant', about_you: 'Discover', get_involved: 'Gro
 const SUNDAY_LABELS = { 1: '1st Sunday', 2: '2nd Sunday', 3: '3rd Sunday' };
 
 async function renderGrowthTrackTab() {
+  renderMyGrowthTrackCard();
   [_gtPartsAdmin, _gtCancellationsAdmin] = await Promise.all([
     SupaDB.adminGetAllGrowthTrackParts(),
     SupaDB.getGrowthTrackCancellations(),
