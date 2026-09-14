@@ -282,10 +282,6 @@
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
       Subscribers
     </a>
-    <a onclick="switchTab('rsvps')" id="sideRsvps" data-tab="rsvps">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-      Event RSVPs
-    </a>
     <a onclick="switchTab('prayer')" id="sidePrayer" data-tab="prayer">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
       Prayer Requests
@@ -532,44 +528,6 @@
           <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
           <h3>No subscribers yet</h3>
           <p>Subscribers from the public Events page will appear here.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- EVENT RSVPs -->
-    <div class="tab-panel" id="panelRsvps">
-      <div class="action-bar">
-        <h2>Event RSVPs</h2>
-        <button class="btn btn-ghost" onclick="exportRsvpsCsv()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Export CSV
-        </button>
-      </div>
-      <div class="signup-filter-bar" style="margin-bottom:20px;">
-        <label>Filter by Event:</label>
-        <select id="rsvpFilterEvent" onchange="renderRsvpsPanel()" style="padding:.5rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;min-width:220px;"></select>
-        <label style="margin-left:8px;">Search:</label>
-        <input id="rsvpSearch" type="text" placeholder="Name or email…" oninput="renderRsvpsPanel()"
-          style="padding:.5rem .9rem;border:1.5px solid #e4e4e4;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;min-width:200px;" />
-        <span id="rsvpCount" style="margin-left:auto;font-size:.82rem;color:#6b6b6b;"></span>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr>
-            <th>#</th>
-            <th>Event</th>
-            <th>Full Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Date Submitted</th>
-            <th>Actions</th>
-          </tr></thead>
-          <tbody id="rsvpsTable"></tbody>
-        </table>
-        <div class="empty" id="rsvpsEmpty" style="display:none;">
-          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-          <h3>No RSVPs yet</h3>
-          <p>RSVPs from events with sign-up enabled will appear here.</p>
         </div>
       </div>
     </div>
@@ -1201,7 +1159,7 @@
         <strong style="color:var(--text);">How it works:</strong> Add a user's email and assign a role. When they log in, they'll only see the sections their role allows. The user account itself must be created in your Supabase dashboard (Authentication → Users → Invite user).
         <br><br>
         <strong style="color:var(--text);">Admin</strong> — Full access to all sections.<br>
-        <strong style="color:var(--text);">Event Manager</strong> — Events, RSVPs, Sermons, Email.<br>
+        <strong style="color:var(--text);">Event Manager</strong> — Events (including sign-ups), Sermons, Email.<br>
         Small group leaders no longer use this dashboard — they manage their group from their own <a href="my-profile.html" style="color:var(--primary);">My Profile</a> page instead.
       </div>
       <div class="table-wrap">
@@ -2096,7 +2054,7 @@
           <select id="userRole">
             <option value="">Select a role…</option>
             <option value="admin">Admin — Full access to all sections</option>
-            <option value="event_manager">Event Manager — Events, RSVPs, Sermons, Email</option>
+            <option value="event_manager">Event Manager — Events (including sign-ups), Sermons, Email</option>
           </select>
         </div>
       </div>
@@ -2278,8 +2236,8 @@
 <script>
 // Role-based access map
 const ROLE_TABS = {
-  admin:               ['people','baptism','groups','attendance','growthtrack','analytics','impactteams','events','signups','applications','subscribers','rsvps','prayer','retreat','sermons','email','settings','users'],
-  event_manager:       ['events','rsvps','sermons','email'],
+  admin:               ['people','baptism','groups','attendance','growthtrack','analytics','impactteams','events','signups','applications','subscribers','prayer','retreat','sermons','email','settings','users'],
+  event_manager:       ['events','sermons','email'],
 };
 const ROLE_LABELS = { admin:'Admin', event_manager:'Event Manager' };
 
@@ -2352,7 +2310,7 @@ function applyRoleVisibility() {
   }
 })();
 
-const ALL_TABS = ['people','baptism','groups','attendance','growthtrack','analytics','impactteams','events','signups','applications','subscribers','rsvps','prayer','retreat','sermons','email','settings','users'];
+const ALL_TABS = ['people','baptism','groups','attendance','growthtrack','analytics','impactteams','events','signups','applications','subscribers','prayer','retreat','sermons','email','settings','users'];
 function toggleSidebar() {
   document.querySelector('.sidebar').classList.toggle('open');
   document.getElementById('sidebarBackdrop').classList.toggle('open');
@@ -2375,14 +2333,13 @@ function switchTab(tab) {
   const c = tab[0].toUpperCase()+tab.slice(1);
   const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
   if(p) p.classList.add('active'); if(s) s.classList.add('active');
-  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',rsvps:'Event RSVPs',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings',users:'User Permissions',people:'Membership',baptism:'Baptism',analytics:'Analytics',growthtrack:'Growth Track',impactteams:'Impact Teams'};
+  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings',users:'User Permissions',people:'Membership',baptism:'Baptism',analytics:'Analytics',growthtrack:'Growth Track',impactteams:'Impact Teams'};
   document.getElementById('topbarTitle').textContent = titles[tab]||tab;
   if(tab==='events') renderEventsTable();
   else if(tab==='groups') renderGroupsTable();
   else if(tab==='signups') renderSignupsPanel();
   else if(tab==='applications') renderApplicationsTable();
   else if(tab==='subscribers') renderSubscribersTable();
-  else if(tab==='rsvps') renderRsvpsPanel();
   else if(tab==='prayer')  renderPrayerTable();
   else if(tab==='retreat') renderRetreatTable();
   else if(tab==='attendance') renderAttendanceTable();
@@ -4769,62 +4726,6 @@ function showToast(msg,isError=false){const t=document.getElementById('toast');t
 async function logout(){await SupaDB.signOut();window.location.href='login.html';}
 
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
-
-/* ── EVENT RSVPs ────────────────────────────────────────── */
-let _cachedRsvps = [];
-async function renderRsvpsPanel() {
-  _cachedRsvps = await SupaDB.adminGetAllRsvps();
-  const filterSel = document.getElementById('rsvpFilterEvent');
-  const q = (document.getElementById('rsvpSearch').value||'').toLowerCase();
-  const filterEvent = filterSel ? filterSel.value : '';
-
-  // Populate event filter dropdown
-  if (filterSel) {
-    const events = [...new Set(_cachedRsvps.map(r => r.eventTitle))].sort();
-    const current = filterSel.value;
-    filterSel.innerHTML = '<option value="">All Events</option>' + events.map(t=>`<option value="${t}"${t===current?' selected':''}>${t}</option>`).join('');
-  }
-
-  let rsvps = [..._cachedRsvps];
-  if (filterEvent) rsvps = rsvps.filter(r => r.eventTitle === filterEvent);
-  if (q) rsvps = rsvps.filter(r => r.fullName.toLowerCase().includes(q) || r.email.toLowerCase().includes(q));
-
-  document.getElementById('rsvpCount').textContent = `${rsvps.length} record${rsvps.length!==1?'s':''}`;
-  const tbody = document.getElementById('rsvpsTable');
-  const empty = document.getElementById('rsvpsEmpty');
-
-  if (!rsvps.length) { tbody.innerHTML=''; empty.style.display=''; return; }
-  empty.style.display = 'none';
-  tbody.innerHTML = rsvps.map((r,i) => `
-    <tr>
-      <td style="color:var(--text-muted);font-size:.82rem;">${i+1}</td>
-      <td><strong>${r.eventTitle}</strong></td>
-      <td>${r.fullName}</td>
-      <td><a href="mailto:${r.email}" style="color:var(--primary);">${r.email}</a></td>
-      <td>${r.phone || '<span style="color:var(--text-muted);">—</span>'}</td>
-      <td style="font-size:.82rem;color:var(--text-muted);">${r.date ? new Date(r.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—'}</td>
-      <td><button class="btn btn-danger btn-sm" onclick="deleteRsvp(${r.id},'${r.fullName.replace(/'/g,"\\'")}')">Delete</button></td>
-    </tr>`).join('');
-}
-
-async function deleteRsvp(id, name) {
-  if (!confirm(`Remove RSVP from ${name}?`)) return;
-  await SupaDB.deleteEventRsvp(id);
-  _cachedRsvps = _cachedRsvps.filter(r => r.id !== id);
-  renderRsvpsPanel();
-  showToast('RSVP removed.');
-}
-
-function exportRsvpsCsv() {
-  if (!_cachedRsvps.length) { showToast('No RSVPs to export.',true); return; }
-  const rows = [['Event','Full Name','Email','Phone','Date Submitted']];
-  _cachedRsvps.forEach(r => rows.push([r.eventTitle, r.fullName, r.email, r.phone||'', r.date ? new Date(r.date).toLocaleDateString() : '']));
-  const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = 'event-rsvps.csv';
-  a.click();
-}
 
 /* ── SETTINGS: Banner ───────────────────────────────────── */
 let _bannerEnabled = true;
