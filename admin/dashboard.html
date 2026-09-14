@@ -1385,6 +1385,10 @@
         <div class="field"><label>Location *</label><input type="text" id="evLocation" placeholder="e.g. 6909 Cornhusker Rd" /></div>
       </div>
       <div class="form-row full"><div class="field"><label>Description *</label><textarea id="evDescription" placeholder="Brief description…"></textarea></div></div>
+      <div class="form-row">
+        <div class="field"><label>Event Leader <span style="font-weight:400;color:var(--text-muted);font-size:.78rem;">(optional)</span></label><input type="text" id="evLeader" placeholder="e.g. Sarah Jennings" /></div>
+        <div class="field"><label>Leader Email <span style="font-weight:400;color:var(--text-muted);font-size:.78rem;">(gets sign-up + edit access via My Profile)</span></label><input type="email" id="evLeaderEmail" placeholder="leader@email.com" /></div>
+      </div>
       <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:8px;">Event Image</label>
       <div class="img-picker">
         <div class="img-picker-tabs">
@@ -1434,6 +1438,24 @@
       </button>
       <button class="btn btn-primary" onclick="saveEvent()">Save Event</button>
     </div>
+  </div>
+</div>
+
+<!-- EVENT SIGN-UPS MODAL (per-event popup, distinct from the global
+     Event RSVPs tab under Operations) -->
+<div class="modal-overlay" id="eventSignupsModal">
+  <div class="modal modal-lg">
+    <div class="modal-header"><h3 id="eventSignupsTitle">Sign-Ups</h3><button class="modal-close" onclick="closeEventSignupsModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="table-wrap" style="margin:0;">
+        <table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Signed Up</th><th></th></tr></thead>
+        <tbody id="eventSignupsTable"></tbody></table>
+        <div id="eventSignupsEmpty" class="empty" style="display:none;padding:24px 0;">
+          <p style="margin:0;color:var(--text-muted);">No sign-ups yet for this event.</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeEventSignupsModal()">Close</button></div>
   </div>
 </div>
 
@@ -2406,12 +2428,38 @@ async function renderEventsTable() {
       <td>${ev.published?'<span class="badge badge-green">Published</span>':'<span class="badge badge-gray">Draft</span>'}</td>
       <td><div class="td-actions">
         <button class="btn btn-ghost btn-sm" onclick="editEvent(${ev.id})">Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="openEventSignupsModal(${ev.id})">👥 Sign-Ups</button>
         <button class="btn btn-ghost btn-sm" onclick="openMediaModal(${ev.id})" style="color:var(--primary);">📣 Media</button>
         <button class="btn btn-ghost btn-sm" onclick="openGCalForEvent(${ev.id})" style="color:var(--secondary);">📅 Calendar</button>
         <button class="btn btn-ghost btn-sm" onclick="copyEventLink(${ev.id})" style="color:var(--text-muted);">🔗 Copy Link</button>
         <button class="btn btn-danger btn-sm" onclick="deleteItem('event',${ev.id},'${ev.title.replace(/'/g,"\\'")}')">Delete</button>
       </div></td>
     </tr>`).join('');
+}
+
+async function openEventSignupsModal(eventId) {
+  const ev = _cachedEvents.find(e => e.id === eventId);
+  document.getElementById('eventSignupsTitle').textContent = ev ? `Sign-Ups — ${ev.title}` : 'Sign-Ups';
+  const tbody = document.getElementById('eventSignupsTable'), empty = document.getElementById('eventSignupsEmpty');
+  tbody.innerHTML = '';
+  document.getElementById('eventSignupsModal').classList.add('open');
+  const rsvps = await SupaDB.getRsvpsForEvent(eventId);
+  if (!rsvps.length) { empty.style.display = ''; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = rsvps.map(r => `
+    <tr>
+      <td><strong>${escapeHtml(r.fullName)}</strong></td>
+      <td><a href="mailto:${escapeHtml(r.email)}" style="color:var(--primary);">${escapeHtml(r.email)}</a></td>
+      <td>${escapeHtml(r.phone || '—')}</td>
+      <td style="font-size:.82rem;color:var(--text-muted);">${new Date(r.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="removeEventSignup(${eventId},'${r.id}')">Remove</button></td>
+    </tr>`).join('');
+}
+function closeEventSignupsModal() { document.getElementById('eventSignupsModal').classList.remove('open'); }
+async function removeEventSignup(eventId, rsvpId) {
+  if (!confirm('Remove this sign-up?')) return;
+  await SupaDB.deleteEventRsvp(rsvpId);
+  openEventSignupsModal(eventId);
 }
 
 function copyEventLink(id) {
@@ -2454,6 +2502,8 @@ function openEventModal(ev) {
   document.getElementById('evId').value=ev?ev.id:'';
   document.getElementById('evPublished').checked=ev?ev.published!==false:true;
   document.getElementById('evRsvpEnabled').checked=ev?!!ev.rsvpEnabled:false;
+  document.getElementById('evLeader').value=ev?(ev.leader||''):'';
+  document.getElementById('evLeaderEmail').value=ev?(ev.leaderEmail||''):'';
   document.getElementById('evTitle').value=ev?ev.title:'';
   document.getElementById('evCategory').value=ev?ev.category:'Worship';
   const hasDate=ev&&ev.dateSort&&ev.dateSort!=='2099-12-31';
@@ -2502,7 +2552,9 @@ async function saveEvent(){
   const endDate=isRec?'':(document.getElementById('evEndDate').value.trim()||'');
   const endDateSort=isRec?'':(document.getElementById('evEndDateSort').value.trim()||'');
   if(endDateSort && dateSort && endDateSort <= dateSort){showToast('End date must be after the start date.',true);return;}
-  const newEv={id:id?parseInt(id):undefined,published:document.getElementById('evPublished').checked,rsvpEnabled:document.getElementById('evRsvpEnabled').checked,title,date,dateSort,endDate,endDateSort,time,location:loc,category:document.getElementById('evCategory').value,description:desc,image,recurring:isRec};
+  const leader=document.getElementById('evLeader').value.trim();
+  const leaderEmail=document.getElementById('evLeaderEmail').value.trim();
+  const newEv={id:id?parseInt(id):undefined,published:document.getElementById('evPublished').checked,rsvpEnabled:document.getElementById('evRsvpEnabled').checked,title,date,dateSort,endDate,endDateSort,time,location:loc,category:document.getElementById('evCategory').value,description:desc,image,recurring:isRec,leader,leaderEmail};
   const result = await SupaDB.saveEvent(newEv);
   if(result.error){showToast('Error saving event: '+result.error,true);return;}
   // Update in-memory cache so the table re-renders with the fresh data

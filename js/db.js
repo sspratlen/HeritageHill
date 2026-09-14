@@ -23,6 +23,7 @@ function eventFromDb(r) {
     description: r.description, image: r.image,
     recurring: !!r.recurring, published: r.published !== false,
     rsvpEnabled: !!r.rsvp_enabled,
+    leader: r.leader || '', leaderEmail: r.leader_email || '',
   };
 }
 function eventToDb(ev) {
@@ -33,6 +34,7 @@ function eventToDb(ev) {
     description: ev.description, image: ev.image,
     recurring: !!ev.recurring, published: ev.published !== false,
     rsvp_enabled: !!ev.rsvpEnabled,
+    leader: ev.leader || null, leader_email: ev.leaderEmail || null,
   };
   if (ev.id) o.id = ev.id;
   return o;
@@ -1286,6 +1288,15 @@ window.SupaDB = {
       if (error) throw error;
       return (data || []).map(rsvpFromDb);
     } catch(e) { console.error('[SupaDB] adminGetAllRsvps:', e.message); return []; }
+  },
+  async getRsvpsForEvent(eventId) {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('event_rsvps')
+        .select('*').eq('event_id', eventId).order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(rsvpFromDb);
+    } catch(e) { console.error('[SupaDB] getRsvpsForEvent:', e.message); return []; }
   },
   async deleteEventRsvp(id) {
     if (!db()) return;

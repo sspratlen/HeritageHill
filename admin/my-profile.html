@@ -39,6 +39,10 @@
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 12a6 6 0 0 0 12 0"/><path d="M8 12V6a4 4 0 0 1 8 0v6"/><line x1="3" y1="20" x2="21" y2="20"/><circle cx="12" cy="4" r="1.5"/></svg>
         Baptism
       </a>
+      <a onclick="switchPanel('events')" id="navEvents" data-panel="events" class="nav-sub">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Events
+      </a>
 
       <div class="nav-section nav-stage" id="navFilled">
         <span class="nav-stage-circle">02</span>
@@ -99,6 +103,10 @@
 
       <div class="shell-panel active" id="panelBaptism">
         <div id="baptismCardBox"><p style="color:var(--text-muted);">Loading…</p></div>
+      </div>
+
+      <div class="shell-panel" id="panelEvents">
+        <div id="eventsCardBox"><p style="color:var(--text-muted);">Loading…</p></div>
       </div>
 
       <div class="shell-panel" id="panelGroups">
@@ -177,6 +185,16 @@
   </div>
 </div>
 
+<!-- EVENT DETAILS MODAL (near-full-screen, leader only -- Description +
+     Sign-Ups tabs, same pattern as the group leader modal above) -->
+<div class="modal-overlay" id="eventDetailsModal">
+  <div class="modal modal-full">
+    <div class="modal-header"><h3 id="eventDetailsTitle">Event</h3><button class="modal-close" onclick="closeEventDetails()">✕</button></div>
+    <div class="modal-body" id="eventDetailsBody"></div>
+    <div class="modal-footer"><button class="btn-ghost" onclick="closeEventDetails()">Close</button></div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../js/supabase-client.js"></script>
 <script src="../js/db.js"></script>
@@ -185,8 +203,8 @@
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script>
 let _profile = null, _journeyData = null;
-const PANELS = ['baptism', 'groups', 'growthtrack', 'impactteams', 'account'];
-const PANEL_TITLES = { baptism: 'Baptism', groups: 'Small Groups', growthtrack: 'Growth Track', impactteams: 'Impact Teams', account: 'My Info' };
+const PANELS = ['baptism', 'events', 'groups', 'growthtrack', 'impactteams', 'account'];
+const PANEL_TITLES = { baptism: 'Baptism', events: 'Events', groups: 'Small Groups', growthtrack: 'Growth Track', impactteams: 'Impact Teams', account: 'My Info' };
 
 (async () => {
   const user = await SupaDB.getUser();
@@ -222,22 +240,24 @@ const PANEL_TITLES = { baptism: 'Baptism', groups: 'Small Groups', growthtrack: 
     groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
   sel.value = _profile.groupId || '';
 
-  // Load everything the four journey cards need, once.
-  const [attempts, content, gtRegs, memberships, semesters, teamMemberships, teams, milestones] = await Promise.all([
+  // Load everything the four journey cards (+ Events, if leading any) need, once.
+  const [attempts, content, gtRegs, memberships, semesters, teamMemberships, teams, milestones, events] = await Promise.all([
     SupaDB.getMyAttempts(), SupaDB.getAssessmentContent(),
     SupaDB.getGrowthTrackRegistrationsForUser(user.id), SupaDB.getGroupMembershipsForUser(user.id),
     SupaDB.getSemesters(),
     SupaDB.getImpactTeamMembershipsForUser(user.id), SupaDB.getPublishedImpactTeams(),
     SupaDB.getMyMilestones(_profile.personId),
+    SupaDB.adminGetAllEvents(),
   ]);
   _journeyData = {
-    content: Assessments.splitContent(content), gtRegs, memberships, groups, semesters, teamMemberships, teams,
+    content: Assessments.splitContent(content), gtRegs, memberships, groups, semesters, teamMemberships, teams, events,
     discAttempts: attempts.filter(a => a.assessmentType === 'disc'),
     giftsAttempts: attempts.filter(a => a.assessmentType === 'gifts'),
     baptism: milestones.find(m => m.milestone === 'baptized'),
   };
 
   renderBaptismPanel();
+  renderEventsPanel();
   renderGroupsPanel();
   renderGrowthTrackPanel();
   renderImpactTeamsPanel();
@@ -862,6 +882,215 @@ async function sendGroupEmailFor(gid) {
     btn.disabled = false; btn.textContent = 'Send Email';
   }
 }
+/* ── MY EVENTS (event leader) ──────────────────────────────────────── */
+function renderEventsPanel() {
+  const email = (_profile.email || '').toLowerCase();
+  const myEvents = email ? _journeyData.events.filter(e => e.leaderEmail && e.leaderEmail.toLowerCase() === email) : [];
+  const box = document.getElementById('eventsCardBox');
+  if (!myEvents.length) {
+    box.innerHTML = '<div class="jp-card"><p class="jp-empty">You are not leading any events yet.</p></div>';
+    return;
+  }
+  box.innerHTML = `
+    <div class="jp-card">
+      <div class="jp-label">My Events</div>
+      <div class="jp-roster">
+        ${myEvents.map(ev => `
+          <div class="jp-roster-row" style="cursor:pointer;" onclick="openEventDetails(${ev.id})">
+            <span class="jp-roster-name">${escapeHtml(ev.title)}</span>
+            <span class="jp-val">${escapeHtml(ev.date)}</span>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function openEventDetails(eventId) {
+  const ev = _journeyData.events.find(e => String(e.id) === String(eventId));
+  if (!ev) return;
+  document.getElementById('eventDetailsTitle').textContent = ev.title;
+  document.getElementById('eventDetailsBody').innerHTML = `
+    <div class="gd-tabs">
+      <button type="button" class="gd-tab active" onclick="switchGroupTab(this,'evt-description')">Description</button>
+      <button type="button" class="gd-tab" onclick="switchGroupTab(this,'evt-signups')">Sign-Ups</button>
+    </div>
+    <div class="gd-tab-panel active" id="gdPanel-evt-description">
+      <div id="${_ledId('eventInfo', ev.id)}"></div>
+    </div>
+    <div class="gd-tab-panel" id="gdPanel-evt-signups">
+      <div id="${_ledId('eventSignups', ev.id)}"><p style="color:var(--text-muted);">Loading…</p></div>
+    </div>
+  `;
+  renderEventInfoFor(ev.id);
+  loadEventSignupsFor(ev.id);
+  document.getElementById('eventDetailsModal').classList.add('open');
+}
+function closeEventDetails() { document.getElementById('eventDetailsModal').classList.remove('open'); }
+
+function renderEventInfoFor(eid) {
+  const ev = _journeyData.events.find(e => String(e.id) === String(eid));
+  const box = document.getElementById(_ledId('eventInfo', eid));
+  const hasUrlImage = !!(ev.image && !ev.image.startsWith('data:'));
+  box.innerHTML = `
+    <p style="color:var(--text-muted);margin-bottom:14px;"><strong>${escapeHtml(ev.title)}</strong> — ${escapeHtml(ev.date)}${ev.endDate ? ' – ' + escapeHtml(ev.endDate) : ''}</p>
+
+    <label style="display:block;font-size:.82rem;font-weight:600;margin-bottom:8px;">Event Photo</label>
+    <div class="img-picker">
+      <div class="img-picker-tabs">
+        <button type="button" class="img-tab active" onclick="switchEventImgTab(${eid},'url',this)">🔗 Paste URL</button>
+        <button type="button" class="img-tab" onclick="switchEventImgTab(${eid},'upload',this)">⬆️ Upload Photo</button>
+        <button type="button" class="img-tab" onclick="switchEventImgTab(${eid},'ai',this)">✨ AI Generate</button>
+      </div>
+      <div class="img-panel active" id="${_ledId('eiImgPanelUrl', eid)}">
+        <div class="form-group" style="margin:0;"><input type="url" id="${_ledId('eiImageUrl', eid)}" placeholder="https://…" value="${hasUrlImage ? escapeHtml(ev.image) : ''}" oninput="previewEventImageFromUrl(${eid}, this.value)" /></div>
+        <div class="img-preview"><p class="img-preview-label">Preview</p><img id="${_ledId('eiPreviewUrl', eid)}" alt="Preview" class="${hasUrlImage ? 'visible' : ''}" src="${hasUrlImage ? escapeHtml(ev.image) : ''}" /></div>
+      </div>
+      <div class="img-panel" id="${_ledId('eiImgPanelUpload', eid)}">
+        <div class="upload-drop" id="${_ledId('eiUploadDrop', eid)}" onclick="document.getElementById('${_ledId('eiImageFile', eid)}').click()" ondragover="handleEventDragOver(event,'${_ledId('eiUploadDrop', eid)}')" ondragleave="handleEventDragLeave(event,'${_ledId('eiUploadDrop', eid)}')" ondrop="handleEventDrop(event,${eid})">
+          <p><strong>Click to upload</strong> or drag &amp; drop</p><p style="font-size:.75rem;margin-top:4px;">JPG, PNG, WEBP · Auto-optimized</p>
+          <input type="file" id="${_ledId('eiImageFile', eid)}" accept="image/*" onchange="handleEventImageUpload(${eid}, this)" />
+        </div>
+        <div class="img-preview"><p class="img-preview-label">Preview (optimized)</p><img id="${_ledId('eiPreviewUpload', eid)}" alt="Upload preview" /></div>
+      </div>
+      <div class="img-panel" id="${_ledId('eiImgPanelAi', eid)}">
+        <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:10px;">Describe the image you want, or use the event description.</p>
+        <div class="ai-row">
+          <div class="form-group"><textarea id="${_ledId('eiAiPrompt', eid)}" rows="2" placeholder="e.g. Church picnic on a sunny day…" style="min-height:60px;"></textarea></div>
+          <button type="button" class="btn-ghost" onclick="generateEventAIImage(${eid})" id="${_ledId('eiAiGenBtn', eid)}" style="white-space:nowrap;height:fit-content;align-self:center;">Generate</button>
+        </div>
+        <div class="ai-status" id="${_ledId('eiAiStatus', eid)}"></div>
+        <div class="img-preview"><p class="img-preview-label">Generated image</p><img id="${_ledId('eiPreviewAi', eid)}" alt="AI preview" /></div>
+      </div>
+    </div>
+    <input type="hidden" id="${_ledId('eiImageFinal', eid)}" value="${escapeHtml(ev.image || '')}" />
+
+    <div class="form-group"><label>Time</label><input id="${_ledId('eiTime', eid)}" value="${escapeHtml(ev.time || '')}" /></div>
+    <div class="form-group"><label>Location</label><input id="${_ledId('eiLocation', eid)}" value="${escapeHtml(ev.location || '')}" /></div>
+    <div class="form-group"><label>Description</label><textarea id="${_ledId('eiDescription', eid)}" rows="5">${escapeHtml(ev.description || '')}</textarea></div>
+    <div class="msg-error" id="${_ledId('eiError', eid)}"></div>
+    <div class="msg-success" id="${_ledId('eiSaved', eid)}">Saved.</div>
+    <button class="btn-primary" onclick="saveEventInfoFor(${eid})">Save Changes</button>
+  `;
+}
+
+function switchEventImgTab(eid, tab, btnEl) {
+  const root = btnEl.closest('.img-picker');
+  root.querySelectorAll('.img-tab').forEach(b => b.classList.remove('active'));
+  root.querySelectorAll('.img-panel').forEach(p => p.classList.remove('active'));
+  btnEl.classList.add('active');
+  const panels = { url: 'eiImgPanelUrl', upload: 'eiImgPanelUpload', ai: 'eiImgPanelAi' };
+  document.getElementById(_ledId(panels[tab], eid)).classList.add('active');
+}
+function previewEventImageFromUrl(eid, url) {
+  const img = document.getElementById(_ledId('eiPreviewUrl', eid));
+  const finalEl = document.getElementById(_ledId('eiImageFinal', eid));
+  if (url) { img.src = url; img.classList.add('visible'); finalEl.value = url; }
+  else { img.classList.remove('visible'); finalEl.value = ''; }
+}
+function handleEventDragOver(e, dropId) { e.preventDefault(); document.getElementById(dropId).classList.add('dragover'); }
+function handleEventDragLeave(e, dropId) { document.getElementById(dropId).classList.remove('dragover'); }
+function handleEventDrop(e, eid) {
+  e.preventDefault();
+  document.getElementById(_ledId('eiUploadDrop', eid)).classList.remove('dragover');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) processEventImageFile(eid, f);
+}
+function handleEventImageUpload(eid, input) {
+  if (input.files && input.files[0]) processEventImageFile(eid, input.files[0]);
+}
+function processEventImageFile(eid, file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 900;
+      let w = img.width, h = img.height;
+      if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.80);
+      const sizeKB = Math.round(dataUrl.length * 0.75 / 1024);
+      const preview = document.getElementById(_ledId('eiPreviewUpload', eid));
+      preview.src = dataUrl; preview.classList.add('visible');
+      document.getElementById(_ledId('eiImageFinal', eid)).value = dataUrl;
+      document.getElementById(_ledId('eiUploadDrop', eid)).querySelector('p').innerHTML = `<strong>✓ Image optimized</strong> — ${w}×${h}px · ~${sizeKB}KB`;
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function generateEventAIImage(eid) {
+  const prompt = document.getElementById(_ledId('eiAiPrompt', eid)).value.trim()
+    || document.getElementById(_ledId('eiDescription', eid)).value.trim();
+  if (!prompt) { alert('Enter a description or prompt first.'); return; }
+  const btn = document.getElementById(_ledId('eiAiGenBtn', eid));
+  const status = document.getElementById(_ledId('eiAiStatus', eid));
+  const preview = document.getElementById(_ledId('eiPreviewAi', eid));
+  btn.disabled = true; btn.textContent = 'Generating…';
+  status.className = 'ai-status loading'; status.textContent = 'Creating your image — this takes 10–20 seconds…';
+  preview.classList.remove('visible');
+  const seed = Math.floor(Math.random() * 99999);
+  const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt + ', warm church community, photorealistic, natural lighting')}?width=800&height=500&nologo=true&seed=${seed}`;
+  const finish = dataUrl => {
+    preview.src = dataUrl || url; preview.classList.add('visible');
+    document.getElementById(_ledId('eiImageFinal', eid)).value = dataUrl || url;
+    status.className = 'ai-status'; status.textContent = '✓ Image generated! Save to keep it.';
+    btn.disabled = false; btn.textContent = 'Regenerate';
+  };
+  const testImg = new Image();
+  testImg.crossOrigin = 'anonymous';
+  testImg.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = testImg.naturalWidth || 800; canvas.height = testImg.naturalHeight || 500;
+    canvas.getContext('2d').drawImage(testImg, 0, 0);
+    let dataUrl; try { dataUrl = canvas.toDataURL('image/jpeg', 0.82); } catch (e) { dataUrl = url; }
+    finish(dataUrl);
+  };
+  testImg.onerror = () => finish(url);
+  testImg.src = url;
+}
+
+async function saveEventInfoFor(eid) {
+  const ev = _journeyData.events.find(e => String(e.id) === String(eid));
+  if (!ev) return;
+  const image = document.getElementById(_ledId('eiImageFinal', eid)).value.trim() || ev.image;
+  const updated = Object.assign({}, ev, {
+    image,
+    time: document.getElementById(_ledId('eiTime', eid)).value.trim(),
+    location: document.getElementById(_ledId('eiLocation', eid)).value.trim(),
+    description: document.getElementById(_ledId('eiDescription', eid)).value.trim(),
+  });
+  const errEl = document.getElementById(_ledId('eiError', eid));
+  errEl.classList.remove('show'); errEl.textContent = '';
+  const result = await SupaDB.saveEvent(updated);
+  if (result?.error) { errEl.textContent = result.error; errEl.classList.add('show'); return; }
+  Object.assign(ev, updated);
+  const okEl = document.getElementById(_ledId('eiSaved', eid));
+  okEl.classList.add('show');
+  setTimeout(() => okEl.classList.remove('show'), 2500);
+}
+
+async function loadEventSignupsFor(eid) {
+  const box = document.getElementById(_ledId('eventSignups', eid));
+  const rsvps = await SupaDB.getRsvpsForEvent(eid);
+  if (!rsvps.length) { box.innerHTML = '<p style="color:var(--text-muted);">No sign-ups yet.</p>'; return; }
+  box.innerHTML = `
+    <table><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Signed Up</th><th></th></tr></thead>
+    <tbody>${rsvps.map(r => `
+      <tr>
+        <td>${escapeHtml(r.fullName)}</td>
+        <td><a href="mailto:${escapeHtml(r.email)}" style="color:var(--primary);">${escapeHtml(r.email)}</a></td>
+        <td>${escapeHtml(r.phone || '—')}</td>
+        <td>${new Date(r.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+        <td><button class="btn-ghost" style="padding:.3rem .7rem;font-size:.78rem;color:var(--error);" onclick="removeEventSignupFor(${eid},'${r.id}')">Remove</button></td>
+      </tr>`).join('')}</tbody></table>`;
+}
+async function removeEventSignupFor(eid, rsvpId) {
+  if (!confirm('Remove this sign-up?')) return;
+  await SupaDB.deleteEventRsvp(rsvpId);
+  await loadEventSignupsFor(eid);
+}
+
 function renderGrowthTrackPanel() {
   MemberDashboard.renderGrowthTrackCard(document.getElementById('growthtrackCardBox'), {
     gtRegistrations: _journeyData.gtRegs, memberSince: _profile.memberSince,
