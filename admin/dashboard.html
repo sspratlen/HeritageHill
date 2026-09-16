@@ -6149,6 +6149,186 @@ async function generateClaudeAnalysis() {
   }
 }
 
+/* ── RECORD ASSESSMENT (admin-entered paper results) ────── */
+let _raaProfiles = [];
+let _raaContent = null;
+let _raaSelectedPerson = null;
+let _raaType = 'disc';
+let _raaMode = 'answers';
+const RAA_SCALES = {
+  disc: [[1,'Never'],[2,'Rarely'],[3,'Sometimes'],[4,'Often'],[5,'Always']],
+  gifts: [[1,'Almost Never'],[2,'Sometimes'],[3,'Almost Always']],
+};
+
+async function openRecordAssessmentModal() {
+  document.getElementById('recordAssessmentModal').classList.add('open');
+  const [profiles, content] = await Promise.all([
+    SupaDB.adminGetAllMemberProfiles(), SupaDB.getAssessmentContent(),
+  ]);
+  _raaProfiles = profiles;
+  _raaContent = Assessments.splitContent(content);
+  raaClearPerson();
+  raaSetType('disc');
+  raaSetMode('answers');
+}
+function closeRecordAssessmentModal() {
+  document.getElementById('recordAssessmentModal').classList.remove('open');
+}
+
+function raaFilterPeople() {
+  const q = document.getElementById('raaSearchInput').value.trim().toLowerCase();
+  const results = document.getElementById('raaSearchResults');
+  if (!q) { results.style.display = 'none'; results.innerHTML = ''; return; }
+  const matches = _raaProfiles.filter(p =>
+    (p.name && p.name.toLowerCase().includes(q)) || (p.email && p.email.toLowerCase().includes(q))
+  ).slice(0, 8);
+  results.style.display = 'block';
+  if (!matches.length) {
+    results.innerHTML = '<div class="raa-search-row" style="color:var(--text-muted);">No matches</div>';
+    return;
+  }
+  results.innerHTML = matches.map(p => `
+    <div class="raa-search-row" onclick="raaSelectPerson('${p.userId}')">
+      <div>${escapeHtml(p.name || '(no name)')}</div>
+      <div class="email">${escapeHtml(p.email)}</div>
+    </div>`).join('');
+}
+
+function raaSelectPerson(userId) {
+  const p = _raaProfiles.find(x => x.userId === userId);
+  if (!p) return;
+  _raaSelectedPerson = p;
+  document.getElementById('raaPersonPicker').style.display = 'none';
+  document.getElementById('raaPersonChip').style.display = 'block';
+  document.getElementById('raaPersonName').textContent = p.name || '(no name)';
+  document.getElementById('raaPersonEmail').textContent = p.email;
+  document.getElementById('raaSearchInput').value = '';
+  document.getElementById('raaSearchResults').style.display = 'none';
+  raaUpdateSaveEnabled();
+}
+function raaClearPerson() {
+  _raaSelectedPerson = null;
+  document.getElementById('raaPersonPicker').style.display = 'block';
+  document.getElementById('raaPersonChip').style.display = 'none';
+  raaUpdateSaveEnabled();
+}
+
+function raaSetType(type) {
+  _raaType = type;
+  document.getElementById('raaTypeDisc').classList.toggle('active', type === 'disc');
+  document.getElementById('raaTypeGifts').classList.toggle('active', type === 'gifts');
+  raaRenderQuestions();
+  raaRenderDirectForm();
+}
+function raaSetMode(mode) {
+  _raaMode = mode;
+  document.getElementById('raaModeAnswers').classList.toggle('active', mode === 'answers');
+  document.getElementById('raaModeDirect').classList.toggle('active', mode === 'direct');
+  document.getElementById('raaAnswersForm').style.display = mode === 'answers' ? 'block' : 'none';
+  document.getElementById('raaDirectForm').style.display = mode === 'direct' ? 'block' : 'none';
+  raaUpdateSaveEnabled();
+}
+
+function raaCurrentQuestions() {
+  if (!_raaContent) return [];
+  return _raaType === 'disc' ? _raaContent.discQuestions : _raaContent.giftQuestions;
+}
+
+function raaRenderQuestions() {
+  const questions = raaCurrentQuestions();
+  const scale = RAA_SCALES[_raaType];
+  document.getElementById('raaQList').innerHTML = questions.map((q, i) => `
+    <div class="raa-q-block">
+      <div class="raa-q-text">${i + 1}. ${escapeHtml(q.text)}</div>
+      <div class="raa-q-scale">${scale.map(([v, label]) => `
+        <label><input type="radio" name="raaq${q.id}" value="${v}" onchange="raaOnAnswer()" /><span>${label}</span></label>`).join('')}
+      </div>
+    </div>`).join('');
+  raaOnAnswer();
+}
+
+function raaCollectAnswers() {
+  const answers = {};
+  raaCurrentQuestions().forEach(q => {
+    const sel = document.querySelector(`input[name="raaq${q.id}"]:checked`);
+    if (sel) answers[q.id] = Number(sel.value);
+  });
+  return answers;
+}
+
+function raaOnAnswer() {
+  const answers = raaCollectAnswers();
+  const total = raaCurrentQuestions().length;
+  const done = Object.keys(answers).length;
+  document.getElementById('raaProgressLabel').textContent = `${done} of ${total} answered`;
+  raaUpdateSaveEnabled();
+}
+
+function raaRenderDirectForm() {
+  if (!_raaContent) return;
+  document.getElementById('raaDiscDirectWrap').style.display = _raaType === 'disc' ? 'block' : 'none';
+  document.getElementById('raaGiftsDirectWrap').style.display = _raaType === 'gifts' ? 'block' : 'none';
+
+  const blendSelect = document.getElementById('raaDiscBlendSelect');
+  blendSelect.innerHTML = '<option value="">— Select —</option>' +
+    _raaContent.discBlends.map(b => `<option value="${b.code}">${b.code} — ${escapeHtml((b.extra && b.extra.name) || '')}</option>`).join('');
+  blendSelect.onchange = raaUpdateSaveEnabled;
+
+  document.getElementById('raaGiftsChecklist').innerHTML = _raaContent.gifts.map(g => `
+    <label class="raa-gift-check"><input type="checkbox" value="${escapeHtml((g.extra && g.extra.name) || g.code)}" onchange="raaUpdateSaveEnabled()" /> ${escapeHtml((g.extra && g.extra.name) || g.code)}</label>`).join('');
+}
+
+function raaUpdateSaveEnabled() {
+  let ready = !!_raaSelectedPerson;
+  if (ready) {
+    if (_raaMode === 'answers') {
+      const total = raaCurrentQuestions().length;
+      const done = Object.keys(raaCollectAnswers()).length;
+      ready = total > 0 && done === total;
+    } else if (_raaType === 'disc') {
+      ready = !!document.getElementById('raaDiscBlendSelect').value;
+    } else {
+      ready = document.querySelectorAll('#raaGiftsChecklist input:checked').length > 0;
+    }
+  }
+  document.getElementById('raaSaveBtn').disabled = !ready;
+}
+
+async function raaSave() {
+  const btn = document.getElementById('raaSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  let answers = {}, scores = {}, result;
+  if (_raaMode === 'answers') {
+    answers = raaCollectAnswers();
+    if (_raaType === 'disc') {
+      const r = Assessments.scoreDisc(answers, raaCurrentQuestions());
+      scores = r.totals; result = r.result;
+    } else {
+      const r = Assessments.scoreGifts(answers, raaCurrentQuestions(), _raaContent.gifts);
+      scores = r.totals; result = JSON.stringify(r.result);
+    }
+  } else if (_raaType === 'disc') {
+    result = document.getElementById('raaDiscBlendSelect').value;
+  } else {
+    const names = [...document.querySelectorAll('#raaGiftsChecklist input:checked')].map(el => el.value);
+    result = JSON.stringify(names);
+  }
+  const saved = await SupaDB.adminAddAssessmentAttempt({
+    userId: _raaSelectedPerson.userId, assessmentType: _raaType, answers, scores, result,
+  });
+  btn.textContent = 'Save Result';
+  if (saved.error) {
+    showToast('Error: ' + saved.error, true);
+    btn.disabled = false;
+    return;
+  }
+  showToast(`✓ Recorded ${_raaType === 'disc' ? 'DISC' : 'Spiritual Gifts'} result for ${_raaSelectedPerson.name || _raaSelectedPerson.email}`);
+  raaClearPerson();
+  raaSetType(_raaType);
+  document.getElementById('raaSearchInput').focus();
+  renderAnalyticsTab();
+}
+
 async function bulkRegisterLeadersAttendees() {
   if (!confirm('Register all current small group leaders and attendees as site members? This creates login accounts (password HHTemp!) for anyone who doesn\'t already have one.')) return;
   const btn = document.getElementById('bulkRegisterBtn');
