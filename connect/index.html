@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connect | Heritage Hill Church</title>
+  <meta name="description" content="Let us know you stopped by, and see what to expect during your visit to Heritage Hill Church in Papillion, Nebraska." />
+  <link rel="icon" href="../assets/logos/logo-icon-color-white.png" />
+  <link rel="manifest" href="../manifest.json" />
+  <link rel="apple-touch-icon" href="../assets/pwa/apple-touch-icon.png" />
+  <meta name="theme-color" content="#BC7A1E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+<!-- ── Announcement Bar (content loaded dynamically from admin) ── -->
+<div id="announcementBar" class="announcement-bar" style="display:none"></div>
+
+<nav id="navbar" class="scrolled">
+  <div class="container nav-inner">
+    <a href="../index.html" class="nav-logo">
+      <img src="../assets/logos/logo-left-full-white.png"
+           alt="Heritage Hill Church"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" />
+      <span style="display:none; font-size:1.15rem; font-weight:700; color:var(--primary);">Heritage Hill</span>
+    </a>
+    <div class="nav-links">
+      <a href="../about.html">About Us</a>
+      <a href="../events.html">Events</a>
+      <a href="../small-groups.html">Small Groups</a>
+      <a href="../growth-track.html">Growth Track</a>
+      <a href="../sermons.html">Watch</a>
+      <a href="../give.html">Give</a>
+    </div>
+    <a href="../admin/login.html" class="btn btn-ghost btn-sm" id="navLoginBtn">Login</a>
+    <a href="#connect-card" class="btn btn-primary btn-sm nav-cta">Connect</a>
+    <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="nav-mobile" id="mobileNav">
+  <a href="../about.html">About Us</a>
+  <a href="../events.html">Events</a>
+  <a href="../small-groups.html">Small Groups</a>
+  <a href="../growth-track.html">Growth Track</a>
+  <a href="../sermons.html">Watch</a>
+  <a href="../give.html">Give</a>
+  <a href="../admin/login.html" class="btn btn-ghost" id="navLoginBtnMobile">Login</a>
+  <a href="#connect-card" class="btn btn-primary">Connect</a>
+</div>
+
+<!-- Hero -->
+<div class="page-hero" style="padding-top:calc(var(--nav-h) + var(--bar-h));">
+  <div class="page-hero-bg" style="background-image:url('../assets/church/awelcome-web.jpg');"></div>
+  <div class="page-hero-overlay"></div>
+  <div class="container page-hero-content">
+    <h1>You're Here — Let's Connect</h1>
+    <p>Take 20 seconds to let us know you stopped by.</p>
+  </div>
+</div>
+
+<!-- Connect Card -->
+<section class="section" id="connect-card">
+  <div class="container" style="max-width:560px;">
+    <div style="background:#fff; border-radius:var(--radius-lg); padding:40px; border:1px solid var(--border); box-shadow:0 8px 32px rgba(0,0,0,.08);">
+      <form id="connectForm" onsubmit="handleConnectSubmit(event)">
+        <!-- Honeypot: hidden from real users, bots fill it -->
+        <div style="position:absolute;left:-9999px;height:0;overflow:hidden;" aria-hidden="true">
+          <input type="text" id="ccHoneypot" name="website" tabindex="-1" autocomplete="off" />
+        </div>
+        <input type="hidden" id="ccLoadedAt" />
+        <h2 style="margin-bottom:.5rem;">Let's Connect</h2>
+        <p style="margin-bottom:1.5rem;color:var(--text-muted);">Just the basics — we'll take it from here.</p>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <label for="ccName" style="display:block;font-size:.85rem;font-weight:600;margin-bottom:.35rem;">Name</label>
+            <input type="text" id="ccName" required
+              style="width:100%;box-sizing:border-box;padding:.65rem 1rem;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;" />
+          </div>
+          <div>
+            <label for="ccEmail" style="display:block;font-size:.85rem;font-weight:600;margin-bottom:.35rem;">Email</label>
+            <input type="email" id="ccEmail" required
+              style="width:100%;box-sizing:border-box;padding:.65rem 1rem;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;" />
+          </div>
+          <div>
+            <label for="ccPhone" style="display:block;font-size:.85rem;font-weight:600;margin-bottom:.35rem;">Phone (optional)</label>
+            <input type="tel" id="ccPhone"
+              style="width:100%;box-sizing:border-box;padding:.65rem 1rem;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;" />
+          </div>
+          <button type="submit" id="ccBtn" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:.5rem;">Connect</button>
+          <p id="ccError" style="color:#dc2626;font-size:.82rem;margin:0;display:none;"></p>
+        </div>
+      </form>
+      <div id="connectSuccess" style="display:none;text-align:center;">
+        <p style="font-size:2rem;margin-bottom:8px;">✅</p>
+        <h2 style="margin-bottom:.5rem;">Thanks for Connecting!</h2>
+        <p style="color:var(--text-muted);margin-bottom:1.75rem;">We're so glad you're here. Someone from our team may reach out soon.</p>
+        <div id="accountOfferCard" style="border-top:1px solid var(--border);padding-top:1.75rem;">
+          <h3 style="margin-bottom:.5rem;">Want Full Access?</h3>
+          <p style="font-size:.9rem;color:var(--text-muted);margin-bottom:1rem;">Create an account to track your journey, join groups, and give online.</p>
+          <form id="createAccountForm" onsubmit="handleCreateAccount(event)">
+            <input type="password" id="caPassword" placeholder="Choose a password (8+ characters)" autocomplete="new-password" required
+              style="width:100%;box-sizing:border-box;padding:.65rem 1rem;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;margin-bottom:12px;" />
+            <button type="submit" id="caBtn" class="btn btn-primary" style="width:100%;justify-content:center;">Create My Account</button>
+            <p id="caError" style="color:#dc2626;font-size:.82rem;margin:8px 0 0;display:none;"></p>
+          </form>
+          <button type="button" onclick="document.getElementById('accountOfferCard').style.display='none';" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;margin-top:10px;">Maybe Later</button>
+        </div>
+        <div id="accountConfirmCard" style="display:none;border-top:1px solid var(--border);padding-top:1.75rem;">
+          <h3 style="margin-bottom:.5rem;">Check Your Email</h3>
+          <p style="font-size:.9rem;color:var(--text-muted);">We sent a confirmation link to <strong id="caConfirmEmail"></strong>. Click it, then sign in any time.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- What to Expect -->
+<section class="section">
+  <div class="container">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:64px; align-items:start;" data-reveal>
+      <div>
+        <span class="section-label">While You're Here</span>
+        <h2>What to Expect Today</h2>
+        <p style="margin:1rem 0 1.5rem;">A few things worth knowing during your visit.</p>
+        <div style="display:flex; flex-direction:column; gap:20px;">
+          <div style="display:flex; gap:16px; align-items:flex-start;">
+            <div style="width:36px; height:36px; border-radius:50%; background:rgba(188,122,30,.12); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--primary); font-weight:700;">1</div>
+            <div>
+              <h4 style="margin-bottom:.35rem;">You've Already Been Welcomed</h4>
+              <p style="font-size:.9rem;">Our greeters are real people who are genuinely glad you're here — not scripted salespeople. Need directions anywhere in the building? Just ask.</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:16px; align-items:flex-start;">
+            <div style="width:36px; height:36px; border-radius:50%; background:rgba(188,122,30,.12); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--primary); font-weight:700;">2</div>
+            <div>
+              <h4 style="margin-bottom:.35rem;">Your Kids Are Taken Care Of</h4>
+              <p style="font-size:.9rem;">Safe, fun, age-appropriate kids ministry is running right now for birth through 5th grade.</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:16px; align-items:flex-start;">
+            <div style="width:36px; height:36px; border-radius:50%; background:rgba(188,122,30,.12); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--primary); font-weight:700;">3</div>
+            <div>
+              <h4 style="margin-bottom:.35rem;">Come As You Are</h4>
+              <p style="font-size:.9rem;">No dress code, no performance required. Whatever you're wearing right now is exactly right.</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:16px; align-items:flex-start;">
+            <div style="width:36px; height:36px; border-radius:50%; background:rgba(188,122,30,.12); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--primary); font-weight:700;">4</div>
+            <div>
+              <h4 style="margin-bottom:.35rem;">No Pressure, Ever</h4>
+              <p style="font-size:.9rem;">We won't ask you to stand up, introduce yourself, or put your hand in the air. Just relax, experience, and see if Heritage Hill feels like home.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style="border-radius:var(--radius-lg); overflow:hidden; margin-bottom:24px; box-shadow:0 4px 20px rgba(0,0,0,.1);">
+          <img src="../assets/church/checkin-web.jpg" alt="Welcome desk at Heritage Hill" style="width:100%; display:block; object-fit:cover; max-height:260px;" loading="lazy" />
+        </div>
+        <div style="background:var(--bg-soft); border-radius:var(--radius-lg); padding:36px; border:1px solid var(--border);">
+          <h3 style="margin-bottom:1.5rem;">Service Times &amp; Location</h3>
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div style="padding:18px; background:#fff; border-radius:var(--radius); border:1px solid var(--border);">
+              <h4 style="color:var(--primary); margin-bottom:.35rem;">Sunday 10:30 AM</h4>
+              <p style="font-size:.875rem;">All ages welcome · Children's service provided after worship</p>
+            </div>
+          </div>
+          <div style="margin-top:24px; padding-top:24px; border-top:1px solid var(--border);">
+            <h4 style="margin-bottom:12px;">We're located at:</h4>
+            <p style="font-size:.9rem; margin-bottom:.5rem;">6909 Cornhusker Rd<br>Papillion, NE 68133</p>
+            <p style="font-size:.9rem; margin-bottom:1rem;"><a href="tel:4023318900" style="color:var(--primary); font-weight:600;">(402) 331-8900</a></p>
+            <a href="https://maps.google.com/?q=6909+Cornhusker+Rd+Papillion+NE+68133" target="_blank" rel="noopener" class="btn btn-primary" style="width:100%; justify-content:center;">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Get Directions
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer id="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <img src="../assets/logos/logo-left-full-dark.png" alt="Heritage Hill Church" onerror="this.style.display='none'" />
+        </div>
+        <p>A Church of the Nazarene in Papillion, Nebraska. We're a community of Jesus followers — come as you are; you belong here.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Navigate</h5>
+        <ul>
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="../about.html">About Us</a></li>
+          <li><a href="../events.html">Events</a></li>
+          <li><a href="../small-groups.html">Small Groups</a></li>
+          <li><a href="../prayer.html">Prayer</a></li>
+          <li><a href="../sermons.html">Watch</a></li>
+          <li><a href="../give.html">Give</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Ministries</h5>
+        <ul>
+          <li><a href="../small-groups.html">Small Groups</a></li>
+          <li><a href="#">Children's Ministry</a></li>
+          <li><a href="#">Youth Ministry</a></li>
+          <li><a href="#">Women's Ministry</a></li>
+          <li><a href="#">Men's Ministry</a></li>
+        </ul>
+      </div>
+      <div class="footer-col footer-contact">
+        <h5>Contact Us</h5>
+        <p><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>6909 Cornhusker Rd, Papillion, NE 68133</p>
+        <p><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.73 8.7 19.79 19.79 0 01.67 4.1 2 2 0 012.63 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L7.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg><a href="tel:4023318900">(402) 331-8900</a></p>
+        <p><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Sun 10:30 AM</p>
+      </div>
+    </div>
+    <hr class="footer-divider" />
+    <div class="footer-bottom">
+      <p>&copy; <span id="footerYear"></span> Heritage Hill Church · Papillion, Nebraska</p>
+      <p><a href="../admin/login.html" style="color:rgba(255,255,255,.2); font-size:.75rem;">Admin</a></p>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../js/supabase-client.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/main.js"></script>
+<script>
+  document.getElementById('footerYear').textContent = new Date().getFullYear();
+  renderNavAvatar();
+  // Stamp load time so we can reject instant (bot) submissions
+  document.getElementById('ccLoadedAt').value = Date.now();
+
+  let _connectName = '', _connectEmail = '', _connectPhone = '';
+
+  async function handleConnectSubmit(e) {
+    e.preventDefault();
+    // Honeypot: bots fill this hidden field, humans never see it
+    if (document.getElementById('ccHoneypot').value) return;
+    // Time check: real humans take more than 2 seconds to fill a form
+    if (Date.now() - parseInt(document.getElementById('ccLoadedAt').value || '0') < 2000) return;
+
+    const name  = document.getElementById('ccName').value.trim();
+    const email = document.getElementById('ccEmail').value.trim();
+    const phone = document.getElementById('ccPhone').value.trim();
+    const errEl = document.getElementById('ccError');
+    const btn   = document.getElementById('ccBtn');
+    errEl.style.display = 'none';
+    btn.disabled = true; btn.textContent = 'Connecting…';
+
+    const result = await SupaDB.submitConnectCard({ name, email, phone });
+
+    btn.disabled = false; btn.textContent = 'Connect';
+    if (result.error) {
+      errEl.textContent = "Something went wrong. Please try again, or just find a greeter — we'd love to meet you.";
+      errEl.style.display = '';
+      return;
+    }
+    _connectName = name; _connectEmail = email; _connectPhone = phone;
+    document.getElementById('connectForm').style.display = 'none';
+    document.getElementById('connectSuccess').style.display = '';
+  }
+
+  async function handleCreateAccount(e) {
+    e.preventDefault();
+    const pw = document.getElementById('caPassword').value;
+    const errEl = document.getElementById('caError');
+    const btn = document.getElementById('caBtn');
+    errEl.style.display = 'none';
+    if (pw.length < 8) {
+      errEl.textContent = 'Password must be at least 8 characters.';
+      errEl.style.display = '';
+      return;
+    }
+    btn.disabled = true; btn.textContent = 'Creating…';
+    const { session, error } = await SupaDB.signUpMember(_connectEmail, pw, {
+      name: _connectName, phone: _connectPhone,
+    });
+    if (error) {
+      errEl.textContent = /already|registered/i.test(error)
+        ? 'An account with this email already exists — sign in instead.' : error;
+      errEl.style.display = '';
+      btn.disabled = false; btn.textContent = 'Create My Account';
+      return;
+    }
+    if (session) {
+      window.location.href = '../admin/my-profile.html';
+    } else {
+      document.getElementById('caConfirmEmail').textContent = _connectEmail;
+      document.getElementById('accountOfferCard').style.display = 'none';
+      document.getElementById('accountConfirmCard').style.display = '';
+    }
+  }
+</script>
+<script src="../js/banner.js"></script>
+</body>
+</html>
