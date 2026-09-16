@@ -587,6 +587,37 @@ p  { font-size: 1.0625rem; color: var(--text-muted); }
   .filter-input, .filter-select { width: 100%; }
   .section { padding: 56px 0; }
   .section-lg { padding: 72px 0; }
+
+  /* Many page sections use an inline `style="display:grid;
+     grid-template-columns:..."` two/three-column layout instead of the
+     .grid-2/.grid-3 classes above (which DO already collapse at this
+     breakpoint) -- an inline style has higher specificity than a normal
+     class rule, so those layouts never collapsed and pushed the whole
+     page wider than the viewport on mobile, cutting off content
+     (including the fixed announcement bar) off-screen. This forces every
+     such inline multi-column grid down to one column here too, exactly
+     matching what .grid-2/.grid-3 already do. Single-column
+     (`1fr`) and auto-fit/auto-fill patterns are left alone since those
+     already reflow naturally. */
+  [style*="grid-template-columns:1fr 1fr"],
+  [style*="grid-template-columns: 1fr 1fr"],
+  [style*="grid-template-columns:1fr 1fr 1fr"],
+  [style*="grid-template-columns:repeat(2,1fr)"],
+  [style*="grid-template-columns: repeat(2, 1fr)"],
+  [style*="grid-template-columns: repeat(2,1fr)"],
+  [style*="grid-template-columns:repeat(3,1fr)"],
+  [style*="grid-template-columns: repeat(3, 1fr)"],
+  [style*="grid-template-columns: repeat(3,1fr)"],
+  [style*="grid-template-columns:repeat(4,1fr)"],
+  [style*="grid-template-columns: repeat(6,1fr)"],
+  [style*="grid-template-columns:1fr 2fr"],
+  [style*="grid-template-columns: 2fr 1fr"],
+  [style*="grid-template-columns:1fr 80px 90px"],
+  [style*="grid-template-columns:1fr auto"],
+  [style*="grid-template-columns:1fr 100px 1fr auto"],
+  [style*="grid-template-columns:160px 1fr 1fr auto"] {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 @media (max-width: 480px) {
