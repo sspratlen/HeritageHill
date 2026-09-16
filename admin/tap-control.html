@@ -207,10 +207,12 @@
 <script src="../js/db.js"></script>
 <script>
 let _user = null;
+let _sections = [];
 let _section = null;
 let _links = [];
 let _current = null;
 let _editingLinkId = null;
+let _slugManuallyEdited = false;
 
 function showToast(msg, isError = false) {
   const t = document.getElementById('toast');
@@ -239,28 +241,118 @@ function escapeHtml(s) {
 })();
 
 async function init() {
-  const sections = await SupaDB.getTapSections();
   document.getElementById('loadingMsg').style.display = 'none';
   document.getElementById('pageContent').style.display = 'block';
+  await loadLinks();
+  await refreshSections();
+}
 
-  if (!sections.length) {
+async function refreshSections(preferredId) {
+  _sections = await SupaDB.getTapSections();
+  if (!_sections.length) {
+    _section = null;
+    document.getElementById('sectionCard').style.display = 'none';
+    document.getElementById('manageCard').style.display = 'none';
+    document.getElementById('statsCard').style.display = 'none';
     document.getElementById('errorBox').innerHTML =
       '<div class="error-box">No tap sections configured yet — run supabase/tap-redirect-schema.sql in the Supabase SQL editor first.</div>';
     return;
   }
-
-  _section = sections.find(s => s.slug === 'main-auditorium') || sections[0];
+  document.getElementById('errorBox').innerHTML = '';
   document.getElementById('sectionCard').style.display = 'block';
   document.getElementById('manageCard').style.display = 'block';
   document.getElementById('statsCard').style.display = 'block';
-  document.getElementById('sectionName').textContent = _section.name;
+  const keepId = preferredId || (_section && _sections.some(s => s.id === _section.id) ? _section.id : null);
+  await selectSection(keepId || _sections[0].id);
+}
 
-  await loadLinks();
+async function selectSection(id) {
+  _section = _sections.find(s => s.id === id) || _sections[0];
+  renderSectionSelect();
   await loadCurrent();
   await refreshStats();
-
   document.getElementById('tagUrlBox').textContent =
     `${SUPABASE_URL}/functions/v1/tap-redirect?section=${_section.slug}`;
+}
+
+function renderSectionSelect() {
+  const sel = document.getElementById('sectionSelect');
+  sel.innerHTML = _sections.map(s => `<option value="${s.id}" ${_section && _section.id === s.id ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('');
+}
+
+function onSectionChange() {
+  selectSection(document.getElementById('sectionSelect').value);
+}
+
+function startAddSection() {
+  document.getElementById('sectionRow').style.display = 'none';
+  document.getElementById('addSectionForm').classList.add('open');
+  document.getElementById('newSectionName').value = '';
+  document.getElementById('newSectionSlug').value = '';
+  _slugManuallyEdited = false;
+  document.getElementById('newSectionName').focus();
+}
+
+function cancelAddSection() {
+  document.getElementById('addSectionForm').classList.remove('open');
+  document.getElementById('sectionRow').style.display = 'flex';
+}
+
+function slugifySectionName(s) {
+  return s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-+|-+$)/g, '');
+}
+
+function onNewSectionNameInput() {
+  if (_slugManuallyEdited) return;
+  document.getElementById('newSectionSlug').value = slugifySectionName(document.getElementById('newSectionName').value);
+}
+
+function onNewSectionSlugInput() {
+  _slugManuallyEdited = true;
+}
+
+async function saveNewSection() {
+  const name = document.getElementById('newSectionName').value.trim();
+  const slug = document.getElementById('newSectionSlug').value.trim();
+  if (!name || !slug) { showToast('Name and slug are both required.', true); return; }
+  const result = await SupaDB.adminAddTapSection({ slug, name });
+  if (result.error) { showToast('Error: ' + result.error, true); return; }
+  cancelAddSection();
+  showToast(`✓ "${name}" added`);
+  await refreshSections(result.id);
+}
+
+function startRenameSection() {
+  if (!_section) return;
+  document.getElementById('sectionRow').style.display = 'none';
+  document.getElementById('renameSectionForm').classList.add('open');
+  const input = document.getElementById('renameSectionInput');
+  input.value = _section.name;
+  input.focus();
+}
+
+function cancelRenameSection() {
+  document.getElementById('renameSectionForm').classList.remove('open');
+  document.getElementById('sectionRow').style.display = 'flex';
+}
+
+async function saveRenameSection() {
+  const name = document.getElementById('renameSectionInput').value.trim();
+  if (!name) { showToast('Name is required.', true); return; }
+  const result = await SupaDB.adminRenameTapSection(_section.id, name);
+  if (result.error) { showToast('Error: ' + result.error, true); return; }
+  cancelRenameSection();
+  showToast('✓ Renamed');
+  await refreshSections(_section.id);
+}
+
+async function deleteSection() {
+  if (!_section) return;
+  if (!confirm(`Delete "${_section.name}"? This also erases its current destination and all tap history for this section. This can't be undone.`)) return;
+  const result = await SupaDB.adminDeleteTapSection(_section.id);
+  if (result.error) { showToast('Error: ' + result.error, true); return; }
+  showToast('Section deleted.');
+  await refreshSections();
 }
 
 async function loadLinks() {
