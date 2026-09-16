@@ -1724,7 +1724,14 @@ window.SupaDB = {
       answers, scores, result,
     });
     if (error) return { error: error.message };
-    const { data: person } = await db().from('people').select('id').eq('user_id', userId).maybeSingle();
+    let { data: person } = await db().from('people').select('id').eq('user_id', userId).maybeSingle();
+    if (!person) {
+      const { data: profile } = await db().from('member_profiles').select('name,email,phone').eq('user_id', userId).maybeSingle();
+      if (profile) {
+        const personId = await this.upsertPerson({ name: profile.name, email: profile.email, phone: profile.phone });
+        if (personId) person = { id: personId };
+      }
+    }
     if (person) this.recordMilestone(person.id, assessmentType === 'disc' ? 'assessment_disc_completed' : 'assessment_gifts_completed');
     return { success: true };
   },
