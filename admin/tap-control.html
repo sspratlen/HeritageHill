@@ -84,6 +84,12 @@
     .link-row-info { flex: 1; min-width: 0; }
     .link-row-label { font-size: .85rem; font-weight: 700; }
     .link-row-url { font-size: .72rem; color: var(--text-muted); word-break: break-all; }
+    .link-row-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .link-row-editing { display: block; padding: 12px 0; }
+    .link-row-edit-form { display: flex; flex-direction: column; gap: 8px; }
+    .link-row-edit-form input { padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: .85rem; width: 100%; }
+    .link-row-edit-form input:focus { outline: none; border-color: var(--primary); }
+    .link-row-edit-actions { display: flex; gap: 8px; }
     .add-link-form { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
     .add-link-form input { padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: .85rem; }
 
@@ -173,6 +179,7 @@ let _user = null;
 let _section = null;
 let _links = [];
 let _current = null;
+let _editingLinkId = null;
 
 function showToast(msg, isError = false) {
   const t = document.getElementById('toast');
@@ -284,15 +291,59 @@ function toggleManage() {
 function renderManageList() {
   const wrap = document.getElementById('linkRows');
   if (!_links.length) { wrap.innerHTML = '<p style="font-size:.82rem;color:var(--text-muted);">No saved links yet.</p>'; return; }
-  wrap.innerHTML = _links.map(l => `
+  wrap.innerHTML = _links.map(l => {
+    if (l.id === _editingLinkId) {
+      return `
+        <div class="link-row link-row-editing" data-id="${l.id}">
+          <div class="link-row-edit-form">
+            <input type="text" class="edit-label-input" value="${escapeHtml(l.label)}" placeholder="Label" />
+            <input type="text" class="edit-url-input" value="${escapeHtml(l.url)}" placeholder="https://…" />
+            <div class="link-row-edit-actions">
+              <button class="btn btn-primary btn-sm" onclick="saveLinkEdit('${l.id}')">Save</button>
+              <button class="btn btn-secondary btn-sm" onclick="cancelLinkEdit()">Cancel</button>
+            </div>
+          </div>
+        </div>`;
+    }
+    return `
     <div class="link-row">
       <div class="link-row-info">
         <div class="link-row-label">${escapeHtml(l.label)}</div>
         <div class="link-row-url">${escapeHtml(l.url)}</div>
       </div>
-      <button class="btn btn-secondary btn-sm" data-id="${l.id}" data-label="${escapeHtml(l.label)}" onclick="deleteLink(this.dataset.id, this.dataset.label)">Delete</button>
-    </div>
-  `).join('');
+      <div class="link-row-actions">
+        <button class="btn btn-secondary btn-sm" data-id="${l.id}" onclick="startLinkEdit(this.dataset.id)">Edit</button>
+        <button class="btn btn-secondary btn-sm" data-id="${l.id}" data-label="${escapeHtml(l.label)}" onclick="deleteLink(this.dataset.id, this.dataset.label)">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function startLinkEdit(id) {
+  _editingLinkId = id;
+  renderManageList();
+  const row = document.querySelector(`.link-row-editing[data-id="${id}"]`);
+  if (row) row.querySelector('.edit-label-input').focus();
+}
+
+function cancelLinkEdit() {
+  _editingLinkId = null;
+  renderManageList();
+}
+
+async function saveLinkEdit(id) {
+  const row = document.querySelector(`.link-row-editing[data-id="${id}"]`);
+  const label = row.querySelector('.edit-label-input').value.trim();
+  const url = row.querySelector('.edit-url-input').value.trim();
+  if (!label || !url) { showToast('Label and URL are both required.', true); return; }
+  if (!/^https?:\/\//i.test(url)) { showToast('URL must start with http:// or https://', true); return; }
+  const existing = _links.find(l => l.id === id);
+  const result = await SupaDB.adminSaveTapLink({ id, label, url, sortOrder: existing ? existing.sortOrder : 0 });
+  if (result.error) { showToast('Error: ' + result.error, true); return; }
+  _editingLinkId = null;
+  await loadLinks();
+  await loadCurrent();
+  showToast(`✓ "${label}" saved`);
 }
 
 async function addLink() {
