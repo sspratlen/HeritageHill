@@ -168,6 +168,14 @@ function signupToDb(s) {
   };
 }
 
+function connectSubmissionFromDb(r) {
+  return {
+    id: r.id, personId: r.person_id, name: r.name, email: r.email, phone: r.phone || '',
+    contacted: !!r.contacted, contactedAt: r.contacted_at || null, contactedBy: r.contacted_by || '',
+    createdAt: r.created_at,
+  };
+}
+
 function applicationFromDb(r) {
   return {
     id: r.id, status: r.status || 'pending', submittedDate: r.submitted_date,
@@ -1828,5 +1836,40 @@ window.SupaDB = {
     const rows = data || [];
     const sinceChange = sinceIso ? rows.filter(r => r.tapped_at >= sinceIso).length : rows.length;
     return { today: rows.length, sinceChange };
+  },
+
+/* ── PUBLIC: Connect Page ───────────────────────────────── */
+  async submitConnectCard({ name, email, phone }) {
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const personId = await this.upsertPerson({ name, email, phone });
+      const { error } = await db().from('connect_submissions').insert({
+        person_id: personId, name, email, phone: phone || '',
+      });
+      if (error) throw error;
+      if (personId) this.recordMilestone(personId, 'connect_card_submitted');
+      return { success: true };
+    } catch(e) { console.error('[SupaDB] submitConnectCard:', e.message); return { error: e.message }; }
+  },
+
+/* ── ADMIN: Connect Submissions ─────────────────────────── */
+  async adminGetConnectSubmissions() {
+    if (!db()) return [];
+    try {
+      const { data, error } = await db().from('connect_submissions').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data || []).map(connectSubmissionFromDb);
+    } catch(e) { console.error('[SupaDB] adminGetConnectSubmissions:', e.message); return []; }
+  },
+  async adminMarkConnectContacted(id, contacted, contactedBy) {
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const updates = contacted
+        ? { contacted: true, contacted_at: new Date().toISOString(), contacted_by: contactedBy || '' }
+        : { contacted: false, contacted_at: null, contacted_by: null };
+      const { error } = await db().from('connect_submissions').update(updates).eq('id', id);
+      if (error) throw error;
+      return { success: true };
+    } catch(e) { console.error('[SupaDB] adminMarkConnectContacted:', e.message); return { error: e.message }; }
   },
 };
