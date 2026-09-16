@@ -1348,6 +1348,9 @@
     <div class="tab-panel" id="panelAnalytics">
       <div class="action-bar">
         <h2>Assessment Analytics</h2>
+        <button class="btn btn-primary" onclick="openRecordAssessmentModal()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Record Assessment
+        </button>
       </div>
       <div class="chart-card" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px;">
         <h3 style="font-size:1.05rem;margin-bottom:14px;">Journey Funnel</h3>
@@ -1505,6 +1508,57 @@
       </div>
     </div>
     <div class="modal-footer"><button class="btn btn-ghost" onclick="closeEventSignupsModal()">Close</button></div>
+  </div>
+</div>
+
+<!-- RECORD ASSESSMENT MODAL -->
+<div class="modal-overlay" id="recordAssessmentModal">
+  <div class="modal modal-lg">
+    <div class="modal-header"><h3>Record Assessment Result</h3><button class="modal-close" onclick="closeRecordAssessmentModal()">✕</button></div>
+    <div class="modal-body">
+
+      <div id="raaPersonPicker">
+        <label style="font-size:.85rem;font-weight:600;margin-bottom:6px;display:block;">Person</label>
+        <input type="text" id="raaSearchInput" placeholder="Search by name or email…" oninput="raaFilterPeople()"
+          style="width:100%;padding:.6rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;box-sizing:border-box;" />
+        <div class="raa-search-results" id="raaSearchResults" style="display:none;"></div>
+      </div>
+      <div id="raaPersonChip" style="display:none;margin-bottom:16px;">
+        <span class="raa-person-chip">Recording for: <strong id="raaPersonName"></strong> (<span id="raaPersonEmail"></span>) <button onclick="raaClearPerson()">Change</button></span>
+      </div>
+
+      <div class="raa-toggle-row" style="margin-top:20px;">
+        <button type="button" class="raa-toggle-btn active" id="raaTypeDisc" onclick="raaSetType('disc')">DISC</button>
+        <button type="button" class="raa-toggle-btn" id="raaTypeGifts" onclick="raaSetType('gifts')">Spiritual Gifts</button>
+      </div>
+      <div class="raa-toggle-row">
+        <button type="button" class="raa-toggle-btn active" id="raaModeAnswers" onclick="raaSetMode('answers')">Enter Answers</button>
+        <button type="button" class="raa-toggle-btn" id="raaModeDirect" onclick="raaSetMode('direct')">Enter Result Directly</button>
+      </div>
+
+      <div id="raaAnswersForm">
+        <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:8px;" id="raaProgressLabel">0 of 0 answered</div>
+        <div id="raaQList"></div>
+      </div>
+
+      <div id="raaDirectForm" style="display:none;">
+        <div id="raaDiscDirectWrap">
+          <label style="font-size:.85rem;font-weight:600;margin-bottom:6px;display:block;">DISC Blend</label>
+          <select id="raaDiscBlendSelect" style="width:100%;padding:.6rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;">
+            <option value="">— Select —</option>
+          </select>
+        </div>
+        <div id="raaGiftsDirectWrap" style="display:none;">
+          <label style="font-size:.85rem;font-weight:600;margin-bottom:6px;display:block;">Top Gifts (check all that apply)</label>
+          <div id="raaGiftsChecklist"></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeRecordAssessmentModal()">Close</button>
+      <button class="btn btn-primary" id="raaSaveBtn" onclick="raaSave()" disabled>Save Result</button>
+    </div>
   </div>
 </div>
 
