@@ -1790,7 +1790,8 @@ window.SupaDB = {
     if (data.custom_url) {
       url = data.custom_url;
     } else if (data.link_id) {
-      const { data: link } = await db().from('tap_links').select('label,url').eq('id', data.link_id).maybeSingle();
+      const { data: link, error: linkErr } = await db().from('tap_links').select('label,url').eq('id', data.link_id).maybeSingle();
+      if (linkErr) console.error('[SupaDB] getTapCurrent (link lookup):', linkErr.message);
       if (link) { label = link.label; url = link.url; }
     }
     return {
