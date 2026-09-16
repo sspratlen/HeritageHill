@@ -155,4 +155,18 @@
   .shell-sidebar.open { transform: translateX(0); }
   .shell-main { margin-left: 0; }
   .shell-mobile-hamburger { display: flex; }
+
+  /* Some panels use an inline style="display:grid;
+     grid-template-columns:..." layout, which an ordinary class rule
+     can't override (inline style wins on specificity). Whether a
+     parsed style attribute gets re-serialized with a space after the
+     property colon turned out to be inconsistent across how a page is
+     loaded (confirmed empirically while fixing the same bug on the
+     public site's css/style.css), so both forms are listed here. */
+  [style*="grid-template-columns:1fr 1fr"],
+  [style*="grid-template-columns: 1fr 1fr"],
+  [style*="grid-template-columns:1fr 1fr 1fr"],
+  [style*="grid-template-columns: 1fr 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
 }

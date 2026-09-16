@@ -199,6 +199,54 @@
       .sidebar.open { transform: translateX(0); }
       .main { margin-left: 0; }
       .mobile-hamburger { display: flex; }
+
+      /* Many panels here use an inline style="display:grid;
+         grid-template-columns:..." layout instead of a class, so the
+         media-query overrides above (.form-row, .stats-row) don't reach
+         them -- an inline style wins over any class rule, and an inline
+         style="grid-template-columns:..." directly on a .stats-row
+         element even overrides that class's own override. This forces
+         every such inline multi-column grid down to one column on
+         mobile too. Whether a parsed style attribute gets re-serialized
+         with a space after the property colon turned out to be
+         inconsistent across how a page is loaded (confirmed empirically
+         while fixing the same bug on the public site: differs between a
+         normal navigation and an iframe/document.write render of the
+         same markup), so every selector below is listed both ways
+         rather than trusting one; comma-spacing inside repeat(...) is
+         covered both ways for the same reason. Single-column (`1fr`)
+         and auto-fit/auto-fill patterns are left alone since those
+         already reflow naturally. */
+      [style*="grid-template-columns:1fr 1fr"],
+      [style*="grid-template-columns: 1fr 1fr"],
+      [style*="grid-template-columns:repeat(2,1fr)"],
+      [style*="grid-template-columns: repeat(2,1fr)"],
+      [style*="grid-template-columns:repeat(2, 1fr)"],
+      [style*="grid-template-columns: repeat(2, 1fr)"],
+      [style*="grid-template-columns:repeat(3,1fr)"],
+      [style*="grid-template-columns: repeat(3,1fr)"],
+      [style*="grid-template-columns:repeat(3, 1fr)"],
+      [style*="grid-template-columns: repeat(3, 1fr)"],
+      [style*="grid-template-columns:repeat(6, 1fr)"],
+      [style*="grid-template-columns: repeat(6, 1fr)"],
+      [style*="grid-template-columns:repeat(6,1fr)"],
+      [style*="grid-template-columns: repeat(6,1fr)"],
+      [style*="grid-template-columns:160px 1fr 1fr auto"],
+      [style*="grid-template-columns: 160px 1fr 1fr auto"],
+      [style*="grid-template-columns:1fr 100px 1fr auto"],
+      [style*="grid-template-columns: 1fr 100px 1fr auto"],
+      [style*="grid-template-columns:1fr 1fr 1fr"],
+      [style*="grid-template-columns: 1fr 1fr 1fr"],
+      [style*="grid-template-columns:1fr 2fr"],
+      [style*="grid-template-columns: 1fr 2fr"],
+      [style*="grid-template-columns:1fr 80px 90px"],
+      [style*="grid-template-columns: 1fr 80px 90px"],
+      [style*="grid-template-columns:repeat(4,1fr)"],
+      [style*="grid-template-columns: repeat(4,1fr)"],
+      [style*="grid-template-columns:repeat(4, 1fr)"],
+      [style*="grid-template-columns: repeat(4, 1fr)"] {
+        grid-template-columns: 1fr !important;
+      }
     }
     /* Quill editor */
     .ql-toolbar.ql-snow { border-radius: 8px 8px 0 0; border-color: var(--border); font-family: 'DM Sans', sans-serif; }
