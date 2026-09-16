@@ -138,8 +138,29 @@
   <div id="errorBox"></div>
 
   <div class="card" id="sectionCard" style="display:none;">
-    <div class="section-label" id="sectionLabelWrap">Section</div>
-    <div class="section-name" id="sectionName">–</div>
+    <div class="section-label">Section</div>
+    <div class="section-row" id="sectionRow">
+      <select class="section-select" id="sectionSelect" onchange="onSectionChange()"></select>
+      <div class="section-actions">
+        <button class="btn btn-secondary btn-sm" onclick="startAddSection()">+ Add</button>
+        <button class="btn btn-secondary btn-sm" onclick="startRenameSection()">Rename</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteSection()">Delete</button>
+      </div>
+    </div>
+    <div class="rename-section-form" id="renameSectionForm">
+      <input type="text" id="renameSectionInput" placeholder="Section name" />
+      <button class="btn btn-primary btn-sm" onclick="saveRenameSection()">Save</button>
+      <button class="btn btn-secondary btn-sm" onclick="cancelRenameSection()">Cancel</button>
+    </div>
+    <div class="add-section-form" id="addSectionForm">
+      <input type="text" id="newSectionName" placeholder="Section name (e.g. Overflow Room)" oninput="onNewSectionNameInput()" />
+      <input type="text" id="newSectionSlug" placeholder="url-slug" oninput="onNewSectionSlugInput()" />
+      <div class="add-section-hint">This slug becomes part of the physical tag's URL and can't be changed later.</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary btn-sm" onclick="saveNewSection()">Save Section</button>
+        <button class="btn btn-secondary btn-sm" onclick="cancelAddSection()">Cancel</button>
+      </div>
+    </div>
 
     <div class="current-label">Currently pointing to</div>
     <div class="current-value" id="currentLabel">–</div>
