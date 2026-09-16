@@ -1716,6 +1716,18 @@ window.SupaDB = {
     if (person) this.recordMilestone(person.id, assessmentType === 'disc' ? 'assessment_disc_completed' : 'assessment_gifts_completed');
     return { success: true };
   },
+  async adminAddAssessmentAttempt({ userId, assessmentType, answers, scores, result }) {
+    if (!db()) return { error: 'Not configured' };
+    if (!userId) return { error: 'No person selected' };
+    const { error } = await db().from('assessment_attempts').insert({
+      user_id: userId, assessment_type: assessmentType,
+      answers, scores, result,
+    });
+    if (error) return { error: error.message };
+    const { data: person } = await db().from('people').select('id').eq('user_id', userId).maybeSingle();
+    if (person) this.recordMilestone(person.id, assessmentType === 'disc' ? 'assessment_disc_completed' : 'assessment_gifts_completed');
+    return { success: true };
+  },
   async getMyAttempts() {
     if (!db()) return [];
     const { data: { user } } = await db().auth.getUser();
