@@ -93,6 +93,25 @@
     .modal-overlay.open { display: flex; }
     .modal { background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg); width: 100%; max-width: 640px; max-height: 95vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
     .modal.modal-lg { max-width: min(960px, 94vw); }
+    .raa-person-chip { display:inline-flex; align-items:center; gap:10px; background:var(--bg); border:1px solid var(--border); border-radius:50px; padding:8px 16px; font-size:.88rem; }
+    .raa-person-chip button { background:none; border:none; color:var(--secondary); font-family:inherit; font-size:.82rem; cursor:pointer; padding:0; margin-left:4px; }
+    .raa-search-results { max-height:220px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; margin-top:8px; }
+    .raa-search-row { padding:10px 14px; cursor:pointer; border-bottom:1px solid var(--border); font-size:.88rem; }
+    .raa-search-row:last-child { border-bottom:none; }
+    .raa-search-row:hover { background:var(--bg); }
+    .raa-search-row .email { color:var(--text-muted); font-size:.8rem; }
+    .raa-toggle-row { display:flex; gap:8px; margin-bottom:16px; }
+    .raa-toggle-btn { flex:1; padding:10px; border-radius:8px; border:1.5px solid var(--border); background:#fff; font-family:inherit; font-weight:600; font-size:.88rem; cursor:pointer; color:var(--text-muted); }
+    .raa-toggle-btn.active { background:var(--primary); border-color:var(--primary); color:#fff; }
+    .raa-q-block { padding:14px 0; border-bottom:1px solid var(--border); }
+    .raa-q-block:last-child { border-bottom:none; }
+    .raa-q-text { font-size:.9rem; font-weight:500; margin-bottom:8px; }
+    .raa-q-scale { display:flex; gap:6px; flex-wrap:wrap; }
+    .raa-q-scale label { border:1.5px solid var(--border); border-radius:8px; padding:6px 12px; font-size:.82rem; cursor:pointer; }
+    .raa-q-scale input { display:none; }
+    .raa-q-scale label:has(input:checked) { background:var(--primary); border-color:var(--primary); color:#fff; }
+    .raa-gift-check { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); font-size:.88rem; }
+    .raa-gift-check:last-child { border-bottom:none; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 22px 28px; border-bottom: 1px solid var(--border); }
     .modal-header h3 { font-size: 1.1rem; }
     .modal-close { width: 32px; height: 32px; border-radius: 50%; background: var(--bg); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--text-muted); transition: background .2s; }
