@@ -598,24 +598,31 @@ p  { font-size: 1.0625rem; color: var(--text-muted); }
      such inline multi-column grid down to one column here too, exactly
      matching what .grid-2/.grid-3 already do. Single-column
      (`1fr`) and auto-fit/auto-fill patterns are left alone since those
-     already reflow naturally. */
-  [style*="grid-template-columns:1fr 1fr"],
+     already reflow naturally.
+
+     IMPORTANT: browsers normalize a parsed `style` attribute back to a
+     canonical serialization when the DOM is inspected -- always
+     "property: value" with a space after the colon, regardless of the
+     spacing in the original HTML source. Every selector below must use
+     that space-after-colon form (confirmed empirically) or it silently
+     never matches. Comma-spacing inside repeat(...) is included both
+     ways since that normalization was not verified either way. */
   [style*="grid-template-columns: 1fr 1fr"],
-  [style*="grid-template-columns:1fr 1fr 1fr"],
-  [style*="grid-template-columns:repeat(2,1fr)"],
+  [style*="grid-template-columns: 1fr 1fr 1fr"],
   [style*="grid-template-columns: repeat(2, 1fr)"],
   [style*="grid-template-columns: repeat(2,1fr)"],
-  [style*="grid-template-columns:repeat(3,1fr)"],
   [style*="grid-template-columns: repeat(3, 1fr)"],
   [style*="grid-template-columns: repeat(3,1fr)"],
-  [style*="grid-template-columns:repeat(4,1fr)"],
+  [style*="grid-template-columns: repeat(4, 1fr)"],
+  [style*="grid-template-columns: repeat(4,1fr)"],
+  [style*="grid-template-columns: repeat(6, 1fr)"],
   [style*="grid-template-columns: repeat(6,1fr)"],
-  [style*="grid-template-columns:1fr 2fr"],
+  [style*="grid-template-columns: 1fr 2fr"],
   [style*="grid-template-columns: 2fr 1fr"],
-  [style*="grid-template-columns:1fr 80px 90px"],
-  [style*="grid-template-columns:1fr auto"],
-  [style*="grid-template-columns:1fr 100px 1fr auto"],
-  [style*="grid-template-columns:160px 1fr 1fr auto"] {
+  [style*="grid-template-columns: 1fr 80px 90px"],
+  [style*="grid-template-columns: 1fr auto"],
+  [style*="grid-template-columns: 1fr 100px 1fr auto"],
+  [style*="grid-template-columns: 160px 1fr 1fr auto"] {
     grid-template-columns: 1fr !important;
   }
 }
