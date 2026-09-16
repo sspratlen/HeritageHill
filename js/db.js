@@ -1788,6 +1788,24 @@ window.SupaDB = {
     if (error) { console.error('[SupaDB] getTapSections:', error.message); return []; }
     return (data || []).map(r => ({ id: r.id, slug: r.slug, name: r.name }));
   },
+  async adminAddTapSection({ slug, name }) {
+    if (!db()) return { error: 'Not configured' };
+    const { data, error } = await db().from('tap_sections').insert({ slug, name }).select().single();
+    if (error) return { error: error.message };
+    return { id: data.id, slug: data.slug, name: data.name };
+  },
+  async adminRenameTapSection(id, name) {
+    if (!db()) return { error: 'Not configured' };
+    const { error } = await db().from('tap_sections').update({ name }).eq('id', id);
+    if (error) return { error: error.message };
+    return { success: true };
+  },
+  async adminDeleteTapSection(id) {
+    if (!db()) return { error: 'Not configured' };
+    const { error } = await db().from('tap_sections').delete().eq('id', id);
+    if (error) return { error: error.message };
+    return { success: true };
+  },
   async getTapLinks() {
     if (!db()) return [];
     const { data, error } = await db().from('tap_links').select('*').order('sort_order');
