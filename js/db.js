@@ -1753,4 +1753,79 @@ window.SupaDB = {
       return [];
     }
   },
+
+/* ── Tap Redirect (Chair Tags) ──────────────────────────── */
+  async getTapSections() {
+    if (!db()) return [];
+    const { data, error } = await db().from('tap_sections').select('*').order('name');
+    if (error) { console.error('[SupaDB] getTapSections:', error.message); return []; }
+    return (data || []).map(r => ({ id: r.id, slug: r.slug, name: r.name }));
+  },
+  async getTapLinks() {
+    if (!db()) return [];
+    const { data, error } = await db().from('tap_links').select('*').order('sort_order');
+    if (error) { console.error('[SupaDB] getTapLinks:', error.message); return []; }
+    return (data || []).map(r => ({ id: r.id, label: r.label, url: r.url, sortOrder: r.sort_order }));
+  },
+  async adminSaveTapLink(link) {
+    if (!db()) return { error: 'Not configured' };
+    const row = { label: link.label, url: link.url, sort_order: link.sortOrder || 0 };
+    if (link.id) row.id = link.id;
+    const { data, error } = await db().from('tap_links').upsert(row).select().single();
+    if (error) return { error: error.message };
+    return { id: data.id, label: data.label, url: data.url, sortOrder: data.sort_order };
+  },
+  async adminDeleteTapLink(id) {
+    if (!db()) return { error: 'Not configured' };
+    const { error } = await db().from('tap_links').delete().eq('id', id);
+    if (error) return { error: error.message };
+    return { success: true };
+  },
+  async getTapCurrent(sectionId) {
+    if (!db()) return null;
+    const { data, error } = await db().from('tap_current').select('*').eq('section_id', sectionId).maybeSingle();
+    if (error) { console.error('[SupaDB] getTapCurrent:', error.message); return null; }
+    if (!data) return null;
+    let label = null, url = null;
+    if (data.custom_url) {
+      url = data.custom_url;
+    } else if (data.link_id) {
+      const { data: link } = await db().from('tap_links').select('label,url').eq('id', data.link_id).maybeSingle();
+      if (link) { label = link.label; url = link.url; }
+    }
+    return {
+      sectionId: data.section_id, linkId: data.link_id, customUrl: data.custom_url,
+      updatedAt: data.updated_at, updatedBy: data.updated_by, label, url,
+    };
+  },
+  async adminSetTapCurrentLink(sectionId, linkId, updatedBy) {
+    if (!db()) return { error: 'Not configured' };
+    const { error } = await db().from('tap_current').upsert({
+      section_id: sectionId, link_id: linkId, custom_url: null,
+      updated_at: new Date().toISOString(), updated_by: updatedBy,
+    });
+    if (error) return { error: error.message };
+    return { success: true };
+  },
+  async adminSetTapCurrentCustomUrl(sectionId, url, updatedBy) {
+    if (!db()) return { error: 'Not configured' };
+    const { error } = await db().from('tap_current').upsert({
+      section_id: sectionId, link_id: null, custom_url: url,
+      updated_at: new Date().toISOString(), updated_by: updatedBy,
+    });
+    if (error) return { error: error.message };
+    return { success: true };
+  },
+  async getTapEventStats(sectionId, sinceIso) {
+    if (!db()) return { today: 0, sinceChange: 0 };
+    const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
+    const { data, error } = await db().from('tap_events')
+      .select('tapped_at').eq('section_id', sectionId)
+      .gte('tapped_at', startOfToday.toISOString())
+      .order('tapped_at', { ascending: false });
+    if (error) { console.error('[SupaDB] getTapEventStats:', error.message); return { today: 0, sinceChange: 0 }; }
+    const rows = data || [];
+    const sinceChange = sinceIso ? rows.filter(r => r.tapped_at >= sinceIso).length : rows.length;
+    return { today: rows.length, sinceChange };
+  },
 };
