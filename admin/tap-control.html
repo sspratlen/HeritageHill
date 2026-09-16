@@ -290,7 +290,7 @@ function renderManageList() {
         <div class="link-row-label">${escapeHtml(l.label)}</div>
         <div class="link-row-url">${escapeHtml(l.url)}</div>
       </div>
-      <button class="btn btn-secondary btn-sm" onclick="deleteLink('${l.id}','${escapeHtml(l.label).replace(/'/g,"\\'")}')">Delete</button>
+      <button class="btn btn-secondary btn-sm" data-id="${l.id}" data-label="${escapeHtml(l.label)}" onclick="deleteLink(this.dataset.id, this.dataset.label)">Delete</button>
     </div>
   `).join('');
 }
