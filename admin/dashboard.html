@@ -233,6 +233,10 @@
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Events
     </a>
+    <a onclick="switchTab('connect')" id="sideConnect" data-tab="connect" class="nav-sub">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+      Connect
+    </a>
 
     <div class="nav-section nav-stage" id="navSectionFilled">
       <span class="nav-stage-circle">02</span>
@@ -1222,6 +1226,22 @@
         <h3 style="font-size:.95rem;margin-bottom:4px;">Not Yet Baptized</h3>
         <p style="color:var(--text-muted);font-size:.85rem;margin-bottom:4px;">Approved members with no baptism on record.</p>
         <div id="baptismNotYetBox"></div>
+      </div>
+    </div>
+
+    <!-- CONNECT -->
+    <div class="tab-panel" id="panelConnect">
+      <div class="action-bar">
+        <h2>Connect Submissions</h2>
+        <span id="connectCountLabel" style="margin-left:auto; font-size:.82rem; color:var(--text-muted);"></span>
+      </div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Name &amp; Contact</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="connectGrid"></tbody></table>
+      </div>
+      <div class="empty" id="connectEmpty" style="display:none;">
+        <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        <h3>No connect submissions yet</h3><p>When visitors submit the Connect card, they'll appear here.</p>
       </div>
     </div>
 
@@ -2240,7 +2260,7 @@
 <script>
 // Role-based access map
 const ROLE_TABS = {
-  admin:               ['people','baptism','groups','attendance','growthtrack','analytics','impactteams','events','signups','applications','subscribers','prayer','retreat','sermons','email','settings','users'],
+  admin:               ['people','baptism','groups','attendance','growthtrack','analytics','impactteams','events','connect','signups','applications','subscribers','prayer','retreat','sermons','email','settings','users'],
   event_manager:       ['events','sermons','email'],
 };
 const ROLE_LABELS = { admin:'Admin', event_manager:'Event Manager' };
@@ -2314,7 +2334,7 @@ function applyRoleVisibility() {
   }
 })();
 
-const ALL_TABS = ['people','baptism','groups','attendance','growthtrack','analytics','impactteams','events','signups','applications','subscribers','prayer','retreat','sermons','email','settings','users'];
+const ALL_TABS = ['people','baptism','groups','attendance','growthtrack','analytics','impactteams','events','connect','signups','applications','subscribers','prayer','retreat','sermons','email','settings','users'];
 function toggleSidebar() {
   document.querySelector('.sidebar').classList.toggle('open');
   document.getElementById('sidebarBackdrop').classList.toggle('open');
@@ -2337,9 +2357,10 @@ function switchTab(tab) {
   const c = tab[0].toUpperCase()+tab.slice(1);
   const p = document.getElementById('panel'+c), s = document.getElementById('side'+c);
   if(p) p.classList.add('active'); if(s) s.classList.add('active');
-  const titles = {events:'Events',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings',users:'User Permissions',people:'Membership',baptism:'Baptism',analytics:'Analytics',growthtrack:'Growth Track',impactteams:'Impact Teams'};
+  const titles = {events:'Events',connect:'Connect Submissions',groups:'Small Groups',signups:'Sign-Up Requests',applications:'Leader Applications',subscribers:'Newsletter Subscribers',prayer:'Prayer Requests',retreat:'Retreat 2026',attendance:'Attendance',sermons:'Sermons',email:'Email',settings:'Settings',users:'User Permissions',people:'Membership',baptism:'Baptism',analytics:'Analytics',growthtrack:'Growth Track',impactteams:'Impact Teams'};
   document.getElementById('topbarTitle').textContent = titles[tab]||tab;
   if(tab==='events') renderEventsTable();
+  else if(tab==='connect') renderConnectPanel();
   else if(tab==='groups') renderGroupsTable();
   else if(tab==='signups') renderSignupsPanel();
   else if(tab==='applications') renderApplicationsTable();
@@ -3159,6 +3180,33 @@ async function toggleSignupContacted(id){
   const newVal=!s.contacted;
   await SupaDB.updateSignup(id,{contacted:newVal});
   renderSignupsPanel();showToast(newVal?'Marked as contacted ✓':'Marked as uncontacted');
+}
+let _cachedConnectSubmissions = [];
+async function renderConnectPanel(){
+  _cachedConnectSubmissions = await SupaDB.adminGetConnectSubmissions();
+  const grid=document.getElementById('connectGrid'),empty=document.getElementById('connectEmpty');
+  const countLabel=document.getElementById('connectCountLabel');
+  countLabel.textContent=`${_cachedConnectSubmissions.length} submission${_cachedConnectSubmissions.length!==1?'s':''}`;
+  if(!_cachedConnectSubmissions.length){grid.innerHTML='';empty.style.display='';}
+  else{
+    empty.style.display='none';
+    grid.innerHTML=_cachedConnectSubmissions.map(c=>{
+      const ds=c.createdAt?new Date(c.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
+      return`<tr>
+        <td><strong>${escapeHtml(c.name)}</strong><br><a href="mailto:${escapeHtml(c.email)}" style="font-size:.8rem;color:var(--primary);">${escapeHtml(c.email)}</a>${c.phone?`<br><span style="font-size:.8rem;color:var(--text-muted);">${escapeHtml(c.phone)}</span>`:''}</td>
+        <td style="font-size:.82rem;color:var(--text-muted);">${ds}</td>
+        <td>${c.contacted?'<span class="badge badge-green">Contacted</span>':'<span class="badge badge-amber">New</span>'}</td>
+        <td><button class="btn btn-sm ${c.contacted?'btn-ghost':'btn-success'}" onclick="toggleConnectContacted(${c.id})">${c.contacted?'↩ Mark Uncontacted':'✓ Mark Contacted'}</button></td>
+      </tr>`;
+    }).join('');
+  }
+}
+async function toggleConnectContacted(id){
+  const c=_cachedConnectSubmissions.find(c=>c.id===id);
+  if(!c)return;
+  const newVal=!c.contacted;
+  await SupaDB.adminMarkConnectContacted(id, newVal, window._currentUser ? window._currentUser.email : '');
+  renderConnectPanel();showToast(newVal?'Marked as contacted ✓':'Marked as uncontacted');
 }
 function emailGroupSignups(){
   const filterGroupId=document.getElementById('signupFilterGroup').value;
