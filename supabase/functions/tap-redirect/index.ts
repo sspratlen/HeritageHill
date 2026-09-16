@@ -30,12 +30,14 @@ serve(async (req: Request) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     )
 
-    const { data: sectionRow } = await admin.from('tap_sections')
+    const { data: sectionRow, error: sectionErr } = await admin.from('tap_sections')
       .select('id').eq('slug', section).maybeSingle()
+    if (sectionErr) console.error('[tap-redirect] tap_sections lookup error:', sectionErr.message)
     if (!sectionRow) return fallback()
 
-    const { data: current } = await admin.from('tap_current')
+    const { data: current, error: currentErr } = await admin.from('tap_current')
       .select('link_id, custom_url').eq('section_id', sectionRow.id).maybeSingle()
+    if (currentErr) console.error('[tap-redirect] tap_current lookup error:', currentErr.message)
     if (!current) return fallback()
 
     let destUrl: string | null = null
@@ -44,8 +46,9 @@ serve(async (req: Request) => {
     if (current.custom_url) {
       destUrl = current.custom_url
     } else if (current.link_id) {
-      const { data: link } = await admin.from('tap_links')
+      const { data: link, error: linkErr } = await admin.from('tap_links')
         .select('label, url').eq('id', current.link_id).maybeSingle()
+      if (linkErr) console.error('[tap-redirect] tap_links lookup error:', linkErr.message)
       if (link) { destUrl = link.url; destLabel = link.label }
     }
 
