@@ -115,6 +115,22 @@ function buildAvatarHtml({ name, email, avatarUrl }, sizePx) {
   return `<span style="width:${sizePx}px;height:${sizePx}px;border-radius:50%;background:#BC7A1E;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:${fontSize}px;font-family:'DM Sans',sans-serif;">${escapeHtmlAttr(initials)}</span>`;
 }
 
+// Pages that call renderNavAvatar() live at different depths (most at
+// the site root, but e.g. connect/index.html is one directory down), so
+// a hardcoded 'admin/dashboard.html' resolves wrong from anywhere but
+// the root (it 404s as connect/admin/dashboard.html, for example).
+// Every such page already has a correct, working relative link to
+// css/style.css -- without it the page would be unstyled -- so that
+// link's own href reliably tells us the right site-root-relative prefix
+// to use here too, regardless of how deep the current page is nested or
+// what subpath the site is hosted under (staging vs. production).
+function siteRootPrefix() {
+  const link = document.querySelector('link[rel="stylesheet"][href$="css/style.css"]');
+  if (!link) return '';
+  const href = link.getAttribute('href');
+  return href.slice(0, href.length - 'css/style.css'.length);
+}
+
 async function renderNavAvatar() {
   if (!window.SupaDB) return;
   try {
@@ -123,7 +139,7 @@ async function renderNavAvatar() {
     const [roleData, profile] = await Promise.all([
       SupaDB.getUserRoleByEmail(user.email), SupaDB.getMyProfile(),
     ]);
-    const dest = roleData ? 'admin/dashboard.html' : 'admin/my-profile.html';
+    const dest = siteRootPrefix() + (roleData ? 'admin/dashboard.html' : 'admin/my-profile.html');
     const name = profile ? profile.name : '';
     const avatarUrl = profile ? profile.avatarUrl : null;
     const html = buildAvatarHtml({ name, email: user.email, avatarUrl }, 34);
@@ -175,6 +191,14 @@ function initPrayerFab() {
   // (e.g. admin/dashboard.html, for the profile avatar) which must never
   // show this public-site button or use its root-relative "prayer.html" link.
   const PUBLIC_PAGES = ['index', 'about', 'events', 'small-groups', 'growth-track', 'sermons', 'give', 'lead-a-group'];
+  // Every PUBLIC_PAGES entry lives at the site root, so require
+  // siteRootPrefix() === '' (this page's own css/style.css link is
+  // unprefixed) before even checking the filename. Without this, a
+  // directory-index URL with no filename segment (e.g. /connect/, one
+  // level down) fell through `.pop() || 'index.html'` -- an empty final
+  // path segment is falsy -- and got silently treated as the site's own
+  // index.html, leaking this public-site-only button onto connect/index.html.
+  if (siteRootPrefix() !== '') return;
   const path = window.location.pathname.split('/').pop() || 'index.html';
   const bare = path.replace(/\.html$/, '') || 'index';
   if (!PUBLIC_PAGES.includes(bare)) return;
