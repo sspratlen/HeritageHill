@@ -1226,12 +1226,17 @@
     <div class="tab-panel" id="panelUsers">
       <div class="action-bar">
         <h2>User Permissions</h2>
-        <button class="btn btn-primary" onclick="openUserModal()">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add User
-        </button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-secondary" onclick="openCreateUserModal()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Create User
+          </button>
+          <button class="btn btn-primary" onclick="openUserModal()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add User
+          </button>
+        </div>
       </div>
       <div style="background:rgba(188,122,30,.07);border:1px solid rgba(188,122,30,.25);border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:.875rem;color:var(--text-muted);line-height:1.6;">
-        <strong style="color:var(--text);">How it works:</strong> Add a user's email and assign a role. When they log in, they'll only see the sections their role allows. The user account itself must be created in your Supabase dashboard (Authentication → Users → Invite user).
+        <strong style="color:var(--text);">How it works:</strong> Use <strong>Create User</strong> to send a brand-new person a branded email with a secure sign-in link — they set their own password on first click, nothing to email or reset manually. Use <strong>Add User</strong> to assign a dashboard role to an email address that already has (or will separately get) an account; the account itself can also be created via Set Up Account below, or in your Supabase dashboard (Authentication → Users → Invite user).
         <br><br>
         <strong style="color:var(--text);">Admin</strong> — Full access to all sections.<br>
         <strong style="color:var(--text);">Event Manager</strong> — Events (including sign-ups), Sermons, Email.<br>
@@ -2214,6 +2219,35 @@
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeUserModal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveUser()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE USER MODAL (branded invite link) -->
+<div class="modal-overlay" id="createUserModal" onclick="if(event.target===this)closeCreateUserModal()">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h3>Create User</h3>
+      <button class="modal-close" onclick="closeCreateUserModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="margin:0 0 16px;font-size:.85rem;color:var(--text-muted);line-height:1.6;">Sends a Heritage Hill-branded email with a secure sign-in link. They'll set their own password on first click — nothing to email or reset manually.</p>
+      <div class="form-row full" style="margin-bottom:16px;">
+        <div class="field">
+          <label>Name <span style="color:var(--danger);">*</span></label>
+          <input type="text" id="createUserName" placeholder="Jane Smith" />
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="field">
+          <label>Email Address <span style="color:var(--danger);">*</span></label>
+          <input type="email" id="createUserEmail" placeholder="jane@example.com" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeCreateUserModal()">Cancel</button>
+      <button class="btn btn-primary" id="createUserSaveBtn" onclick="submitCreateUser()">Send Invite</button>
     </div>
   </div>
 </div>
