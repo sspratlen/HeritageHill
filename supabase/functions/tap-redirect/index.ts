@@ -4,6 +4,14 @@
 // destination (set live from admin/tap-control.html) and issues a true
 // HTTP 302 -- no intermediate page. Every failure path falls back to the
 // site homepage so a guest never sees a raw error.
+//
+// Optional JSON mode: pass ?format=json to get back { url } as JSON (200)
+// instead of a redirect. Used by the branded tap/ landing page so a
+// guest's browser never navigates to this raw Supabase URL at all -- the
+// landing page fetches this JSON in the background and does its own
+// location.replace() straight to the real destination. Default behavior
+// (no format param) is unchanged for any direct caller.
+//
 // Deploy with --no-verify-jwt (see deployment note below) -- this
 // codebase's other public GET endpoint, the `youtube` function, is
 // called from js/db.js with no Authorization header at all, which only
@@ -15,12 +23,22 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const FALLBACK_URL = 'https://heritagehill.church/'
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
 serve(async (req: Request) => {
-  const fallback = () => Response.redirect(FALLBACK_URL, 302)
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
+
+  const url = new URL(req.url)
+  const asJson = url.searchParams.get('format') === 'json'
+  const respond = (destUrl: string) => asJson
+    ? Response.json({ url: destUrl }, { headers: CORS })
+    : Response.redirect(destUrl, 302)
+  const fallback = () => respond(FALLBACK_URL)
 
   try {
-    const url = new URL(req.url)
     const section = url.searchParams.get('section')
     if (!section) return fallback()
 
@@ -64,7 +82,7 @@ serve(async (req: Request) => {
       console.error('[tap-redirect] tap_events insert failed:', logErr)
     }
 
-    return Response.redirect(destUrl, 302)
+    return respond(destUrl)
 
   } catch (e: unknown) {
     console.error('[tap-redirect]', e instanceof Error ? e.message : String(e))
