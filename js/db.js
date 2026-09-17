@@ -1694,6 +1694,25 @@ window.SupaDB = {
       return { success: true };
     } catch (e) { return { error: e.message }; }
   },
+  async adminInviteUser({ name, email }) {
+    if (!db()) return { error: 'Not configured' };
+    try {
+      const { data: { session } } = await db().auth.getSession();
+      const redirectTo = window.location.origin + '/admin/login.html';
+      const res = await fetch(SUPABASE_URL + '/functions/v1/admin-invite-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + (session ? session.access_token : ''),
+          'apikey': SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ name, email, redirectTo }),
+      });
+      const json = await res.json();
+      if (!res.ok || json.error) return { error: json.error || ('HTTP ' + res.status) };
+      return { success: true };
+    } catch (e) { return { error: e.message }; }
+  },
   async getAssessmentContent() {
     if (!db()) return [];
     const { data, error } = await db().from('assessment_content')
