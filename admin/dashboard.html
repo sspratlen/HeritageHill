@@ -7425,6 +7425,30 @@ async function deleteUser(email) {
   renderUsersTable();
 }
 
+function openCreateUserModal() {
+  document.getElementById('createUserName').value = '';
+  document.getElementById('createUserEmail').value = '';
+  document.getElementById('createUserModal').classList.add('open');
+}
+function closeCreateUserModal() { document.getElementById('createUserModal').classList.remove('open'); }
+
+async function submitCreateUser() {
+  const name = document.getElementById('createUserName').value.trim();
+  const email = document.getElementById('createUserEmail').value.trim().toLowerCase();
+  if (!name)  { alert('Name is required.'); return; }
+  if (!email) { alert('Email is required.'); return; }
+  const btn = document.getElementById('createUserSaveBtn');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const res = await SupaDB.adminInviteUser({ name, email });
+    if (res.error) { alert('Error: ' + res.error); return; }
+    closeCreateUserModal();
+    showToast(`Invite sent to ${email}.`);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send Invite';
+  }
+}
+
 async function setupUserAccount(email) {
   if (!confirm(`Create or reset the account for ${email} with the default password (HHTemp!)?`)) return;
   const btn = event.target;
