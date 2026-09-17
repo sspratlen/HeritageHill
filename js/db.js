@@ -1698,7 +1698,7 @@ window.SupaDB = {
     if (!db()) return { error: 'Not configured' };
     try {
       const { data: { session } } = await db().auth.getSession();
-      const redirectTo = window.location.origin + '/admin/login.html';
+      const redirectTo = window.location.origin + window.location.pathname.replace(/dashboard\.html$/, 'login.html');
       const res = await fetch(SUPABASE_URL + '/functions/v1/admin-invite-user', {
         method: 'POST',
         headers: {
