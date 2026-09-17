@@ -272,7 +272,7 @@ async function selectSection(id) {
   await loadCurrent();
   await refreshStats();
   document.getElementById('tagUrlBox').textContent =
-    `${SUPABASE_URL}/functions/v1/tap-redirect?section=${_section.slug}`;
+    `${location.origin}${location.pathname.replace(/admin\/tap-control\.html$/, 'tap/')}?section=${_section.slug}`;
 }
 
 function renderSectionSelect() {
