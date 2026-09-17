@@ -497,7 +497,7 @@ async function refreshStats() {
 }
 
 function copyTagUrl() {
-  const url = `${SUPABASE_URL}/functions/v1/tap-redirect?section=${_section.slug}`;
+  const url = document.getElementById('tagUrlBox').textContent;
   navigator.clipboard.writeText(url).then(() => {
     showToast('Tag URL copied!');
   }).catch(() => {
