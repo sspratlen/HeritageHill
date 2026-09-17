@@ -29,10 +29,12 @@
     (function () {
       const section = new URLSearchParams(location.search).get('section');
       if (!section) { location.replace('../'); return; }
-      fetch(`${SUPABASE_URL}/functions/v1/tap-redirect?section=${encodeURIComponent(section)}&format=json`)
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      fetch(`${SUPABASE_URL}/functions/v1/tap-redirect?section=${encodeURIComponent(section)}&format=json`, { signal: controller.signal })
         .then(r => r.json())
-        .then(data => { location.replace(data.url || '../'); })
-        .catch(() => { location.replace('../'); });
+        .then(data => { clearTimeout(timeout); location.replace(data.url || '../'); })
+        .catch(() => { clearTimeout(timeout); location.replace('../'); });
     })();
   </script>
 </body>
