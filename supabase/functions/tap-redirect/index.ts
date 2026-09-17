@@ -31,7 +31,12 @@ const CORS = {
 serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
 
-  const url = new URL(req.url)
+  let url: URL
+  try {
+    url = new URL(req.url)
+  } catch {
+    return Response.redirect(FALLBACK_URL, 302)
+  }
   const asJson = url.searchParams.get('format') === 'json'
   const respond = (destUrl: string) => asJson
     ? Response.json({ url: destUrl }, { headers: CORS })
