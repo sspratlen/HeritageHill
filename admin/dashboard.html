@@ -1273,10 +1273,6 @@
       <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
         <input id="pplSearch" placeholder="Search name, email, group, phone…" oninput="applyPeopleFilter()"
                style="flex:1;min-width:180px;padding:.55rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;" />
-        <select id="pplSort" onchange="applyPeopleFilter()" style="padding:.45rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;">
-          <option value="name-asc">Name (A&ndash;Z)</option>
-          <option value="name-desc">Name (Z&ndash;A)</option>
-        </select>
       </div>
       <div id="peopleTableWrap"></div>
     </div>
@@ -6577,6 +6573,12 @@ function groupName(id) {
   return g ? g.name : '—';
 }
 
+let _pplSortDir = 'asc';
+function togglePeopleSort() {
+  _pplSortDir = _pplSortDir === 'asc' ? 'desc' : 'asc';
+  applyPeopleFilter();
+}
+
 function applyPeopleFilter() {
   const q = document.getElementById('pplSearch').value.toLowerCase();
   let rows = _pplProfiles.filter(p => p.status === 'approved');
@@ -6587,8 +6589,7 @@ function applyPeopleFilter() {
     (p.yearsAttending || '').toLowerCase().includes(q) ||
     groupName(p.groupId).toLowerCase().includes(q)
   );
-  const sortMode = document.getElementById('pplSort').value;
-  rows = rows.slice().sort((a, b) => sortMode === 'name-desc'
+  rows = rows.slice().sort((a, b) => _pplSortDir === 'desc'
     ? b.name.localeCompare(a.name)
     : a.name.localeCompare(b.name));
   document.getElementById('peopleTableWrap').innerHTML = membershipTable(rows);
@@ -6601,8 +6602,9 @@ function membershipTable(rows) {
   if (!rows.length) return '<p style="color:var(--text-muted); padding:20px;">No members match.</p>';
   const isAdmin = window._userRole === 'admin';
   const fmt = d => d ? new Date(d.slice(0, 10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+  const sortArrow = _pplSortDir === 'desc' ? ' ▾' : ' ▴';
   return `<table><thead><tr>
-    <th>Name</th><th>Email</th><th>Member Since</th><th></th>
+    <th onclick="togglePeopleSort()" style="cursor:pointer;user-select:none;">Name${sortArrow}</th><th>Email</th><th>Member Since</th><th></th>
   </tr></thead><tbody>${rows.map(p => `
     <tr>
       <td><strong>${escapeHtml(p.name)}</strong></td>
