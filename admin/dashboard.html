@@ -1271,8 +1271,12 @@
         <div id="pendingMembersList"></div>
       </div>
       <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
-        <input id="pplSearch" placeholder="Search name or email…" oninput="applyPeopleFilter()"
+        <input id="pplSearch" placeholder="Search name, email, group, phone…" oninput="applyPeopleFilter()"
                style="flex:1;min-width:180px;padding:.55rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;" />
+        <select id="pplSort" onchange="applyPeopleFilter()" style="padding:.45rem .85rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;">
+          <option value="name-asc">Name (A&ndash;Z)</option>
+          <option value="name-desc">Name (Z&ndash;A)</option>
+        </select>
       </div>
       <div id="peopleTableWrap"></div>
     </div>
@@ -6576,10 +6580,17 @@ function groupName(id) {
 function applyPeopleFilter() {
   const q = document.getElementById('pplSearch').value.toLowerCase();
   let rows = _pplProfiles.filter(p => p.status === 'approved');
-  if (q) rows = rows.filter(p => p.name.toLowerCase().includes(q) || p.email.toLowerCase().includes(q));
-  // Newest members first -- this tab is about membership, so that's the
-  // one ordering that's actually meaningful here.
-  rows = rows.slice().sort((a, b) => (b.memberSince || '').localeCompare(a.memberSince || ''));
+  if (q) rows = rows.filter(p =>
+    p.name.toLowerCase().includes(q) ||
+    p.email.toLowerCase().includes(q) ||
+    (p.phone || '').toLowerCase().includes(q) ||
+    (p.yearsAttending || '').toLowerCase().includes(q) ||
+    groupName(p.groupId).toLowerCase().includes(q)
+  );
+  const sortMode = document.getElementById('pplSort').value;
+  rows = rows.slice().sort((a, b) => sortMode === 'name-desc'
+    ? b.name.localeCompare(a.name)
+    : a.name.localeCompare(b.name));
   document.getElementById('peopleTableWrap').innerHTML = membershipTable(rows);
 }
 
