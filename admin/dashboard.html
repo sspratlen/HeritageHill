@@ -1242,9 +1242,13 @@
         <strong style="color:var(--text);">Event Manager</strong> — Events (including sign-ups), Sermons, Email.<br>
         Small group leaders no longer use this dashboard — they manage their group from their own <a href="my-profile.html" style="color:var(--primary);">My Profile</a> page instead.
       </div>
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+        <input id="usrSearch" placeholder="Search email, name, or role…" oninput="applyUsersFilter()"
+               style="flex:1;min-width:180px;padding:.55rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.875rem;outline:none;" />
+      </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Email</th><th>Name</th><th>Role</th><th>Added</th><th>Actions</th></tr></thead>
+          <thead><tr><th onclick="toggleUsersSort()" style="cursor:pointer;user-select:none;">Email<span id="usrSortArrow"></span></th><th>Name</th><th>Role</th><th>Added</th><th>Actions</th></tr></thead>
           <tbody id="usersTable"></tbody>
         </table>
         <div class="empty" id="usersEmpty" style="display:none;">
@@ -7373,13 +7377,35 @@ let _cachedUsers = [];
 const _roleLabels = { admin:'Admin', event_manager:'Event Manager' };
 const _roleBadgeClass = { admin:'badge-blue', event_manager:'badge-amber' };
 
+let _usrSortDir = 'asc';
+function toggleUsersSort() {
+  _usrSortDir = _usrSortDir === 'asc' ? 'desc' : 'asc';
+  applyUsersFilter();
+}
+
 async function renderUsersTable() {
   _cachedUsers = await SupaDB.adminGetAllUserRoles();
+  applyUsersFilter();
+}
+
+function applyUsersFilter() {
+  const q = (document.getElementById('usrSearch').value || '').toLowerCase();
+  let rows = _cachedUsers;
+  if (q) rows = rows.filter(u =>
+    u.email.toLowerCase().includes(q) ||
+    (u.displayName || '').toLowerCase().includes(q) ||
+    (_roleLabels[u.role] || u.role || '').toLowerCase().includes(q)
+  );
+  rows = rows.slice().sort((a, b) => _usrSortDir === 'desc'
+    ? b.email.localeCompare(a.email)
+    : a.email.localeCompare(b.email));
+  document.getElementById('usrSortArrow').textContent = _usrSortDir === 'desc' ? ' ▾' : ' ▴';
+
   const tbody = document.getElementById('usersTable');
   const empty = document.getElementById('usersEmpty');
-  if (!_cachedUsers.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+  if (!rows.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
   empty.style.display = 'none';
-  tbody.innerHTML = _cachedUsers.map(u => `
+  tbody.innerHTML = rows.map(u => `
     <tr>
       <td><strong>${u.email}</strong></td>
       <td style="color:var(--text-muted);">${u.displayName || '—'}</td>
