@@ -58,6 +58,11 @@ serve(async (req: Request) => {
         status: 400, headers: { ...CORS, 'Content-Type': 'application/json' },
       })
     }
+    if (!redirectTo || typeof redirectTo !== 'string' || !redirectTo.endsWith('/admin/login.html')) {
+      return new Response(JSON.stringify({ error: 'Invalid redirectTo' }), {
+        status: 400, headers: { ...CORS, 'Content-Type': 'application/json' },
+      })
+    }
     const lowerEmail = email.toLowerCase()
 
     const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
