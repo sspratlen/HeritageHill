@@ -85,7 +85,7 @@ Every function that exists in **both** environments was diffed byte-for-byte aga
 | `send-contact-email` | **Differs — real behavior change** |
 | `mailchimp` | **Differs — security fix, good** |
 
-**`send-contact-email` — flag before deploying.** Production's live `TO_EMAIL` is `scottspratlen@heritagehill.church`. This repo's tracked version has `heritagehillchurch@gmail.com`. This looks like a deliberate change made directly in production (outside this repo/workflow) that would be **silently reverted** if this function is redeployed from the repo. Confirm which address should actually receive contact-form notifications before shipping this function. (The repo version also adds a honeypot spam-trap field — that part is a safe, pure addition.)
+**`send-contact-email` — resolved.** Production's live `TO_EMAIL` is `scottspratlen@heritagehill.church`. This repo's tracked version has `heritagehillchurch@gmail.com`, plus a honeypot spam-trap field. **Decision (2026-09-20): staging's version is intentional and newer — the repo's version is correct to deploy as-is**, overwriting production's live `TO_EMAIL`.
 
 **`mailchimp` — this is a security improvement, not a regression.** Production's live version has **no authentication check at all** on `send_campaign`, `get_members`, `get_campaigns`, or `tag_member` — anyone with the function's URL can currently send a Mailchimp campaign or read the full subscriber list. This repo's version adds a Supabase session check before those actions. Deploying this function to production closes a real, currently-open hole.
 
@@ -197,7 +197,7 @@ alter table public.events
 ## 7. Suggested pre-deploy checklist (not executed — for your review)
 
 1. Decide, consciously, that the "staging-only" phase is over — this report exists because that boundary is about to move.
-2. Resolve the `send-contact-email` `TO_EMAIL` discrepancy (repo vs. live production) before redeploying that function.
+2. ~~Resolve the `send-contact-email` `TO_EMAIL` discrepancy~~ — resolved 2026-09-20: deploy the repo's version as-is.
 3. Save the 4 untracked schema pieces above into real `.sql` files in the repo, so the repo becomes a true record again (currently it silently under-describes staging).
 4. Check production's `user_roles` for any `small_group_leader` rows before deploying the role retirement.
 5. Run production's migrations in dependency order: `people` → backfill → (`connect_submissions`, `person_milestones`, `member_since_and_approved_by`) → `impact_teams`/training-tracking → `link_person_user_id` → `events` leader fields → `tap_*` schema+seed → `backfill-small-group-counts`.
