@@ -5898,7 +5898,7 @@ async function renderAttendanceTable() {
       .reduce((sum, ga) => sum + (ga.headcount || 0), 0);
   };
 
-  const fmtMoney = v => v != null ? '$' + Number(v).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : '–';
+  const fmtMoney = v => v != null ? '$' + Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '–';
 
   tbody.innerHTML = _cachedAttendance.map(r => {
     const sgCount = sgSumForDate(r.serviceDate);
