@@ -212,6 +212,16 @@
       <div class="stat-sub" id="statAvgSGSub"></div>
     </div>
     <div class="stat-card">
+      <div class="stat-label">Latest Offerings</div>
+      <div class="stat-value" id="statLatestOfferings">–</div>
+      <div class="stat-sub" id="statLatestOfferingsSub"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Offerings (4-wk)</div>
+      <div class="stat-value" id="statAvgOfferings">–</div>
+      <div class="stat-sub" id="statAvgOfferingsSub"></div>
+    </div>
+    <div class="stat-card">
       <div class="stat-label">SG Engagement Rate</div>
       <div class="stat-value" id="statRate">–</div>
       <div class="stat-sub">small groups ÷ worship</div>
@@ -236,6 +246,10 @@
       <div class="chart-title">SG Engagement Rate</div>
       <div class="chart-wrap"><canvas id="rateChart"></canvas></div>
     </div>
+    <div class="chart-card">
+      <div class="chart-title">Offerings Over Time</div>
+      <div class="chart-wrap"><canvas id="offeringsChart"></canvas></div>
+    </div>
   </div>
 
   <!-- Recent data table -->
@@ -255,6 +269,8 @@
         <th>Small Groups</th>
         <th>vs Prior</th>
         <th>SG Rate</th>
+        <th>Offerings</th>
+        <th>vs Prior</th>
         <th>Notes</th>
       </tr></thead>
       <tbody id="recentTable"></tbody>
@@ -272,7 +288,7 @@
 <script>
 let _allData = [];
 let _range   = 13;
-let _trendChart, _rateChart;
+let _trendChart, _rateChart, _offeringsChart;
 
 /* ── Auth guard + boot ── */
 (async () => {
@@ -328,6 +344,9 @@ function fmtFull(d) {
   const [y,m,day] = d.split('-');
   return new Date(y, m-1, day).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
 }
+function fmtMoney(v) {
+  return v != null ? '$' + Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '–';
+}
 
 function render() {
   const data = sliced();
@@ -374,13 +393,24 @@ function updateStats(data) {
     document.getElementById('statPeak').textContent = peak.worshipCount.toLocaleString();
     document.getElementById('statPeakSub').textContent = fmtFull(peak.serviceDate);
   }
+
+  // Offerings
+  const offeringsRows = data.filter(r => r.offerings != null);
+  const latestO = offeringsRows.at(-1);
+  document.getElementById('statLatestOfferings').textContent = fmtMoney(latestO ? latestO.offerings : null);
+  document.getElementById('statLatestOfferingsSub').textContent = latestO ? fmtFull(latestO.serviceDate) : '';
+  const avg4O = offeringsRows.slice(-4);
+  const avgO = avg4O.length ? avg4O.reduce((s,r) => s + Number(r.offerings), 0) / avg4O.length : null;
+  document.getElementById('statAvgOfferings').textContent = fmtMoney(avgO);
+  document.getElementById('statAvgOfferingsSub').textContent = avg4O.length ? `avg of last ${avg4O.length} entries` : '';
 }
 
 function updateCharts(data) {
-  const labels  = data.map(r => fmt(r.serviceDate));
-  const worship = data.map(r => r.worshipCount);
-  const sg      = data.map(r => r.smallGroupCount);
-  const rates   = data.map(r => (r.worshipCount && r.smallGroupCount)
+  const labels    = data.map(r => fmt(r.serviceDate));
+  const worship   = data.map(r => r.worshipCount);
+  const sg        = data.map(r => r.smallGroupCount);
+  const offerings = data.map(r => r.offerings != null ? Number(r.offerings) : null);
+  const rates     = data.map(r => (r.worshipCount && r.smallGroupCount)
     ? Math.round(r.smallGroupCount / r.worshipCount * 100) : null);
 
   const gridColor = 'rgba(0,0,0,.06)';
@@ -470,6 +500,41 @@ function updateCharts(data) {
       },
     },
   });
+
+  // Offerings chart
+  if (_offeringsChart) _offeringsChart.destroy();
+  _offeringsChart = new Chart(document.getElementById('offeringsChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Offerings',
+        data: offerings,
+        backgroundColor: offerings.map(v => v != null ? 'rgba(21,92,162,.75)' : 'transparent'),
+        borderRadius: 4,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          bodyFont: { family: 'DM Sans' },
+          titleFont: { family: 'DM Sans' },
+          callbacks: { label: ctx => ctx.raw != null ? fmtMoney(ctx.raw) : 'N/A' },
+        },
+      },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { family: 'DM Sans', size: 11 }, maxRotation: 45 } },
+        y: {
+          grid: { color: gridColor },
+          ticks: { color: tickColor, font: { family: 'DM Sans', size: 11 }, callback: v => '$' + v.toLocaleString() },
+          beginAtZero: true,
+        },
+      },
+    },
+  });
 }
 
 function updateTable(data) {
@@ -477,7 +542,7 @@ function updateTable(data) {
   const tbody = document.getElementById('recentTable');
 
   if (!reversed.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted);">No data yet — add entries in the dashboard.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-muted);">No data yet — add entries in the dashboard.</td></tr>';
     return;
   }
 
@@ -488,12 +553,20 @@ function updateTable(data) {
       ? r.worshipCount - prev.worshipCount : null;
     const sDiff = (r.smallGroupCount != null && prev?.smallGroupCount != null)
       ? r.smallGroupCount - prev.smallGroupCount : null;
+    const oDiff = (r.offerings != null && prev?.offerings != null)
+      ? Number(r.offerings) - Number(prev.offerings) : null;
 
     const diffPill = (diff) => {
       if (diff == null) return '<span style="color:var(--text-muted);">–</span>';
       if (diff > 0) return `<span class="pill pill-up">+${diff}</span>`;
       if (diff < 0) return `<span class="pill pill-down">${diff}</span>`;
       return `<span class="pill" style="background:var(--bg);">0</span>`;
+    };
+    const moneyDiffPill = (diff) => {
+      if (diff == null) return '<span style="color:var(--text-muted);">–</span>';
+      if (diff > 0) return `<span class="pill pill-up">+${fmtMoney(diff)}</span>`;
+      if (diff < 0) return `<span class="pill pill-down">-${fmtMoney(Math.abs(diff))}</span>`;
+      return `<span class="pill" style="background:var(--bg);">$0.00</span>`;
     };
 
     const rate = (r.worshipCount && r.smallGroupCount)
@@ -506,17 +579,19 @@ function updateTable(data) {
       <td>${r.smallGroupCount != null ? r.smallGroupCount.toLocaleString() : '–'}</td>
       <td>${diffPill(sDiff)}</td>
       <td><span class="pill pill-amber">${rate}</span></td>
+      <td>${fmtMoney(r.offerings)}</td>
+      <td>${moneyDiffPill(oDiff)}</td>
       <td style="color:var(--text-muted);font-size:.82rem;">${r.notes || ''}</td>
     </tr>`;
   }).join('');
 }
 
 function exportCSV() {
-  const headers = ['Date','Worship Attendance','Small Groups','SG Engagement Rate','Notes'];
+  const headers = ['Date','Worship Attendance','Small Groups','SG Engagement Rate','Offerings','Notes'];
   const rows = [..._allData].reverse().map(r => {
     const rate = (r.worshipCount && r.smallGroupCount)
       ? Math.round(r.smallGroupCount / r.worshipCount * 100) + '%' : '';
-    return [fmtFull(r.serviceDate), r.worshipCount ?? '', r.smallGroupCount ?? '', rate, r.notes || ''];
+    return [fmtFull(r.serviceDate), r.worshipCount ?? '', r.smallGroupCount ?? '', rate, r.offerings ?? '', r.notes || ''];
   });
   const csv  = [headers, ...rows].map(row => row.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
