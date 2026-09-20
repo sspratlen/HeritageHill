@@ -1183,7 +1183,7 @@
       <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px;">
         <h3 style="font-size:.95rem;font-weight:700;margin-bottom:4px;">Add Weekly Entry</h3>
         <p style="font-size:.8rem;color:var(--text-muted);margin:0 0 16px;">Small group totals are auto-calculated from each group's headcount entries.</p>
-        <div style="display:grid;grid-template-columns:160px 1fr 1fr auto;gap:12px;align-items:end;flex-wrap:wrap;">
+        <div style="display:grid;grid-template-columns:160px 1fr 1fr 1fr auto;gap:12px;align-items:end;flex-wrap:wrap;">
           <div class="field">
             <label>Date</label>
             <input type="date" id="attDate" />
@@ -1191,6 +1191,10 @@
           <div class="field">
             <label>Worship Attendance</label>
             <input type="number" id="attWorship" placeholder="e.g. 142" min="0" />
+          </div>
+          <div class="field">
+            <label>Offerings <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+            <input type="number" id="attOfferings" placeholder="e.g. 4250.00" min="0" step="0.01" />
           </div>
           <div class="field">
             <label>Notes <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
@@ -1209,6 +1213,7 @@
             <th>Worship</th>
             <th>Small Groups</th>
             <th>SG Rate</th>
+            <th>Offerings</th>
             <th>Notes</th>
             <th>Actions</th>
           </tr></thead>
@@ -2112,6 +2117,7 @@
         <div class="field"><label>Date</label><input type="date" id="attEditDate" /></div>
         <div class="field"><label>Worship Attendance</label><input type="number" id="attEditWorship" min="0" /></div>
       </div>
+      <div class="field"><label>Offerings</label><input type="number" id="attEditOfferings" min="0" step="0.01" placeholder="Optional" /></div>
       <div class="field"><label>Notes</label><input type="text" id="attEditNotes" placeholder="Optional" /></div>
     </div>
     <div class="modal-footer">
@@ -5892,6 +5898,8 @@ async function renderAttendanceTable() {
       .reduce((sum, ga) => sum + (ga.headcount || 0), 0);
   };
 
+  const fmtMoney = v => v != null ? '$' + Number(v).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : '–';
+
   tbody.innerHTML = _cachedAttendance.map(r => {
     const sgCount = sgSumForDate(r.serviceDate);
     const sgDisplay = sgCount > 0 ? sgCount.toLocaleString() : '–';
@@ -5903,6 +5911,7 @@ async function renderAttendanceTable() {
       <td>${r.worshipCount != null ? r.worshipCount.toLocaleString() : '–'}</td>
       <td>${sgDisplay}</td>
       <td><span style="background:rgba(188,122,30,.1);color:var(--primary);font-size:.8rem;font-weight:700;padding:2px 8px;border-radius:20px;">${rate}</span></td>
+      <td>${fmtMoney(r.offerings)}</td>
       <td style="color:var(--text-muted);font-size:.85rem;">${r.notes || ''}</td>
       <td><div class="td-actions">
         <button class="btn btn-ghost btn-sm" onclick="editAttEntry('${r.id}')">Edit</button>
@@ -5918,22 +5927,26 @@ async function addAttendanceEntry() {
   const okEl  = document.getElementById('attAddSuccess');
   errEl.style.display = 'none'; okEl.style.display = 'none';
 
-  const date    = document.getElementById('attDate').value;
-  const worship = document.getElementById('attWorship').value;
-  const notes   = document.getElementById('attNotes').value.trim();
+  const date      = document.getElementById('attDate').value;
+  const worship   = document.getElementById('attWorship').value;
+  const offerings = document.getElementById('attOfferings').value;
+  const notes     = document.getElementById('attNotes').value.trim();
 
   if (!date)    { errEl.textContent = 'Please select a date.';              errEl.style.display = ''; return; }
   if (!worship) { errEl.textContent = 'Please enter the worship headcount.'; errEl.style.display = ''; return; }
 
   btn.disabled = true;
-  const res = await SupaDB.adminAddAttendance({ serviceDate: date, worshipCount: parseInt(worship), notes });
+  const res = await SupaDB.adminAddAttendance({
+    serviceDate: date, worshipCount: parseInt(worship),
+    offerings: offerings !== '' ? parseFloat(offerings) : null, notes,
+  });
   btn.disabled = false;
 
   if (res.error) {
     errEl.textContent = res.error.includes('23505') ? 'An entry for this date already exists.' : res.error;
     errEl.style.display = ''; return;
   }
-  ['attDate','attWorship','attNotes'].forEach(id => document.getElementById(id).value = '');
+  ['attDate','attWorship','attOfferings','attNotes'].forEach(id => document.getElementById(id).value = '');
   okEl.style.display = '';
   setTimeout(() => okEl.style.display = 'none', 2500);
   renderAttendanceTable();
@@ -5942,22 +5955,25 @@ async function addAttendanceEntry() {
 function editAttEntry(id) {
   const r = _cachedAttendance.find(x => x.id === id);
   if (!r) return;
-  document.getElementById('attEditId').value      = id;
-  document.getElementById('attEditDate').value    = r.serviceDate;
-  document.getElementById('attEditWorship').value = r.worshipCount ?? '';
-  document.getElementById('attEditNotes').value   = r.notes || '';
+  document.getElementById('attEditId').value        = id;
+  document.getElementById('attEditDate').value      = r.serviceDate;
+  document.getElementById('attEditWorship').value   = r.worshipCount ?? '';
+  document.getElementById('attEditOfferings').value = r.offerings ?? '';
+  document.getElementById('attEditNotes').value     = r.notes || '';
   document.getElementById('attEditModal').classList.add('open');
 }
 function closeAttEditModal() { document.getElementById('attEditModal').classList.remove('open'); }
 
 async function saveAttEdit() {
-  const id      = document.getElementById('attEditId').value;
-  const date    = document.getElementById('attEditDate').value;
-  const worship = document.getElementById('attEditWorship').value;
-  const notes   = document.getElementById('attEditNotes').value.trim();
+  const id        = document.getElementById('attEditId').value;
+  const date      = document.getElementById('attEditDate').value;
+  const worship   = document.getElementById('attEditWorship').value;
+  const offerings = document.getElementById('attEditOfferings').value;
+  const notes     = document.getElementById('attEditNotes').value.trim();
   const res = await SupaDB.adminUpdateAttendance(id, {
     serviceDate: date,
     worshipCount: worship !== '' ? parseInt(worship) : null,
+    offerings: offerings !== '' ? parseFloat(offerings) : null,
     notes,
   });
   if (res.error) { alert('Error: ' + res.error); return; }
