@@ -274,7 +274,7 @@
     if (explicit) { window.location.href = explicit; return; }
     const user = await SupaDB.getUser();
     const roleData = user ? await SupaDB.getUserRoleByEmail(user.email) : null;
-    window.location.href = roleData ? 'dashboard.html' : 'my-profile.html';
+    window.location.href = roleData ? 'dashboard.html' : '../';
   }
 
   // ── Normal sign-in ──
