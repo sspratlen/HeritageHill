@@ -1414,27 +1414,30 @@ window.SupaDB = {
       serviceDate:     r.service_date,
       worshipCount:    r.worship_count,
       smallGroupCount: r.small_group_count,
+      offerings:       r.offerings,
       notes:           r.notes,
       createdAt:       r.created_at,
     }));
   },
-  async adminAddAttendance({ serviceDate, worshipCount, smallGroupCount, notes }) {
+  async adminAddAttendance({ serviceDate, worshipCount, smallGroupCount, offerings, notes }) {
     if (!db()) return { error: 'Not configured' };
     const { error } = await db().from('attendance').insert({
       service_date:      serviceDate,
       worship_count:     worshipCount  ?? null,
       small_group_count: smallGroupCount ?? null,
+      offerings:         offerings ?? null,
       notes:             notes || null,
     });
     if (error) return { error: error.message };
     return { success: true };
   },
-  async adminUpdateAttendance(id, { serviceDate, worshipCount, smallGroupCount, notes }) {
+  async adminUpdateAttendance(id, { serviceDate, worshipCount, smallGroupCount, offerings, notes }) {
     if (!db()) return { error: 'Not configured' };
     const { error } = await db().from('attendance').update({
       service_date:      serviceDate,
       worship_count:     worshipCount  ?? null,
       small_group_count: smallGroupCount ?? null,
+      offerings:         offerings ?? null,
       notes:             notes || null,
     }).eq('id', id);
     if (error) return { error: error.message };
