@@ -5949,6 +5949,10 @@ async function addAttendanceEntry() {
   ['attDate','attWorship','attOfferings','attNotes'].forEach(id => document.getElementById(id).value = '');
   okEl.style.display = '';
   setTimeout(() => okEl.style.display = 'none', 2500);
+  // A group meeting for this week may already have been logged before this
+  // weekly entry existed -- recompute now so the new row's small_group_count
+  // isn't left null until the next unrelated group-attendance write.
+  await SupaDB.adminRecomputeSmallGroupCounts();
   renderAttendanceTable();
 }
 
@@ -5978,6 +5982,9 @@ async function saveAttEdit() {
   });
   if (res.error) { alert('Error: ' + res.error); return; }
   closeAttEditModal();
+  // The date may have shifted, changing which group meetings fall in this
+  // row's window -- recompute so small_group_count stays accurate.
+  await SupaDB.adminRecomputeSmallGroupCounts();
   renderAttendanceTable();
 }
 
