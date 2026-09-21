@@ -447,6 +447,19 @@ function updateCharts(data) {
           tension: .35,
           spanGaps: true,
         },
+        {
+          label: 'Offerings',
+          data: offerings,
+          borderColor: '#16a34a',
+          backgroundColor: 'rgba(22,163,74,.08)',
+          borderWidth: 2.5,
+          pointRadius: 4,
+          pointBackgroundColor: '#16a34a',
+          fill: false,
+          tension: .35,
+          spanGaps: true,
+          yAxisID: 'y1',
+        },
       ],
     },
     options: {
@@ -455,11 +468,20 @@ function updateCharts(data) {
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { position: 'top', labels: { font: { family: 'DM Sans' }, boxWidth: 12, padding: 14 } },
-        tooltip: { bodyFont: { family: 'DM Sans' }, titleFont: { family: 'DM Sans' } },
+        tooltip: {
+          bodyFont: { family: 'DM Sans' }, titleFont: { family: 'DM Sans' },
+          callbacks: { label: ctx => ctx.dataset.label === 'Offerings' ? `Offerings: ${fmtMoney(ctx.raw)}` : `${ctx.dataset.label}: ${ctx.raw ?? 'N/A'}` },
+        },
       },
       scales: {
         x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { family: 'DM Sans', size: 11 }, maxRotation: 45 } },
         y: { grid: { color: gridColor }, ticks: { color: tickColor, font: { family: 'DM Sans', size: 11 } }, beginAtZero: false },
+        y1: {
+          position: 'right',
+          grid: { display: false },
+          ticks: { color: tickColor, font: { family: 'DM Sans', size: 11 }, callback: v => '$' + v.toLocaleString() },
+          beginAtZero: true,
+        },
       },
     },
   });
