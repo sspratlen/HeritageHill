@@ -77,6 +77,20 @@ serve(async (req: Request) => {
       })
     }
 
+    // action: 'lookup' — side-effect-free "does an account exist for this
+    // email?" check. Never creates or modifies anything, unlike every other
+    // branch below. Used by adminProvisionMember when createIfMissing is
+    // false, so it can decide whether to provision a member profile without
+    // ever risking creating an account as a side effect of checking.
+    if (action === 'lookup') {
+      const { data: list, error: listErr } = await admin.auth.admin.listUsers({ perPage: 1000 })
+      if (listErr) throw listErr
+      const existing = list.users.find((u: { email?: string }) => u.email?.toLowerCase() === email.toLowerCase())
+      return new Response(JSON.stringify({ ok: true, exists: !!existing, userId: existing ? existing.id : null }), {
+        headers: { ...CORS, 'Content-Type': 'application/json' },
+      })
+    }
+
     // Try to create the user first
     const { data: created, error: createErr } = await admin.auth.admin.createUser({
       email,
