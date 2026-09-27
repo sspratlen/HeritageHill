@@ -7478,6 +7478,11 @@ async function saveUser() {
   if (!role)  { alert('Please select a role.'); return; }
   const res = await SupaDB.adminUpsertUserRole({ email, displayName, role, forcePasswordChange });
   if (res.error) { alert('Error: ' + res.error); return; }
+  // Fire-and-forget: ensures this staff member also has a member profile
+  // (every user should also be a member), without eagerly creating an
+  // account if one doesn't exist yet (createIfMissing: false — stays
+  // pre-authorized only until "Set Up Account" is used).
+  SupaDB.adminProvisionMember({ name: displayName, email, phone: '', groupId: null, createIfMissing: false }).catch(() => {});
   closeUserModal();
   showToast('User saved.');
   renderUsersTable();
