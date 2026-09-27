@@ -90,6 +90,21 @@
             <input type="tel" id="ccPhone"
               style="width:100%;box-sizing:border-box;padding:.65rem 1rem;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;" />
           </div>
+          <div>
+            <label for="ccTopic" style="display:block;font-size:.85rem;font-weight:600;margin-bottom:.35rem;">Topic (optional)</label>
+            <select id="ccTopic"
+              style="width:100%;box-sizing:border-box;padding:.65rem 1rem;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;background:#fff;">
+              <option value="">Select a topic (optional)</option>
+              <option value="General Church Question/Comment">General Church Question/Comment</option>
+              <option value="Pastoral Care">Pastoral Care</option>
+              <option value="App/Web/Login Question/Comment">App/Web/Login Question/Comment</option>
+            </select>
+          </div>
+          <div>
+            <label for="ccMessage" style="display:block;font-size:.85rem;font-weight:600;margin-bottom:.35rem;">Message (optional)</label>
+            <textarea id="ccMessage" rows="3" placeholder="Let us know how we can help"
+              style="width:100%;box-sizing:border-box;padding:.65rem 1rem;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;resize:vertical;"></textarea>
+          </div>
           <button type="submit" id="ccBtn" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:.5rem;">Connect</button>
           <p id="ccError" style="color:#dc2626;font-size:.82rem;margin:0;display:none;"></p>
         </div>
