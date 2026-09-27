@@ -6641,7 +6641,7 @@ function membershipTable(rows) {
       <td><strong>${escapeHtml(p.name)}</strong></td>
       <td><a href="mailto:${escapeHtml(p.email)}" style="color:var(--primary);">${escapeHtml(p.email)}</a></td>
       <td>${fmt(p.memberSince)}</td>
-      <td>${isAdmin ? `<a class="btn btn-secondary btn-sm" href="member-dashboard.html?id=${encodeURIComponent(p.userId)}">View</a>` : ''}</td>
+      <td>${isAdmin ? `<a class="btn btn-secondary btn-sm" href="member-dashboard.html?id=${encodeURIComponent(p.userId)}">View</a> <button class="btn btn-danger btn-sm" onclick="deleteMember('${p.userId}')">Delete</button>` : ''}</td>
     </tr>`).join('')}</tbody></table>`;
 }
 
