@@ -3357,10 +3357,14 @@ async function renderConnectPanel(){
     empty.style.display='none';
     grid.innerHTML=_cachedConnectSubmissions.map(c=>{
       const ds=c.createdAt?new Date(c.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
+      const messageSnippet = c.message
+        ? `<br><span title="${escapeHtml(c.message)}" style="display:inline-block;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.8rem;font-style:italic;color:var(--text-muted);">${escapeHtml(c.message)}</span>`
+        : '';
+      const topicBadge = c.topic ? ` <span class="badge badge-gray">${escapeHtml(c.topic)}</span>` : '';
       return`<tr>
-        <td><strong>${escapeHtml(c.name)}</strong><br><a href="mailto:${escapeHtml(c.email)}" style="font-size:.8rem;color:var(--primary);">${escapeHtml(c.email)}</a>${c.phone?`<br><span style="font-size:.8rem;color:var(--text-muted);">${escapeHtml(c.phone)}</span>`:''}</td>
+        <td><strong>${escapeHtml(c.name)}</strong><br><a href="mailto:${escapeHtml(c.email)}" style="font-size:.8rem;color:var(--primary);">${escapeHtml(c.email)}</a>${c.phone?`<br><span style="font-size:.8rem;color:var(--text-muted);">${escapeHtml(c.phone)}</span>`:''}${messageSnippet}</td>
         <td style="font-size:.82rem;color:var(--text-muted);">${ds}</td>
-        <td>${c.contacted?'<span class="badge badge-green">Contacted</span>':'<span class="badge badge-amber">New</span>'}</td>
+        <td>${c.contacted?'<span class="badge badge-green">Contacted</span>':'<span class="badge badge-amber">New</span>'}${topicBadge}</td>
         <td><button class="btn btn-sm ${c.contacted?'btn-ghost':'btn-success'}" onclick="toggleConnectContacted(${c.id})">${c.contacted?'↩ Mark Uncontacted':'✓ Mark Contacted'}</button></td>
       </tr>`;
     }).join('');
