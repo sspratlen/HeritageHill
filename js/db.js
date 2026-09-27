@@ -171,6 +171,7 @@ function signupToDb(s) {
 function connectSubmissionFromDb(r) {
   return {
     id: r.id, personId: r.person_id, name: r.name, email: r.email, phone: r.phone || '',
+    topic: r.topic || '', message: r.message || '',
     contacted: !!r.contacted, contactedAt: r.contacted_at || null, contactedBy: r.contacted_by || '',
     createdAt: r.created_at,
   };
