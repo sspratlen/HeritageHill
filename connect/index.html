@@ -264,15 +264,17 @@
     // Time check: real humans take more than 2 seconds to fill a form
     if (Date.now() - parseInt(document.getElementById('ccLoadedAt').value || '0') < 2000) return;
 
-    const name  = document.getElementById('ccName').value.trim();
-    const email = document.getElementById('ccEmail').value.trim();
-    const phone = document.getElementById('ccPhone').value.trim();
+    const name    = document.getElementById('ccName').value.trim();
+    const email   = document.getElementById('ccEmail').value.trim();
+    const phone   = document.getElementById('ccPhone').value.trim();
+    const topic   = document.getElementById('ccTopic').value;
+    const message = document.getElementById('ccMessage').value.trim();
     const errEl = document.getElementById('ccError');
     const btn   = document.getElementById('ccBtn');
     errEl.style.display = 'none';
     btn.disabled = true; btn.textContent = 'Connecting…';
 
-    const result = await SupaDB.submitConnectCard({ name, email, phone });
+    const result = await SupaDB.submitConnectCard({ name, email, phone, topic, message });
 
     btn.disabled = false; btn.textContent = 'Connect';
     if (result.error) {

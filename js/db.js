@@ -1898,12 +1898,13 @@ window.SupaDB = {
   },
 
 /* ── PUBLIC: Connect Page ───────────────────────────────── */
-  async submitConnectCard({ name, email, phone }) {
+  async submitConnectCard({ name, email, phone, topic, message }) {
     if (!db()) return { error: 'Not configured' };
     try {
       const personId = await this.upsertPerson({ name, email, phone });
       const { error } = await db().from('connect_submissions').insert({
         person_id: personId, name, email, phone: phone || '',
+        topic: topic || '', message: message || '',
       });
       if (error) throw error;
       if (personId) this.recordMilestone(personId, 'connect_card_submitted');
