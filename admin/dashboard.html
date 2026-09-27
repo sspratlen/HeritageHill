@@ -2190,22 +2190,21 @@
 <div class="modal-overlay" id="userModal" onclick="if(event.target===this)closeUserModal()">
   <div class="modal" style="max-width:520px;">
     <div class="modal-header">
-      <h3 id="userModalTitle">Add User</h3>
+      <h3 id="userModalTitle">Add Permissions</h3>
       <button class="modal-close" onclick="closeUserModal()">✕</button>
     </div>
     <div class="modal-body">
-      <input type="hidden" id="userEditEmail" />
       <div class="form-row full" style="margin-bottom:16px;">
         <div class="field">
-          <label>Email Address <span style="color:var(--danger);">*</span></label>
-          <input type="email" id="userEmail" placeholder="jane@example.com" />
-          <p style="margin-top:5px;font-size:.78rem;color:var(--text-muted);">Must match the login email in Supabase Authentication.</p>
-        </div>
-      </div>
-      <div class="form-row full" style="margin-bottom:16px;">
-        <div class="field">
-          <label>Display Name</label>
-          <input type="text" id="userDisplayName" placeholder="Jane Smith" />
+          <label>Member <span style="color:var(--danger);">*</span></label>
+          <div id="aupPersonPicker">
+            <input type="text" id="aupSearchInput" placeholder="Search by name or email…" oninput="aupFilterPeople()"
+              style="width:100%;box-sizing:border-box;padding:.65rem 1rem;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;" />
+            <div class="raa-search-results" id="aupSearchResults" style="display:none;"></div>
+          </div>
+          <div id="aupPersonChip" style="display:none;">
+            <span class="raa-person-chip">Assigning: <strong id="aupPersonName"></strong> (<span id="aupPersonEmail"></span>) <button type="button" onclick="aupClearPerson()">Change</button></span>
+          </div>
         </div>
       </div>
       <div class="form-row full" style="margin-bottom:16px;">
@@ -7410,9 +7409,52 @@ function toggleUsersSort() {
   applyUsersFilter();
 }
 
+let _aupProfiles = [];
+let _aupSelectedPerson = null;
+
 async function renderUsersTable() {
-  _cachedUsers = await SupaDB.adminGetAllUserRoles();
+  const [users, profiles] = await Promise.all([
+    SupaDB.adminGetAllUserRoles(), SupaDB.adminGetAllMemberProfiles(),
+  ]);
+  _cachedUsers = users;
+  _aupProfiles = profiles;
   applyUsersFilter();
+}
+
+function aupFilterPeople() {
+  const q = document.getElementById('aupSearchInput').value.trim().toLowerCase();
+  const results = document.getElementById('aupSearchResults');
+  if (!q) { results.style.display = 'none'; results.innerHTML = ''; return; }
+  const matches = _aupProfiles.filter(p =>
+    (p.name && p.name.toLowerCase().includes(q)) || (p.email && p.email.toLowerCase().includes(q))
+  ).slice(0, 8);
+  results.style.display = 'block';
+  if (!matches.length) {
+    results.innerHTML = '<div class="raa-search-row" style="color:var(--text-muted);">No matches</div>';
+    return;
+  }
+  results.innerHTML = matches.map(p => `
+    <div class="raa-search-row" onclick="aupSelectPerson('${p.userId}')">
+      <div>${escapeHtml(p.name || '(no name)')}</div>
+      <div class="email">${escapeHtml(p.email)}</div>
+    </div>`).join('');
+}
+
+function aupSelectPerson(userId) {
+  const p = _aupProfiles.find(x => x.userId === userId);
+  if (!p) return;
+  _aupSelectedPerson = p;
+  document.getElementById('aupPersonPicker').style.display = 'none';
+  document.getElementById('aupPersonChip').style.display = 'block';
+  document.getElementById('aupPersonName').textContent = p.name || '(no name)';
+  document.getElementById('aupPersonEmail').textContent = p.email;
+  document.getElementById('aupSearchInput').value = '';
+  document.getElementById('aupSearchResults').style.display = 'none';
+}
+function aupClearPerson() {
+  _aupSelectedPerson = null;
+  document.getElementById('aupPersonPicker').style.display = 'block';
+  document.getElementById('aupPersonChip').style.display = 'none';
 }
 
 function applyUsersFilter() {
@@ -7448,41 +7490,31 @@ function applyUsersFilter() {
 }
 
 function openUserModal(email) {
-  document.getElementById('userModalTitle').textContent = email ? 'Edit User' : 'Add User';
-  document.getElementById('userEditEmail').value  = email || '';
-  document.getElementById('userEmail').value      = email || '';
-  document.getElementById('userEmail').disabled   = !!email;
-  document.getElementById('userDisplayName').value = '';
+  document.getElementById('userModalTitle').textContent = email ? 'Edit User' : 'Add Permissions';
   document.getElementById('userRole').value        = '';
   document.getElementById('userForcePasswordChange').checked = false;
+  aupClearPerson();
   if (email) {
     const u = _cachedUsers.find(x => x.email === email);
     if (u) {
-      document.getElementById('userDisplayName').value = u.displayName || '';
       document.getElementById('userRole').value        = u.role || '';
       document.getElementById('userForcePasswordChange').checked = !!u.forcePasswordChange;
+      if (u.userId) aupSelectPerson(u.userId);
     }
   }
   document.getElementById('userModal').classList.add('open');
 }
-function closeUserModal() { document.getElementById('userModal').classList.remove('open'); }
+function closeUserModal() { document.getElementById('userModal').classList.remove('open'); aupClearPerson(); }
 function editUser(email) { openUserModal(email); }
 
 async function saveUser() {
-  const editEmail = document.getElementById('userEditEmail').value;
-  const email = editEmail || document.getElementById('userEmail').value.trim().toLowerCase();
-  const displayName = document.getElementById('userDisplayName').value.trim();
   const role = document.getElementById('userRole').value;
   const forcePasswordChange = document.getElementById('userForcePasswordChange').checked;
-  if (!email) { alert('Email is required.'); return; }
-  if (!role)  { alert('Please select a role.'); return; }
-  const res = await SupaDB.adminUpsertUserRole({ email, displayName, role, forcePasswordChange });
+  if (!_aupSelectedPerson) { alert('Please select a member.'); return; }
+  if (!role) { alert('Please select a role.'); return; }
+  const { userId, name: displayName, email } = _aupSelectedPerson;
+  const res = await SupaDB.adminUpsertUserRole({ userId, email, displayName, role, forcePasswordChange });
   if (res.error) { alert('Error: ' + res.error); return; }
-  // Fire-and-forget: ensures this staff member also has a member profile
-  // (every user should also be a member), without eagerly creating an
-  // account if one doesn't exist yet (createIfMissing: false — stays
-  // pre-authorized only until "Set Up Account" is used).
-  SupaDB.adminProvisionMember({ name: displayName, email, phone: '', groupId: null, createIfMissing: false }).catch(() => {});
   closeUserModal();
   showToast('User saved.');
   renderUsersTable();
