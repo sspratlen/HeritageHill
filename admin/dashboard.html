@@ -7508,6 +7508,12 @@ async function submitCreateUser() {
   try {
     const res = await SupaDB.adminInviteUser({ name, email });
     if (res.error) { alert('Error: ' + res.error); return; }
+    // Fire-and-forget: makes the person immediately available in admin
+    // pickers (e.g. Record Assessment) instead of only after their first
+    // login. Same pattern as the small-group leader auto-registration call
+    // below (bulkRegisterLeadersAttendees). Safe no-op if a profile already
+    // exists, and never touches a password the person may have already set.
+    SupaDB.adminProvisionMember({ name, email, phone: '', groupId: null }).catch(() => {});
     closeCreateUserModal();
     showToast(`Invite sent to ${email}.`);
   } finally {
