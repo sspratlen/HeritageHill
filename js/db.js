@@ -877,40 +877,58 @@ window.SupaDB = {
       return (data || []).map(groupMembershipFromDb);
     } catch(e) { console.error('[SupaDB] adminGetAllCurrentGroupMembers:', e.message); return []; }
   },
-  async adminProvisionMember({ name, email, phone, groupId }) {
+  async adminProvisionMember({ name, email, phone, groupId, createIfMissing = true }) {
     if (!db() || !email) return { error: 'Email required' };
     try {
       const lower = email.toLowerCase();
-      const [profileCheck, roleCheck] = await Promise.all([
-        db().from('member_profiles').select('user_id').eq('email', lower).maybeSingle(),
-        db().from('user_roles').select('email').eq('email', lower).maybeSingle(),
-      ]);
-      if (profileCheck.data || roleCheck.data) return { skipped: true };
+      // Only skip if a member profile already exists — staff status
+      // (a user_roles row) no longer exempts someone from also being a
+      // member. Every user should also be a member.
+      const profileCheck = await db().from('member_profiles').select('user_id').eq('email', lower).maybeSingle();
+      if (profileCheck.data) return { skipped: true };
 
       const { data: { session } } = await db().auth.getSession();
-      const res = await fetch(SUPABASE_URL + '/functions/v1/admin-create-user', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + (session ? session.access_token : ''),
-          'apikey': SUPABASE_ANON_KEY,
-        },
+      const authHeaders = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + (session ? session.access_token : ''),
+        'apikey': SUPABASE_ANON_KEY,
+      };
+
+      let userId;
+      if (createIfMissing) {
         // action: 'createIfNew' — if this email already has an auth account
         // (e.g. self-registered but hasn't visited my-profile.html yet to get
         // a member_profiles row), never touch its password. Just report the
         // existing userId so we can still create the missing profile row.
-        body: JSON.stringify({ email: lower, action: 'createIfNew' }),
-      });
-      const json = await res.json();
-      if (!res.ok || json.error) return { error: json.error || ('HTTP ' + res.status) };
+        // Creates a brand-new account (default temp password) if none exists.
+        const res = await fetch(SUPABASE_URL + '/functions/v1/admin-create-user', {
+          method: 'POST', headers: authHeaders,
+          body: JSON.stringify({ email: lower, action: 'createIfNew' }),
+        });
+        const json = await res.json();
+        if (!res.ok || json.error) return { error: json.error || ('HTTP ' + res.status) };
+        userId = json.userId;
+      } else {
+        // action: 'lookup' — side-effect-free existence check. Never creates
+        // an account; if none exists yet, this email stays pre-authorized
+        // only (e.g. via Add User) until "Set Up Account" is used separately.
+        const res = await fetch(SUPABASE_URL + '/functions/v1/admin-create-user', {
+          method: 'POST', headers: authHeaders,
+          body: JSON.stringify({ email: lower, action: 'lookup' }),
+        });
+        const json = await res.json();
+        if (!res.ok || json.error) return { error: json.error || ('HTTP ' + res.status) };
+        if (!json.exists) return { skipped: true };
+        userId = json.userId;
+      }
 
       const personId = await this.upsertPerson({ name: name || lower, email: lower, phone });
       const { error: insertErr } = await db().from('member_profiles').insert({
-        user_id: json.userId, name: name || lower, email: lower, phone: phone || '',
+        user_id: userId, name: name || lower, email: lower, phone: phone || '',
         group_id: groupId || null, status: 'approved', person_id: personId,
       });
       if (insertErr) return { error: insertErr.message };
-      return { created: true, userId: json.userId };
+      return { created: true, userId };
     } catch(e) { console.error('[SupaDB] adminProvisionMember:', e.message); return { error: e.message }; }
   },
   async adminAddGroupMember(m) {
